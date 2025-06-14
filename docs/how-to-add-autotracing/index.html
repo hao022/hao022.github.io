@@ -8,12 +8,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <title>添加追踪功能</title>
-<meta name="author" content="DevCows" />
+<meta name="author" content="HAO022" />
 
 
 
 
-<meta name="keywords" content="devcows, hugo, go">
+<meta name="keywords" content="HUATUO, BPF, 可观测性">
 
 
 <meta name="description" content="Site template made by Devcows using Hugo">
@@ -36,7 +36,7 @@
 
 
 
-<link href="/css/custom.css?1749860183" rel="stylesheet">
+<link href="/css/custom.css?1749909615" rel="stylesheet">
 
 
 
@@ -384,6 +384,21 @@
 
                   
                   <li class="dropdown ">
+                    <a href="/contact/">联系我们</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
                     <a href="/about/">关于我们</a>
                   </li>
                   
@@ -533,10 +548,76 @@
 
                         
 
+<div class="panel panel-default sidebar-menu">
+
+    <div class="panel-heading">
+      <h3 class="panel-title">搜索</h3>
+    </div>
+
+    <div class="panel-body">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" role="search">
+            <div class="input-group">
+                <input type="search" name="q" class="form-control" placeholder="搜索" />
+                <input type="hidden" name="sitesearch" value="/" />
+                <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">标签</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/tags/huatuo"><i class="fas fa-tags"></i> huatuo</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e4%ba%8b%e4%bb%b6%e6%8c%87%e6%a0%87"><i class="fas fa-tags"></i> 事件指标</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e4%ba%8b%e4%bb%b6%e9%a9%b1%e5%8a%a8"><i class="fas fa-tags"></i> 事件驱动</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%aa%81%e5%a2%9e%e6%8d%95%e8%8e%b7"><i class="fas fa-tags"></i> 突增捕获</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%bb%9f%e8%ae%a1%e6%8c%87%e6%a0%87"><i class="fas fa-tags"></i> 统计指标</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e8%bf%bd%e8%b8%aa%e6%8c%87%e6%a0%87"><i class="fas fa-tags"></i> 追踪指标</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
 
 
 
@@ -627,6 +708,20 @@
     
 
     
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
 <script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
 <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
 
