@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>事件指标</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, 事件指标, 事件驱动">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 开源发展委员会孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='//fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300italic,500,700,800' rel='stylesheet' type='text/css'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1754697527" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="HUATUO 开源技术">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en_us">
+<meta property="og:site_name" content="HUATUO 开源技术">
+<meta property="og:title" content="事件指标">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://huatuo.tech/docs/events/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 开源发展委员会孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/sharing-default.png">
+<meta property="og:image:type" content="image/png">
+
+
+
+  <meta property="og:image:width" content="428">
+  <meta property="og:image:height" content="149">
+
+
+<meta property="og:updated_time" content="2025-08-08T23:58:45Z">
+
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="事件指标">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/sharing-default.png">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 开源发展委员会孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+    
+  </head>
+
+  <body>
+
+    <div id="all">
+
+        
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm " role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/logo.png" alt="事件指标 logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/logo-small.png" alt="事件指标 logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">事件指标 - 跳到主页</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">切换导航</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/quickstart/">快速开始</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown use-yamm yamm-fw ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">文档 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            <li>
+                            <div class="yamm-content">
+                            <div class="row">
+                                
+                                <div class="col-sm-3">
+                                
+                                    
+                                    
+                                    <h5>指标文档</h5>
+                                    
+                                    <ul>
+                                    
+                                    <li><a href="/docs/metrics">统计指标</a></li>
+                                    <li><a href="/docs/events">事件指标</a></li>
+                                    <li><a href="/docs/autotracing">追踪指标</a></li>
+                                    </ul>
+                                    
+                                    
+                                
+                                    
+                                    
+                                
+                                    
+                                    
+                                    <h5>故障案例</h5>
+                                    
+                                    <ul>
+                                    
+                                    <li><a href="">案例汇总</a></li>
+                                    </ul>
+                                    
+                                    
+                                
+                                </div>
+                                <div class="col-sm-3">
+                                
+                                    
+                                    
+                                
+                                    
+                                    
+                                    <h5>开发者文档</code></h5>
+                                    
+                                    <ul>
+                                    
+                                    <li><a href="/docs/how-to-add-metrcis">添加统计指标</a></li>
+                                    
+                                    <li><a href="/docs/how-to-add-events">添加事件指标</a></li>
+                                    
+                                    <li><a href="/docs/how-to-add-autotracing">添加追踪功能</a></li>
+                                    
+                                    </ul>
+                                    
+                                    
+                                
+                                    
+                                    
+                                
+                                </div>
+                                
+                                <div class="col-sm-3">
+                                
+                                    
+                                    
+                                
+                                    
+                                    
+                                
+                                    
+                                    
+                                
+                                </div>
+                                <div class="col-sm-3">
+                                
+                                    
+                                    
+                                
+                                    
+                                    
+                                
+                                    
+                                    
+                                
+                                </div>
+                                
+                            </div>
+                            </div>
+                            </li>
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown use-yamm yamm-fw ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">特性 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            <li>
+                            <div class="yamm-content">
+                            <div class="row">
+                                
+                                <div class="col-sm-3">
+                                
+                                    
+                                    
+                                    <h5>V1.0</h5>
+                                    
+                                    <ul>
+                                    
+                                    <li><a href="">内存管理指标事件</a></li>
+                                    <li><a href="">网络栈指标事件</a></li>
+                                    <li><a href="">网卡设备指标事件</a></li>
+                                    <li><a href="">LACP 指标事件</a></li>
+                                    <li><a href="">IO 块设备指标事件</a></li>
+                                    <li><a href="">调度指标事件</a></li>
+                                    <li><a href="">hungtask 指标事件</a></li>
+                                    <li><a href="">CPU idle 突增捕获</a></li>
+                                    <li><a href="">CPU sys 突增捕获</a></li>
+                                    <li><a href="">loadavg 突增捕获</a></li>
+                                    <li><a href="">网络接收延迟捕获</a></li>
+                                    <li><a href="">网络丢包捕获</a></li>
+                                    <li><a href="">内存回收耗时捕获</a></li>
+                                    <li><a href="">软中断耗时捕获</a></li>
+                                    <li><a href="">K8S 容器管理</a></li>
+                                    <li><a href="">BPF 管理框架</a></li>
+                                    <li><a href="">指标事件框架</a></li>
+                                    <li><a href="">ES/Local/Prom 存储</a></li>
+                                    <li><a href="">火焰图生成器</a></li>
+                                    </ul>
+                                    
+                                    
+                                
+                                    
+                                    
+                                
+                                </div>
+                                <div class="col-sm-3">
+                                
+                                    
+                                    
+                                
+                                    
+                                    
+                                    <h5>V2.0</code></h5>
+                                    
+                                    <ul>
+                                    
+                                    <li><a href="">SYNC/TCP 指标</a></li>
+                                    
+                                    <li><a href="">网卡硬件丢包指标</a></li>
+                                    
+                                    <li><a href="">文件系统指标</a></li>
+                                    
+                                    <li><a href="">内存突增捕获</a></li>
+                                    
+                                    <li><a href="">IO 突增捕获</a></li>
+                                    
+                                    <li><a href="">持续性能剖析</a></li>
+                                    
+                                    <li><a href="">分布式链接追踪</a></li>
+                                    
+                                    <li><a href="">硬件故障检测</a></li>
+                                    
+                                    <li><a href="">火焰图 2.0</a></li>
+                                    
+                                    </ul>
+                                    
+                                    
+                                
+                                </div>
+                                
+                                <div class="col-sm-3">
+                                
+                                    
+                                    
+                                
+                                    
+                                    
+                                
+                                </div>
+                                <div class="col-sm-3">
+                                
+                                    
+                                    
+                                
+                                    
+                                    
+                                
+                                </div>
+                                
+                            </div>
+                            </div>
+                            </li>
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">下载 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="/">v1.0</a></li>
+                            
+                            <li><a href="/">latest</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/blog/">博客</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/contact/">联系我们</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/about/">关于我们</a>
+                  </li>
+                  
+                  
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        <div id="heading-breadcrumbs">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>事件指标</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+        <div id="content">
+            <div class="container">
+
+                <div class="row">
+
+                    
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                          <p class="text-muted text-uppercase mb-small text-right">
+                            
+                                
+                                最后更新: 2025-08-08,
+			                    作者: <a href="/authors/hao022">hao022</a>, <a href="/authors/fanzu8">fanzu8</a>
+                            
+                          </p>
+                        
+
+                        <div id="post-content">
+                          <h3 id="总览">总览</h3>
+<p>HUATUO 目前支持的异常上下文捕获事件如下：</p>
+<table>
+  <thead>
+      <tr>
+          <th>事件名称</th>
+          <th>核心功能</th>
+          <th>场景</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>softirq</td>
+          <td>宿主软中断延迟响应或长期关闭，输出长时间关闭软中断的内核调用栈，进程信息等</td>
+          <td>该类问题会严重影响网络收发，进而导致业务毛刺或者超时等其他问题</td>
+      </tr>
+      <tr>
+          <td>dropwatch</td>
+          <td>TCP 数据包丢包检测，输出发生丢包时主机、网络上下文信息等</td>
+          <td>该类问题主要会引起业务毛刺和延迟</td>
+      </tr>
+      <tr>
+          <td>netrecvlat</td>
+          <td>在网络收方向获取数据包从驱动、协议栈、到用户主动收过程的延迟事件</td>
+          <td>网络延迟问题中有一类是数据传输阶段收方向存在延迟，但不清楚是延迟位置，netrecvlat 根据 skb 入网卡时间戳依次在驱动、协议栈和用户拷贝数据等路径计算延迟，通过预先设定的阈值过滤超时的数据包，定位延迟位置</td>
+      </tr>
+      <tr>
+          <td>oom</td>
+          <td>检测宿主或容器内 oom 事件</td>
+          <td>当宿主机层面或者容器维度发生 oom 事件时，能够获取触发 oom 的进程信息、被 kill 的进程信息以及容器信息，便于定位进程内存泄漏、异常退出等问题</td>
+      </tr>
+      <tr>
+          <td>softlockup</td>
+          <td>当系统上发生 softlockup 时，收集目标进程信息以及 cpu 信息，同时获取各个 cpu 上的内核栈信息</td>
+          <td>系统发生 softlockup</td>
+      </tr>
+      <tr>
+          <td>hungtask</td>
+          <td>提供系统内所有 D 状态进程数量、内核栈信息</td>
+          <td>用于定位瞬时出现 D 进程的场景，能及时保留现场便于后期问题跟踪</td>
+      </tr>
+      <tr>
+          <td>memreclaim</td>
+          <td>进程进入直接回收的耗时，超过时间阈值，记录进程信息</td>
+          <td>内存压力过大时，如果此时进程申请内存，有可能进入直接回收，此时处于同步回收阶段，可能会造成业务进程的卡顿，此时记录进程进入直接回收的时间，有助于我们判断此进程被直接回收影响的剧烈程度</td>
+      </tr>
+      <tr>
+          <td>netdev</td>
+          <td>检测网卡状态变化</td>
+          <td>网卡抖动、bond 环境下 slave 异常等</td>
+      </tr>
+      <tr>
+          <td>lacp</td>
+          <td>检测 lacp 状态变化</td>
+          <td>bond 模式 4 下，监控 lacp 协商状态</td>
+      </tr>
+  </tbody>
+</table>
+<h3 id="软中断关闭过长检测">软中断关闭过长检测</h3>
+<p><strong>功能介绍</strong></p>
+<p>Linux 内核存在进程上下文，中断上下文，软中断上下文，NMI 上下文等概念，这些上下文之间可能存在共享数据情况，因此为了确保数据的一致性，正确性，内核代码可能会关闭软中断或者硬中断。从理论角度，单次关闭中断或者软中断时间不能太长，但高频的系统调用，陷入内核态频繁执行关闭中断或软中断，同样会造&quot;长时间关闭&quot;的现象，拖慢了系统的响应。“关闭中断，软中断时间过长”这类问题非常隐蔽，且定位手段有限，同时影响又非常大，体现在业务应用上一般为接收数据超时。针对这种场景我们基于BPF技术构建了检测硬件中断，软件中断关闭过长的能力。</p>
+<p><strong>示例</strong></p>
+<p>如下为抓取到的关闭中断过长的实例，这些信息被自动上传到 ES.</p>
+<pre tabindex="0"><code>{
+  &#34;_index&#34;: &#34;***_2025-06-11&#34;,
+  &#34;_type&#34;: &#34;_doc&#34;,
+  &#34;_id&#34;: &#34;***&#34;,
+  &#34;_score&#34;: 0,
+  &#34;_source&#34;: {
+    &#34;uploaded_time&#34;: &#34;2025-06-11T16:05:16.251152703+08:00&#34;,
+    &#34;hostname&#34;: &#34;***&#34;,
+    &#34;tracer_data&#34;: {
+      &#34;comm&#34;: &#34;observe-agent&#34;,
+      &#34;stack&#34;: &#34;stack:\nscheduler_tick/ffffffffa471dbc0 [kernel]\nupdate_process_times/ffffffffa4789240 [kernel]\ntick_sched_handle.isra.8/ffffffffa479afa0 [kernel]\ntick_sched_timer/ffffffffa479b000 [kernel]\n__hrtimer_run_queues/ffffffffa4789b60 [kernel]\nhrtimer_interrupt/ffffffffa478a610 [kernel]\n__sysvec_apic_timer_interrupt/ffffffffa4661a60 [kernel]\nasm_call_sysvec_on_stack/ffffffffa5201130 [kernel]\nsysvec_apic_timer_interrupt/ffffffffa5090500 [kernel]\nasm_sysvec_apic_timer_interrupt/ffffffffa5200d30 [kernel]\ndump_stack/ffffffffa506335e [kernel]\ndump_header/ffffffffa5058eb0 [kernel]\noom_kill_process.cold.9/ffffffffa505921a [kernel]\nout_of_memory/ffffffffa48a1740 [kernel]\nmem_cgroup_out_of_memory/ffffffffa495ff70 [kernel]\ntry_charge/ffffffffa4964ff0 [kernel]\nmem_cgroup_charge/ffffffffa4968de0 [kernel]\n__add_to_page_cache_locked/ffffffffa4895c30 [kernel]\nadd_to_page_cache_lru/ffffffffa48961a0 [kernel]\npagecache_get_page/ffffffffa4897ad0 [kernel]\ngrab_cache_page_write_begin/ffffffffa4899d00 [kernel]\niomap_write_begin/ffffffffa49fddc0 [kernel]\niomap_write_actor/ffffffffa49fe980 [kernel]\niomap_apply/ffffffffa49fbd20 [kernel]\niomap_file_buffered_write/ffffffffa49fc040 [kernel]\nxfs_file_buffered_aio_write/ffffffffc0f3bed0 [xfs]\nnew_sync_write/ffffffffa497ffb0 [kernel]\nvfs_write/ffffffffa4982520 [kernel]\nksys_write/ffffffffa4982880 [kernel]\ndo_syscall_64/ffffffffa508d190 [kernel]\nentry_SYSCALL_64_after_hwframe/ffffffffa5200078 [kernel]&#34;,
+      &#34;now&#34;: 5532940660025295,
+      &#34;offtime&#34;: 237328905,
+      &#34;cpu&#34;: 1,
+      &#34;threshold&#34;: 100000000,
+      &#34;pid&#34;: 688073
+    },
+    &#34;tracer_time&#34;: &#34;2025-06-11 16:05:16.251 +0800&#34;,
+    &#34;tracer_type&#34;: &#34;auto&#34;,
+    &#34;time&#34;: &#34;2025-06-11 16:05:16.251 +0800&#34;,
+    &#34;region&#34;: &#34;***&#34;,
+    &#34;tracer_name&#34;: &#34;softirq&#34;,
+    &#34;es_index_time&#34;: 1749629116268
+  },
+  &#34;fields&#34;: {
+    &#34;time&#34;: [
+      &#34;2025-06-11T08:05:16.251Z&#34;
+    ]
+  },
+  &#34;_ignored&#34;: [
+    &#34;tracer_data.stack&#34;
+  ],
+  &#34;_version&#34;: 1,
+  &#34;sort&#34;: [
+    1749629116251
+  ]
+}
+</code></pre><p>本地物理机也会存储一份相同的数据：</p>
+<pre tabindex="0"><code>2025-06-11 16:05:16 *** Region=***
+{
+  &#34;hostname&#34;: &#34;***&#34;,
+  &#34;region&#34;: &#34;***&#34;,
+  &#34;uploaded_time&#34;: &#34;2025-06-11T16:05:16.251152703+08:00&#34;,
+  &#34;time&#34;: &#34;2025-06-11 16:05:16.251 +0800&#34;,
+  &#34;tracer_name&#34;: &#34;softirq&#34;,
+  &#34;tracer_time&#34;: &#34;2025-06-11 16:05:16.251 +0800&#34;,
+  &#34;tracer_type&#34;: &#34;auto&#34;,
+  &#34;tracer_data&#34;: {
+    &#34;offtime&#34;: 237328905,
+    &#34;threshold&#34;: 100000000,
+    &#34;comm&#34;: &#34;observe-agent&#34;,
+    &#34;pid&#34;: 688073,
+    &#34;cpu&#34;: 1,
+    &#34;now&#34;: 5532940660025295,
+    &#34;stack&#34;: &#34;stack:\nscheduler_tick/ffffffffa471dbc0 [kernel]\nupdate_process_times/ffffffffa4789240 [kernel]\ntick_sched_handle.isra.8/ffffffffa479afa0 [kernel]\ntick_sched_timer/ffffffffa479b000 [kernel]\n__hrtimer_run_queues/ffffffffa4789b60 [kernel]\nhrtimer_interrupt/ffffffffa478a610 [kernel]\n__sysvec_apic_timer_interrupt/ffffffffa4661a60 [kernel]\nasm_call_sysvec_on_stack/ffffffffa5201130 [kernel]\nsysvec_apic_timer_interrupt/ffffffffa5090500 [kernel]\nasm_sysvec_apic_timer_interrupt/ffffffffa5200d30 [kernel]\ndump_stack/ffffffffa506335e [kernel]\ndump_header/ffffffffa5058eb0 [kernel]\noom_kill_process.cold.9/ffffffffa505921a [kernel]\nout_of_memory/ffffffffa48a1740 [kernel]\nmem_cgroup_out_of_memory/ffffffffa495ff70 [kernel]\ntry_charge/ffffffffa4964ff0 [kernel]\nmem_cgroup_charge/ffffffffa4968de0 [kernel]\n__add_to_page_cache_locked/ffffffffa4895c30 [kernel]\nadd_to_page_cache_lru/ffffffffa48961a0 [kernel]\npagecache_get_page/ffffffffa4897ad0 [kernel]\ngrab_cache_page_write_begin/ffffffffa4899d00 [kernel]\niomap_write_begin/ffffffffa49fddc0 [kernel]\niomap_write_actor/ffffffffa49fe980 [kernel]\niomap_apply/ffffffffa49fbd20 [kernel]\niomap_file_buffered_write/ffffffffa49fc040 [kernel]\nxfs_file_buffered_aio_write/ffffffffc0f3bed0 [xfs]\nnew_sync_write/ffffffffa497ffb0 [kernel]\nvfs_write/ffffffffa4982520 [kernel]\nksys_write/ffffffffa4982880 [kernel]\ndo_syscall_64/ffffffffa508d190 [kernel]\nentry_SYSCALL_64_after_hwframe/ffffffffa5200078 [kernel]&#34;
+  }
+}
+</code></pre><h3 id="协议栈丢包检测">协议栈丢包检测</h3>
+<p><strong>功能介绍</strong></p>
+<p>在数据包收发过程中由于各类原因，可能出现丢包的现象，丢包可能会导致业务请求延迟，甚至超时。dropwatch 借助 eBPF 观测内核网络数据包丢弃情况，输出丢包网络上下文，如：源目的地址，源目的端口，seq, seqack, pid, comm, stack 信息等。dorpwatch 主要用于检测 TCP 协议相关的丢包，通过预先埋点过滤数据包，确定丢包位置以便于排查丢包根因。</p>
+<p><strong>示例</strong></p>
+<p>通过 dropwatch 抓取到的相关信息会自动上传到 ES。如下为抓取到的一案例：kubelet 在发送 SYN 时，由于设备丢包，导致数据包发送失败。</p>
+<pre tabindex="0"><code>{
+  &#34;_index&#34;: &#34;***_2025-06-11&#34;,
+  &#34;_type&#34;: &#34;_doc&#34;,
+  &#34;_id&#34;: &#34;***&#34;,
+  &#34;_score&#34;: 0,
+  &#34;_source&#34;: {
+    &#34;uploaded_time&#34;: &#34;2025-06-11T16:58:15.100223795+08:00&#34;,
+    &#34;hostname&#34;: &#34;***&#34;,
+    &#34;tracer_data&#34;: {
+      &#34;comm&#34;: &#34;kubelet&#34;,
+      &#34;stack&#34;: &#34;kfree_skb/ffffffff9a0cd5c0 [kernel]\nkfree_skb/ffffffff9a0cd5c0 [kernel]\nkfree_skb_list/ffffffff9a0cd670 [kernel]\n__dev_queue_xmit/ffffffff9a0ea020 [kernel]\nip_finish_output2/ffffffff9a18a720 [kernel]\n__ip_queue_xmit/ffffffff9a18d280 [kernel]\n__tcp_transmit_skb/ffffffff9a1ad890 [kernel]\ntcp_connect/ffffffff9a1ae610 [kernel]\ntcp_v4_connect/ffffffff9a1b3450 [kernel]\n__inet_stream_connect/ffffffff9a1d25f0 [kernel]\ninet_stream_connect/ffffffff9a1d2860 [kernel]\n__sys_connect/ffffffff9a0c1170 [kernel]\n__x64_sys_connect/ffffffff9a0c1240 [kernel]\ndo_syscall_64/ffffffff9a2ea9f0 [kernel]\nentry_SYSCALL_64_after_hwframe/ffffffff9a400078 [kernel]&#34;,
+      &#34;saddr&#34;: &#34;10.79.68.62&#34;,
+      &#34;pid&#34;: 1687046,
+      &#34;type&#34;: &#34;common_drop&#34;,
+      &#34;queue_mapping&#34;: 11,
+      &#34;dport&#34;: 2052,
+      &#34;pkt_len&#34;: 74,
+      &#34;ack_seq&#34;: 0,
+      &#34;daddr&#34;: &#34;10.179.142.26&#34;,
+      &#34;state&#34;: &#34;SYN_SENT&#34;,
+      &#34;src_hostname&#34;: &#34;***&#34;,
+      &#34;sport&#34;: 15402,
+      &#34;dest_hostname&#34;: &#34;***&#34;,
+      &#34;seq&#34;: 1902752773,
+      &#34;max_ack_backlog&#34;: 0
+    },
+    &#34;tracer_time&#34;: &#34;2025-06-11 16:58:15.099 +0800&#34;,
+    &#34;tracer_type&#34;: &#34;auto&#34;,
+    &#34;time&#34;: &#34;2025-06-11 16:58:15.099 +0800&#34;,
+    &#34;region&#34;: &#34;***&#34;,
+    &#34;tracer_name&#34;: &#34;dropwatch&#34;,
+    &#34;es_index_time&#34;: 1749632295120
+  },
+  &#34;fields&#34;: {
+    &#34;time&#34;: [
+      &#34;2025-06-11T08:58:15.099Z&#34;
+    ]
+  },
+  &#34;_ignored&#34;: [
+    &#34;tracer_data.stack&#34;
+  ],
+  &#34;_version&#34;: 1,
+  &#34;sort&#34;: [
+    1749632295099
+  ]
+}
+</code></pre><p>本地物理机也会存储一份相同的数据：</p>
+<pre tabindex="0"><code>2025-06-11 16:58:15 Host=*** Region=***
+{
+  &#34;hostname&#34;: &#34;***&#34;,
+  &#34;region&#34;: &#34;***&#34;,
+  &#34;uploaded_time&#34;: &#34;2025-06-11T16:58:15.100223795+08:00&#34;,
+  &#34;time&#34;: &#34;2025-06-11 16:58:15.099 +0800&#34;,
+  &#34;tracer_name&#34;: &#34;dropwatch&#34;,
+  &#34;tracer_time&#34;: &#34;2025-06-11 16:58:15.099 +0800&#34;,
+  &#34;tracer_type&#34;: &#34;auto&#34;,
+  &#34;tracer_data&#34;: {
+    &#34;type&#34;: &#34;common_drop&#34;,
+    &#34;comm&#34;: &#34;kubelet&#34;,
+    &#34;pid&#34;: 1687046,
+    &#34;saddr&#34;: &#34;10.79.68.62&#34;,
+    &#34;daddr&#34;: &#34;10.179.142.26&#34;,
+    &#34;sport&#34;: 15402,
+    &#34;dport&#34;: 2052,
+    &#34;src_hostname&#34;: ***&#34;,
+    &#34;dest_hostname&#34;: &#34;***&#34;,
+    &#34;max_ack_backlog&#34;: 0,
+    &#34;seq&#34;: 1902752773,
+    &#34;ack_seq&#34;: 0,
+    &#34;queue_mapping&#34;: 11,
+    &#34;pkt_len&#34;: 74,
+    &#34;state&#34;: &#34;SYN_SENT&#34;,
+    &#34;stack&#34;: &#34;kfree_skb/ffffffff9a0cd5c0 [kernel]\nkfree_skb/ffffffff9a0cd5c0 [kernel]\nkfree_skb_list/ffffffff9a0cd670 [kernel]\n__dev_queue_xmit/ffffffff9a0ea020 [kernel]\nip_finish_output2/ffffffff9a18a720 [kernel]\n__ip_queue_xmit/ffffffff9a18d280 [kernel]\n__tcp_transmit_skb/ffffffff9a1ad890 [kernel]\ntcp_connect/ffffffff9a1ae610 [kernel]\ntcp_v4_connect/ffffffff9a1b3450 [kernel]\n__inet_stream_connect/ffffffff9a1d25f0 [kernel]\ninet_stream_connect/ffffffff9a1d2860 [kernel]\n__sys_connect/ffffffff9a0c1170 [kernel]\n__x64_sys_connect/ffffffff9a0c1240 [kernel]\ndo_syscall_64/ffffffff9a2ea9f0 [kernel]\nentry_SYSCALL_64_after_hwframe/ffffffff9a400078 [kernel]&#34;
+  }
+}
+</code></pre><h3 id="协议栈收包延迟">协议栈收包延迟</h3>
+<p><strong>功能介绍</strong></p>
+<p>线上业务网络延迟问题是比较难定位的，任何方向，任何的阶段都有可能出现问题。比如收方向的延迟，驱动、协议栈、用户程序等都有可能出现问题，因此我们开发了 netrecvlat 检测功能，借助 skb 入网卡的时间戳，在驱动，协议栈层，用户态层检查延迟时间，当收包延迟达到阈值时，借助 eBPF 获取网络上下文信息（五元组、延迟位置、进程信息等）。收方向传输路径示意：<strong>网卡 -&gt; 驱动 -&gt; 协议栈 -&gt; 用户主动收</strong></p>
+<p><strong>示例</strong></p>
+<p>一个业务容器从内核收包延迟超过 90s，通过 netrecvlat 追踪，ES 查询输出如下：</p>
+<pre tabindex="0"><code>{
+  &#34;_index&#34;: &#34;***_2025-06-11&#34;,
+  &#34;_type&#34;: &#34;_doc&#34;,
+  &#34;_id&#34;: &#34;***&#34;,
+  &#34;_score&#34;: 0,
+  &#34;_source&#34;: {
+    &#34;tracer_data&#34;: {
+      &#34;dport&#34;: 49000,
+      &#34;pkt_len&#34;: 26064,
+      &#34;comm&#34;: &#34;nginx&#34;,
+      &#34;ack_seq&#34;: 689410995,
+      &#34;saddr&#34;: &#34;10.156.248.76&#34;,
+      &#34;pid&#34;: 2921092,
+      &#34;where&#34;: &#34;TO_USER_COPY&#34;,
+      &#34;state&#34;: &#34;ESTABLISHED&#34;,
+      &#34;daddr&#34;: &#34;10.134.72.4&#34;,
+      &#34;sport&#34;: 9213,
+      &#34;seq&#34;: 1009085774,
+      &#34;latency_ms&#34;: 95973
+    },
+    &#34;container_host_namespace&#34;: &#34;***&#34;,
+    &#34;container_hostname&#34;: &#34;***.docker&#34;,
+    &#34;es_index_time&#34;: 1749628496541,
+    &#34;uploaded_time&#34;: &#34;2025-06-11T15:54:56.404864955+08:00&#34;,
+    &#34;hostname&#34;: &#34;***&#34;,
+    &#34;container_type&#34;: &#34;normal&#34;,
+    &#34;tracer_time&#34;: &#34;2025-06-11 15:54:56.404 +0800&#34;,
+    &#34;time&#34;: &#34;2025-06-11 15:54:56.404 +0800&#34;,
+    &#34;region&#34;: &#34;***&#34;,
+    &#34;container_level&#34;: &#34;1&#34;,
+    &#34;container_id&#34;: &#34;***&#34;,
+    &#34;tracer_name&#34;: &#34;netrecvlat&#34;
+  },
+  &#34;fields&#34;: {
+    &#34;time&#34;: [
+      &#34;2025-06-11T07:54:56.404Z&#34;
+    ]
+  },
+  &#34;_version&#34;: 1,
+  &#34;sort&#34;: [
+    1749628496404
+  ]
+}
+</code></pre><p>本地物理机也会存储一份相同的数据：</p>
+<pre tabindex="0"><code>2025-06-11 15:54:46 Host=*** Region=*** ContainerHost=***.docker ContainerID=*** ContainerType=normal ContainerLevel=1
+{
+  &#34;hostname&#34;: &#34;***&#34;,
+  &#34;region&#34;: &#34;***&#34;,
+  &#34;container_id&#34;: &#34;***&#34;,
+  &#34;container_hostname&#34;: &#34;***.docker&#34;,
+  &#34;container_host_namespace&#34;: &#34;***&#34;,
+  &#34;container_type&#34;: &#34;normal&#34;,
+  &#34;container_level&#34;: &#34;1&#34;,
+  &#34;uploaded_time&#34;: &#34;2025-06-11T15:54:46.129136232+08:00&#34;,
+  &#34;time&#34;: &#34;2025-06-11 15:54:46.129 +0800&#34;,
+  &#34;tracer_time&#34;: &#34;2025-06-11 15:54:46.129 +0800&#34;,
+  &#34;tracer_name&#34;: &#34;netrecvlat&#34;,
+  &#34;tracer_data&#34;: {
+    &#34;comm&#34;: &#34;nginx&#34;,
+    &#34;pid&#34;: 2921092,
+    &#34;where&#34;: &#34;TO_USER_COPY&#34;,
+    &#34;latency_ms&#34;: 95973,
+    &#34;state&#34;: &#34;ESTABLISHED&#34;,
+    &#34;saddr&#34;: &#34;10.156.248.76&#34;,
+    &#34;daddr&#34;: &#34;10.134.72.4&#34;,
+    &#34;sport&#34;: 9213,
+    &#34;dport&#34;: 49000,
+    &#34;seq&#34;: 1009024958,
+    &#34;ack_seq&#34;: 689410995,
+    &#34;pkt_len&#34;: 20272
+  }
+}
+</code></pre><h3 id="物理机容器内存超用">物理机、容器内存超用</h3>
+<p><strong>功能介绍</strong></p>
+<p>程序运行时申请的内存超过了系统或进程可用的内存上限，导致系统或应用程序崩溃。常见于内存泄漏、大数据处理或资源配置不足的场景。通过在 oom 的内核流程插入 BPF 钩子，获取 oom 上下文的详细信息并传递到用户态。这些信息包括进程信息、被 kill 的进程信息、容器信息。</p>
+<p><strong>示例</strong></p>
+<p>一个容器内发生 oom 时，被抓取的信息如下：</p>
+<pre tabindex="0"><code>{
+  &#34;_index&#34;: &#34;***_cases_2025-06-11&#34;,
+  &#34;_type&#34;: &#34;_doc&#34;,
+  &#34;_id&#34;: &#34;***&#34;,
+  &#34;_score&#34;: 0,
+  &#34;_source&#34;: {
+    &#34;uploaded_time&#34;: &#34;2025-06-11T17:09:07.236482841+08:00&#34;,
+    &#34;hostname&#34;: &#34;***&#34;,
+    &#34;tracer_data&#34;: {
+      &#34;victim_process_name&#34;: &#34;java&#34;,
+      &#34;trigger_memcg_css&#34;: &#34;0xff4b8d8be3818000&#34;,
+      &#34;victim_container_hostname&#34;: &#34;***.docker&#34;,
+      &#34;victim_memcg_css&#34;: &#34;0xff4b8d8be3818000&#34;,
+      &#34;trigger_process_name&#34;: &#34;java&#34;,
+      &#34;victim_pid&#34;: 3218745,
+      &#34;trigger_pid&#34;: 3218804,
+      &#34;trigger_container_hostname&#34;: &#34;***.docker&#34;,
+      &#34;victim_container_id&#34;: &#34;***&#34;,
+      &#34;trigger_container_id&#34;: &#34;***&#34;,
+    &#34;tracer_time&#34;: &#34;2025-06-11 17:09:07.236 +0800&#34;,
+    &#34;tracer_type&#34;: &#34;auto&#34;,
+    &#34;time&#34;: &#34;2025-06-11 17:09:07.236 +0800&#34;,
+    &#34;region&#34;: &#34;***&#34;,
+    &#34;tracer_name&#34;: &#34;oom&#34;,
+    &#34;es_index_time&#34;: 1749632947258
+  },
+  &#34;fields&#34;: {
+    &#34;time&#34;: [
+      &#34;2025-06-11T09:09:07.236Z&#34;
+    ]
+  },
+  &#34;_version&#34;: 1,
+  &#34;sort&#34;: [
+    1749632947236
+  ]
+}
+</code></pre><p>另外 oom event 还实现了 <code>Collector</code> 接口，这样还会通过 Prometheus 统计宿主 oom 发生的次数，并区分宿主机和容器的事件。</p>
+<h3 id="内核-softlockup">内核 softlockup</h3>
+<p><strong>功能介绍</strong></p>
+<p>softlockup 是 Linux 内核检测到的一种异常状态，指某个 CPU 核心上的内核线程（或进程）长时间占用 CPU 且不调度，导致系统无法正常响应其他任务。如内核代码 bug、cpu 过载、设备驱动问题等都会导致 softlockup。当系统发生 softlockup 时，收集目标进程的信息以及 cpu 信息，获取各个 cpu 上的内核栈信息同时保存问题的发生次数。</p>
+<h3 id="进程阻塞">进程阻塞</h3>
+<p><strong>功能介绍</strong></p>
+<p>D 状态进程（也称为不可中断睡眠状态，Uninterruptible）是一种特殊的进程状态，表示进程因等待某些系统资源而阻塞，且不能被信号或外部中断唤醒。常见场景如：磁盘 I/O 操作、内核阻塞、硬件故障等。hungtask 捕获系统内所有 D 状态进程的内核栈并保存 D 进程的数量。用于定位瞬间出现一些 D 进程的场景，可以在现场消失后仍然分析到问题根因。</p>
+<p><strong>示例</strong></p>
+<pre tabindex="0"><code>{
+  &#34;_index&#34;: &#34;***_2025-06-10&#34;,
+  &#34;_type&#34;: &#34;_doc&#34;,
+  &#34;_id&#34;: &#34;8yyOV5cBGoYArUxjSdvr&#34;,
+  &#34;_score&#34;: 0,
+  &#34;_source&#34;: {
+    &#34;uploaded_time&#34;: &#34;2025-06-10T09:57:12.202191192+08:00&#34;,
+    &#34;hostname&#34;: &#34;***&#34;,
+    &#34;tracer_data&#34;: {
+      &#34;cpus_stack&#34;: &#34;2025-06-10 09:57:14 sysrq: Show backtrace of all active CPUs\n2025-06-10 09:57:14 NMI backtrace for cpu 33\n2025-06-10 09:57:14 CPU: 33 PID: 768309 Comm: huatuo-bamai Kdump: loaded Tainted: G S      W  OEL    5.10.0-216.0.0.115.v1.0.x86_64 #1\n2025-06-10 09:57:14 Hardware name: Inspur SA5212M5/YZMB-00882-104, BIOS 4.1.12 11/27/2019\n2025-06-10 09:57:14 Call Trace:\n2025-06-10 09:57:14  dump_stack+0x57/0x6e\n2025-06-10 09:57:14  nmi_cpu_backtrace.cold.0+0x30/0x65\n2025-06-10 09:57:14  ? lapic_can_unplug_cpu+0x80/0x80\n2025-06-10 09:57:14  nmi_trigger_cpumask_backtrace+0xdf/0xf0\n2025-06-10 09:57:14  arch_trigger_cpumask_backtrace+0x15/0x20\n2025-06-10 09:57:14  sysrq_handle_showallcpus+0x14/0x90\n2025-06-10 09:57:14  __handle_sysrq.cold.8+0x77/0xe8\n2025-06-10 09:57:14  write_sysrq_trigger+0x3d/0x60\n2025-06-10 09:57:14  proc_reg_write+0x38/0x80\n2025-06-10 09:57:14  vfs_write+0xdb/0x250\n2025-06-10 09:57:14  ksys_write+0x59/0xd0\n2025-06-10 09:57:14  do_syscall_64+0x39/0x80\n2025-06-10 09:57:14  entry_SYSCALL_64_after_hwframe+0x62/0xc7\n2025-06-10 09:57:14 RIP: 0033:0x4088ae\n2025-06-10 09:57:14 Code: 48 83 ec 38 e8 13 00 00 00 48 83 c4 38 5d c3 cc cc cc cc cc cc cc cc cc cc cc cc cc 49 89 f2 48 89 fa 48 89 ce 48 89 df 0f 05 &lt;48&gt; 3d 01 f0 ff ff 76 15 48 f7 d8 48 89 c1 48 c7 c0 ff ff ff ff 48\n2025-06-10 09:57:14 RSP: 002b:000000c000adcc60 EFLAGS: 00000212 ORIG_RAX: 0000000000000001\n2025-06-10 09:57:14 RAX: ffffffffffffffda RBX: 0000000000000013 RCX: 00000000004088ae\n2025-06-10 09:57:14 RDX: 0000000000000001 RSI: 000000000274ab18 RDI: 0000000000000013\n2025-06-10 09:57:14 RBP: 000000c000adcca0 R08: 0000000000000000 R09: 0000000000000000\n2025-06-10 09:57:14 R10: 0000000000000000 R11: 0000000000000212 R12: 000000c000adcdc0\n2025-06-10 09:57:14 R13: 0000000000000002 R14: 000000c000caa540 R15: 0000000000000000\n2025-06-10 09:57:14 Sending NMI from CPU 33 to CPUs 0-32,34-95:\n2025-06-10 09:57:14 NMI backtrace for cpu 52 skipped: idling at intel_idle+0x6f/0xc0\n2025-06-10 09:57:14 NMI backtrace for cpu 54 skipped: idling at intel_idle+0x6f/0xc0\n2025-06-10 09:57:14 NMI backtrace for cpu 7 skipped: idling at intel_idle+0x6f/0xc0\n2025-06-10 09:57:14 NMI backtrace for cpu 81 skipped: idling at intel_idle+0x6f/0xc0\n2025-06-10 09:57:14 NMI backtrace for cpu 60 skipped: idling at intel_idle+0x6f/0xc0\n2025-06-10 09:57:14 NMI backtrace for cpu 2 skipped: idling at intel_idle+0x6f/0xc0\n2025-06-10 09:57:14 NMI backtrace for cpu 21 skipped: idling at intel_idle+0x6f/0xc0\n2025-06-10 09:57:14 NMI backtrace for cpu 69 skipped: idling at intel_idle+0x6f/0xc0\n2025-06-10 09:57:14 NMI backtrace for cpu 58 skipped: idling at intel_idle+0x6f/
+      ...
+      &#34;pid&#34;: 2567042
+    },
+    &#34;tracer_time&#34;: &#34;2025-06-10 09:57:12.202 +0800&#34;,
+    &#34;tracer_type&#34;: &#34;auto&#34;,
+    &#34;time&#34;: &#34;2025-06-10 09:57:12.202 +0800&#34;,
+    &#34;region&#34;: &#34;***&#34;,
+    &#34;tracer_name&#34;: &#34;hungtask&#34;,
+    &#34;es_index_time&#34;: 1749520632297
+  },
+  &#34;fields&#34;: {
+    &#34;time&#34;: [
+      &#34;2025-06-10T01:57:12.202Z&#34;
+    ]
+  },
+  &#34;_ignored&#34;: [
+    &#34;tracer_data.blocked_processes_stack&#34;,
+    &#34;tracer_data.cpus_stack&#34;
+  ],
+  &#34;_version&#34;: 1,
+  &#34;sort&#34;: [
+    1749520632202
+  ]
+}
+</code></pre><p>另外 hungtask event 还实现了 <code>Collector</code> 接口，这样还会通过 Prometheus 统计宿主 hungtask 发生的次数。</p>
+<h3 id="容器物理机内存回收">容器、物理机内存回收</h3>
+<p><strong>功能介绍</strong></p>
+<p>内存压力过大时，如果此时进程申请内存，有可能进入直接回收，此时处于同步回收阶段，可能会造成业务进程的卡顿，在此记录进程进入直接回收的时间，有助于我们判断此进程被直接回收影响的剧烈程度。memreclaim event 计算同一个进程在 1s 周期，若进程处在直接回收状态超过 900ms， 则记录其上下文信息。</p>
+<p><strong>示例</strong></p>
+<p>业务容器的 chrome 进程进入直接回收状态，ES 查询输出如下：</p>
+<pre tabindex="0"><code>{
+  &#34;_index&#34;: &#34;***_cases_2025-06-11&#34;,
+  &#34;_type&#34;: &#34;_doc&#34;,
+  &#34;_id&#34;: &#34;***&#34;,
+  &#34;_score&#34;: 0,
+  &#34;_source&#34;: {
+    &#34;tracer_data&#34;: {
+      &#34;comm&#34;: &#34;chrome&#34;,
+      &#34;deltatime&#34;: 1412702917,
+      &#34;pid&#34;: 1896137
+    },
+    &#34;container_host_namespace&#34;: &#34;***&#34;,
+    &#34;container_hostname&#34;: &#34;***.docker&#34;,
+    &#34;es_index_time&#34;: 1749641583290,
+    &#34;uploaded_time&#34;: &#34;2025-06-11T19:33:03.26754495+08:00&#34;,
+    &#34;hostname&#34;: &#34;***&#34;,
+    &#34;container_type&#34;: &#34;normal&#34;,
+    &#34;tracer_time&#34;: &#34;2025-06-11 19:33:03.267 +0800&#34;,
+    &#34;time&#34;: &#34;2025-06-11 19:33:03.267 +0800&#34;,
+    &#34;region&#34;: &#34;***&#34;,
+    &#34;container_level&#34;: &#34;102&#34;,
+    &#34;container_id&#34;: &#34;921d0ec0a20c&#34;,
+    &#34;tracer_name&#34;: &#34;directreclaim&#34;
+  },
+  &#34;fields&#34;: {
+    &#34;time&#34;: [
+      &#34;2025-06-11T11:33:03.267Z&#34;
+    ]
+  },
+  &#34;_version&#34;: 1,
+  &#34;sort&#34;: [
+    1749641583267
+  ]
+}
+</code></pre><h3 id="网络设备状态">网络设备状态</h3>
+<p><strong>功能介绍</strong></p>
+<p>网卡状态变化通常容易造成严重的网络问题，直接影响整机网络质量，如 down/up, MTU 改变等。以 down 状态为例，可能是有权限的进程操作、底层线缆、光模块、对端交换机等问题导致，netdev event 用于检测网络设备的状态变化，目前已实现网卡 down, up 的监控，并区分管理员或底层原因导致的网卡状态变化。</p>
+<p><strong>示例</strong></p>
+<p>一次管理员操作导致 eth1 网卡 down 时，ES 查询到事件输出如下：</p>
+<pre tabindex="0"><code>{
+  &#34;_index&#34;: &#34;***_cases_2025-05-30&#34;,
+  &#34;_type&#34;: &#34;_doc&#34;,
+  &#34;_id&#34;: &#34;***&#34;,
+  &#34;_score&#34;: 0,
+  &#34;_source&#34;: {
+    &#34;uploaded_time&#34;: &#34;2025-05-30T17:47:50.406913037+08:00&#34;,
+    &#34;hostname&#34;: &#34;localhost.localdomain&#34;,
+    &#34;tracer_data&#34;: {
+      &#34;ifname&#34;: &#34;eth1&#34;,
+      &#34;start&#34;: false,
+      &#34;index&#34;: 3,
+      &#34;linkstatus&#34;: &#34;linkStatusAdminDown, linkStatusCarrierDown&#34;,
+      &#34;mac&#34;: &#34;5c:6f:69:34:dc:72&#34;
+    },
+    &#34;tracer_time&#34;: &#34;2025-05-30 17:47:50.406 +0800&#34;,
+    &#34;tracer_type&#34;: &#34;auto&#34;,
+    &#34;time&#34;: &#34;2025-05-30 17:47:50.406 +0800&#34;,
+    &#34;region&#34;: &#34;***&#34;,
+    &#34;tracer_name&#34;: &#34;netdev_event&#34;,
+    &#34;es_index_time&#34;: 1748598470407
+  },
+  &#34;fields&#34;: {
+    &#34;time&#34;: [
+      &#34;2025-05-30T09:47:50.406Z&#34;
+    ]
+  },
+  &#34;_version&#34;: 1,
+  &#34;sort&#34;: [
+    1748598470406
+  ]
+}
+</code></pre><h3 id="lacp-协议状态">LACP 协议状态</h3>
+<p><strong>功能介绍</strong></p>
+<p>Bond 是 Linux 系统内核提供的一种将多个物理网络接口绑定为一个逻辑接口的技术。通过绑定，可以实现带宽叠加、故障切换或负载均衡。LACP 是 IEEE 802.3ad 标准定义的协议，用于动态管理链路聚合组（LAG）。目前没有优雅获取物理机LACP 协议协商异常事件的方法，HUATUO 实现了 lacp event，通过 BPF 在协议关键路径插桩检测到链路聚合状态发生变化时，触发事件记录相关信息。</p>
+<p><strong>示例</strong></p>
+<p>在宿主网卡 eth1 出现物理层 down/up 抖动时，lacp 动态协商状态异常，ES 查询输出如下：</p>
+<pre tabindex="0"><code>{
+  &#34;_index&#34;: &#34;***_cases_2025-05-30&#34;,
+  &#34;_type&#34;: &#34;_doc&#34;,
+  &#34;_id&#34;: &#34;***&#34;,
+  &#34;_score&#34;: 0,
+  &#34;_source&#34;: {
+    &#34;uploaded_time&#34;: &#34;2025-05-30T17:47:48.513318579+08:00&#34;,
+    &#34;hostname&#34;: &#34;***&#34;,
+    &#34;tracer_data&#34;: {
+      &#34;content&#34;: &#34;/proc/net/bonding/bond0\nEthernet Channel Bonding Driver: v4.18.0 (Apr 7, 2025)\n\nBonding Mode: load balancing (round-robin)\nMII Status: down\nMII Polling Interval (ms): 0\nUp Delay (ms): 0\nDown Delay (ms): 0\nPeer Notification Delay (ms): 0\n/proc/net/bonding/bond4\nEthernet Channel Bonding Driver: v4.18.0 (Apr 7, 2025)\n\nBonding Mode: IEEE 802.3ad Dynamic link aggregation\nTransmit Hash Policy: layer3+4 (1)\nMII Status: up\nMII Polling Interval (ms): 100\nUp Delay (ms): 0\nDown Delay (ms): 0\nPeer Notification Delay (ms): 1000\n\n802.3ad info\nLACP rate: fast\nMin links: 0\nAggregator selection policy (ad_select): stable\nSystem priority: 65535\nSystem MAC address: 5c:6f:69:34:dc:72\nActive Aggregator Info:\n\tAggregator ID: 1\n\tNumber of ports: 2\n\tActor Key: 21\n\tPartner Key: 50013\n\tPartner Mac Address: 00:00:5e:00:01:01\n\nSlave Interface: eth0\nMII Status: up\nSpeed: 25000 Mbps\nDuplex: full\nLink Failure Count: 0\nPermanent HW addr: 5c:6f:69:34:dc:72\nSlave queue ID: 0\nSlave active: 1\nSlave sm_vars: 0x172\nAggregator ID: 1\nAggregator active: 1\nActor Churn State: none\nPartner Churn State: none\nActor Churned Count: 0\nPartner Churned Count: 0\ndetails actor lacp pdu:\n    system priority: 65535\n    system mac address: 5c:6f:69:34:dc:72\n    port key: 21\n    port priority: 255\n    port number: 1\n    port state: 63\ndetails partner lacp pdu:\n    system priority: 200\n    system mac address: 00:00:5e:00:01:01\n    oper key: 50013\n    port priority: 32768\n    port number: 16397\n    port state: 63\n\nSlave Interface: eth1\nMII Status: up\nSpeed: 25000 Mbps\nDuplex: full\nLink Failure Count: 17\nPermanent HW addr: 5c:6f:69:34:dc:73\nSlave queue ID: 0\nSlave active: 0\nSlave sm_vars: 0x172\nAggregator ID: 1\nAggregator active: 1\nActor Churn State: monitoring\nPartner Churn State: monitoring\nActor Churned Count: 2\nPartner Churned Count: 2\ndetails actor lacp pdu:\n    system priority: 65535\n    system mac address: 5c:6f:69:34:dc:72\n    port key: 21\n    port priority: 255\n    port number: 2\n    port state: 15\ndetails partner lacp pdu:\n    system priority: 200\n    system mac address: 00:00:5e:00:01:01\n    oper key: 50013\n    port priority: 32768\n    port number: 32781\n    port state: 31\n&#34;
+    },
+    &#34;tracer_time&#34;: &#34;2025-05-30 17:47:48.513 +0800&#34;,
+    &#34;tracer_type&#34;: &#34;auto&#34;,
+    &#34;time&#34;: &#34;2025-05-30 17:47:48.513 +0800&#34;,
+    &#34;region&#34;: &#34;***&#34;,
+    &#34;tracer_name&#34;: &#34;lacp&#34;,
+    &#34;es_index_time&#34;: 1748598468514
+  },
+  &#34;fields&#34;: {
+    &#34;time&#34;: [
+      &#34;2025-05-30T09:47:48.513Z&#34;
+    ]
+  },
+  &#34;_ignored&#34;: [
+    &#34;tracer_data.content&#34;
+  ],
+  &#34;_version&#34;: 1,
+  &#34;sort&#34;: [
+    1748598468513
+  ]
+}
+</code></pre>
+                        </div>
+                        
+                        
+                        <div id="comments">
+                            <div id="disqus_thread"></div>
+<script>
+    window.disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "huatuo-tech" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+                        </div>
+                        
+
+                    </div>
+                    
+
+                    
+
+                    
+
+                    <div class="col-md-3">
+
+                        
+
+                        
+
+<div class="panel panel-default sidebar-menu">
+
+    <div class="panel-heading">
+      <h3 class="panel-title">搜索</h3>
+    </div>
+
+    <div class="panel-body">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" role="search">
+            <div class="input-group">
+                <input type="search" name="q" class="form-control" placeholder="搜索" />
+                <input type="hidden" name="sitesearch" value="https://huatuo.tech/" />
+                <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">标签</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ccf"><i class="fas fa-tags"></i> ccf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/huatuo"><i class="fas fa-tags"></i> huatuo</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e4%ba%8b%e4%bb%b6%e6%8c%87%e6%a0%87"><i class="fas fa-tags"></i> 事件指标</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e4%ba%8b%e4%bb%b6%e9%a9%b1%e5%8a%a8"><i class="fas fa-tags"></i> 事件驱动</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7"><i class="fas fa-tags"></i> 可观测性</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%bc%80%e6%ba%90"><i class="fas fa-tags"></i> 开源</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%aa%81%e5%a2%9e%e6%8d%95%e8%8e%b7"><i class="fas fa-tags"></i> 突增捕获</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%bb%9f%e8%ae%a1%e6%8c%87%e6%a0%87"><i class="fas fa-tags"></i> 统计指标</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e8%bf%bd%e8%b8%aa%e6%8c%87%e6%a0%87"><i class="fas fa-tags"></i> 追踪指标</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+
+                        
+
+                    </div>
+                    
+
+                    
+
+                </div>
+                
+
+            </div>
+            
+        </div>
+        
+
+        <footer id="footer">
+    <div class="container">
+
+        
+        <div class="col-md-4 col-sm-6">
+            <h4>关于我们</h4>
+
+            <p>一群开源技术爱好者，基础技术研究者。</p>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+        <div class="col-md-4 col-sm-6">
+
+            
+
+        </div>
+        
+
+        
+        <div class="col-md-4 col-sm-6">
+
+          <h4>联系</h4>
+
+            <p class="text-uppercase"><strong>HUATUO 开源技术社区, 欢迎技术交流</strong>
+        <br>中国北京市海淀区西二旗软件园。
+        <br>
+      </p>
+      
+
+	    <a href="/contact" class="btn btn-small btn-template-main">跳到联系页面</a>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">Copyright (C) 2025 CCF 开源发展技术委员会、滴滴出行</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+    
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+
+<script src="/js/front.js"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>
