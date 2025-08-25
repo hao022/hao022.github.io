@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>事件指标 on HUATUO 开源技术</title>
+    <link>https://huatuo.tech/tags/%E4%BA%8B%E4%BB%B6%E6%8C%87%E6%A0%87/</link>
+    <description>Recent content in 事件指标 on HUATUO 开源技术</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 25 Aug 2025 15:17:22 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/tags/%E4%BA%8B%E4%BB%B6%E6%8C%87%E6%A0%87/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>事件指标</title>
+      <link>https://huatuo.tech/docs/events/</link>
+      <pubDate>Wed, 11 Jun 2025 22:23:43 -0400</pubDate>
+      <guid>https://huatuo.tech/docs/events/</guid>
+      <description>&lt;h3 id=&#34;总览&#34;&gt;总览&lt;/h3&gt;&#xA;&lt;p&gt;HUATUO 目前支持的异常上下文捕获事件如下：&lt;/p&gt;&#xA;&lt;table&gt;&#xA;  &lt;thead&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;th&gt;事件名称&lt;/th&gt;&#xA;          &lt;th&gt;核心功能&lt;/th&gt;&#xA;          &lt;th&gt;场景&lt;/th&gt;&#xA;      &lt;/tr&gt;&#xA;  &lt;/thead&gt;&#xA;  &lt;tbody&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td&gt;softirq&lt;/td&gt;&#xA;          &lt;td&gt;宿主软中断延迟响应或长期关闭，输出长时间关闭软中断的内核调用栈，进程信息等&lt;/td&gt;&#xA;          &lt;td&gt;该类问题会严重影响网络收发，进而导致业务毛刺或者超时等其他问题&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td&gt;dropwatch&lt;/td&gt;&#xA;          &lt;td&gt;TCP 数据包丢包检测，输出发生丢包时主机、网络上下文信息等&lt;/td&gt;&#xA;          &lt;td&gt;该类问题主要会引起业务毛刺和延迟&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td&gt;netrecvlat&lt;/td&gt;&#xA;          &lt;td&gt;在网络收方向获取数据包从驱动、协议栈、到用户主动收过程的延迟事件&lt;/td&gt;&#xA;          &lt;td&gt;网络延迟问题中有一类是数据传输阶段收方向存在延迟，但不清楚是延迟位置，netrecvlat 根据 skb 入网卡时间戳依次在驱动、协议栈和用户拷贝数据等路径计算延迟，通过预先设定的阈值过滤超时的数据包，定位延迟位置&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td&gt;oom&lt;/td&gt;&#xA;          &lt;td&gt;检测宿主或容器内 oom 事件&lt;/td&gt;&#xA;          &lt;td&gt;当宿主机层面或者容器维度发生 oom 事件时，能够获取触发 oom 的进程信息、被 kill 的进程信息以及容器信息，便于定位进程内存泄漏、异常退出等问题&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td&gt;softlockup&lt;/td&gt;&#xA;          &lt;td&gt;当系统上发生 softlockup 时，收集目标进程信息以及 cpu 信息，同时获取各个 cpu 上的内核栈信息&lt;/td&gt;&#xA;          &lt;td&gt;系统发生 softlockup&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td&gt;hungtask&lt;/td&gt;&#xA;          &lt;td&gt;提供系统内所有 D 状态进程数量、内核栈信息&lt;/td&gt;&#xA;          &lt;td&gt;用于定位瞬时出现 D 进程的场景，能及时保留现场便于后期问题跟踪&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td&gt;memreclaim&lt;/td&gt;&#xA;          &lt;td&gt;进程进入直接回收的耗时，超过时间阈值，记录进程信息&lt;/td&gt;&#xA;          &lt;td&gt;内存压力过大时，如果此时进程申请内存，有可能进入直接回收，此时处于同步回收阶段，可能会造成业务进程的卡顿，此时记录进程进入直接回收的时间，有助于我们判断此进程被直接回收影响的剧烈程度&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td&gt;netdev&lt;/td&gt;&#xA;          &lt;td&gt;检测网卡状态变化&lt;/td&gt;&#xA;          &lt;td&gt;网卡抖动、bond 环境下 slave 异常等&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td&gt;lacp&lt;/td&gt;&#xA;          &lt;td&gt;检测 lacp 状态变化&lt;/td&gt;&#xA;          &lt;td&gt;bond 模式 4 下，监控 lacp 协商状态&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;  &lt;/tbody&gt;&#xA;&lt;/table&gt;&#xA;&lt;h3 id=&#34;软中断关闭过长检测&#34;&gt;软中断关闭过长检测&lt;/h3&gt;&#xA;&lt;p&gt;&lt;strong&gt;功能介绍&lt;/strong&gt;&lt;/p&gt;&#xA;&lt;p&gt;Linux 内核存在进程上下文，中断上下文，软中断上下文，NMI 上下文等概念，这些上下文之间可能存在共享数据情况，因此为了确保数据的一致性，正确性，内核代码可能会关闭软中断或者硬中断。从理论角度，单次关闭中断或者软中断时间不能太长，但高频的系统调用，陷入内核态频繁执行关闭中断或软中断，同样会造&amp;quot;长时间关闭&amp;quot;的现象，拖慢了系统的响应。“关闭中断，软中断时间过长”这类问题非常隐蔽，且定位手段有限，同时影响又非常大，体现在业务应用上一般为接收数据超时。针对这种场景我们基于BPF技术构建了检测硬件中断，软件中断关闭过长的能力。&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
