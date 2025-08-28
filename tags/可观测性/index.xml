@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>可观测性 on HUATUO 开源技术</title>
+    <link>https://huatuo.tech/tags/%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7/</link>
+    <description>Recent content in 可观测性 on HUATUO 开源技术</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 28 Aug 2025 15:27:26 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/tags/%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>合作篇：打通操作系统可观测性最后一公里</title>
+      <link>https://huatuo.tech/blog/2025-08-27-huatuo-and-nightingale-work-together/</link>
+      <pubDate>Wed, 27 Aug 2025 01:08:32 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2025-08-27-huatuo-and-nightingale-work-together/</guid>
+      <description>即刻部署 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; + &lt;a href=&#34;https://n9e.github.io/zh/&#34;&gt;夜莺监控&lt;/a&gt; 工具组合，快速构建覆盖应用，中间件，数据库，操作系统内核的一体化可观测体系。HUATUO 开箱即用，从各维度全面观测内核，填补了操作系统可观测性领域的空白。</description>
+    </item>
+    <item>
+      <title>应用篇：如何使用 HUATUO 解决容器 CPUIdle 掉底问题</title>
+      <link>https://huatuo.tech/blog/2025-08-19-how-to-use-huatuo-solve-problem-of-container-cpuidle/</link>
+      <pubDate>Thu, 21 Aug 2025 10:14:29 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2025-08-19-how-to-use-huatuo-solve-problem-of-container-cpuidle/</guid>
+      <description>系统故障诊断面临多重挑战。如何在新技术范式与架构下，构建面向操作系统的低损耗、零侵扰、全景式、持续深度观测能力体系，成为亟待解决的核心问题。本系列文章分享 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; 落地实践 &amp;hellip;</description>
+    </item>
+    <item>
+      <title>滴滴操作系统可观测项目 HUATUO 正式入驻 CCF</title>
+      <link>https://huatuo.tech/blog/2025-08-07-huatuo-open-source-project-has-entered-the-ccf-incubation-phase/</link>
+      <pubDate>Fri, 08 Aug 2025 03:19:58 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2025-08-07-huatuo-open-source-project-has-entered-the-ccf-incubation-phase/</guid>
+      <description>8月2日，&lt;a href=&#34;https://www.didiglobal.com/&#34;&gt;滴滴&lt;/a&gt;宣布其开源云原生操作系统可观测性项目 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; 正式入驻&lt;a href=&#34;https://www.ccf.org.cn/&#34;&gt;中国计算机学会（CCF）&lt;/a&gt;，加入其重点孵化项目序列。本次入驻不仅体现了滴滴长期践行开源共建共享的理念，也希望通过行业协作，共同推动可观测领域操作系统基础设施的高效标准化发展。</description>
+    </item>
+  </channel>
+</rss>
