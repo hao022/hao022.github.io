@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>追踪指标 on HUATUO 开源技术</title>
+    <link>https://huatuo.tech/tags/%E8%BF%BD%E8%B8%AA%E6%8C%87%E6%A0%87/</link>
+    <description>Recent content in 追踪指标 on HUATUO 开源技术</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 23 Nov 2025 05:00:26 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/tags/%E8%BF%BD%E8%B8%AA%E6%8C%87%E6%A0%87/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>追踪指标</title>
+      <link>https://huatuo.tech/docs/autotracing/</link>
+      <pubDate>Wed, 11 Jun 2025 22:23:43 -0400</pubDate>
+      <guid>https://huatuo.tech/docs/autotracing/</guid>
+      <description>&lt;h3 id=&#34;概述&#34;&gt;概述&lt;/h3&gt;&#xA;&lt;p&gt;HUATUO 已支持自动追踪指标如下：&lt;/p&gt;&#xA;&lt;table&gt;&#xA;  &lt;thead&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;th&gt;追踪名称&lt;/th&gt;&#xA;          &lt;th&gt;核心功能&lt;/th&gt;&#xA;          &lt;th&gt;场景&lt;/th&gt;&#xA;      &lt;/tr&gt;&#xA;  &lt;/thead&gt;&#xA;  &lt;tbody&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td&gt;cpusys&lt;/td&gt;&#xA;          &lt;td&gt;宿主 sys 突增检测&lt;/td&gt;&#xA;          &lt;td&gt;由于系统负载异常导致业务毛刺问题&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td&gt;cpuidle&lt;/td&gt;&#xA;          &lt;td&gt;容器 cpu idle 掉底检测，提供调用栈，火焰图，进程上下文信息等&lt;/td&gt;&#xA;          &lt;td&gt;容器 cpu 使用异常，帮助业务描绘进程热点&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td&gt;dload&lt;/td&gt;&#xA;          &lt;td&gt;跟踪容器loadavg状态进程状态，自动抓取容器 D 状态进程调用信息&lt;/td&gt;&#xA;          &lt;td&gt;系统 D 状态突增通常和资源不可用或者锁被长期持有相关，R 状态进程数量突增往往是业务代码设计不合理导致&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td&gt;waitrate&lt;/td&gt;&#xA;          &lt;td&gt;容器资源争抢检测，容器调度被争抢时提供正在争抢的容器信息&lt;/td&gt;&#xA;          &lt;td&gt;容器被争抢可能会引起业务毛刺，已存在争抢指标缺乏具体正在争抢的容器信息，通过 waitrate 追踪可以获取参与争抢的容器信息，给混部资源隔离提供参考&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td&gt;memburst&lt;/td&gt;&#xA;          &lt;td&gt;记录内存突发分配时上下文信息&lt;/td&gt;&#xA;          &lt;td&gt;宿主机短时间内大量分配内存，检测宿主机上短时间内大量分配内存事件。突发性内存分配可能引发直接回收或者 oom 等&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;      &lt;tr&gt;&#xA;          &lt;td&gt;iotracing&lt;/td&gt;&#xA;          &lt;td&gt;检测宿主磁盘 IO 延迟异常。输出访问的文件名和路径、磁盘设备、inode 号、容器等上下文信息&lt;/td&gt;&#xA;          &lt;td&gt;频繁出现磁盘 IO 带宽打满、磁盘访问突增，进而导致应用请求延迟或者系统性能抖动&lt;/td&gt;&#xA;      &lt;/tr&gt;&#xA;  &lt;/tbody&gt;&#xA;&lt;/table&gt;&#xA;&lt;h3 id=&#34;cpusys&#34;&gt;CPUSYS&lt;/h3&gt;&#xA;&lt;p&gt;系统态 CPU 时间反映内核执行开销，包括系统调用、中断处理、内核线程调度、内存管理及锁竞争等操作。该指标异常升高，通常表明存在内核级性能瓶颈：高频系统调用、硬件设备异常、锁争用或内存回收压力（kswapd 直接回收）等。&lt;/p&gt;&#xA;&lt;p&gt;cpusys 检测到该指标异常时，自动会触发抓取系统的调用栈并生成火焰图，帮助定位问题根因。 既考虑到系统 cpu sys 达到阈值，或者sys 突发毛刺带来的问题，其中触发条件如下：&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;CPU Sys 使用率 &amp;gt; 阈值 A&lt;/li&gt;&#xA;&lt;li&gt;CPU Sys 使用率单位时间内增长 &amp;gt; 阈值 B&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;cpuidle&#34;&gt;CPUIDLE&lt;/h3&gt;&#xA;&lt;p&gt;K8S 容器环境，CPU idle 时间（即 CPU 处于空闲状态的时间比例）的突然下降通常表明容器内进程正在过度消耗 CPU 资源，可能引发业务延迟、调度争抢甚至整体系统性能下降。&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
