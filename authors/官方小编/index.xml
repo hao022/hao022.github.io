@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>官方小编 on HUATUO 开源技术</title>
+    <link>https://huatuo.tech/authors/%E5%AE%98%E6%96%B9%E5%B0%8F%E7%BC%96/</link>
+    <description>Recent content in 官方小编 on HUATUO 开源技术</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 25 Nov 2025 13:51:59 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/authors/%E5%AE%98%E6%96%B9%E5%B0%8F%E7%BC%96/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>2025 OC 操作系统生态大会，解锁 OS&#43; 多元行业落地场景实践方案</title>
+      <link>https://huatuo.tech/blog/2025-11-14-2025-opencloud-submitting/</link>
+      <pubDate>Fri, 14 Nov 2025 06:54:44 -0500</pubDate>
+      <guid>https://huatuo.tech/blog/2025-11-14-2025-opencloud-submitting/</guid>
+      <description>&lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO 开源技术社区&lt;/a&gt; 将与&lt;strong&gt;腾讯、安谋科技、沐曦、绿盟、堡塔、达梦、嘉为&lt;/strong&gt;等伙伴，分享一系列经过大规模实践检验的解决方案。这里有最真实的挑战、最实用的经验&amp;hellip;</description>
+    </item>
+    <item>
+      <title>腾讯操作系统 OC 和滴滴 HUATUO (华佗) 项目深度集成</title>
+      <link>https://huatuo.tech/blog/2025-11-11-opencloudos-and-huatuo-together/</link>
+      <pubDate>Mon, 10 Nov 2025 19:12:53 -0500</pubDate>
+      <guid>https://huatuo.tech/blog/2025-11-11-opencloudos-and-huatuo-together/</guid>
+      <description>滴滴 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO（华佗）&lt;/a&gt; 和腾讯操作系统 OC 深度集成，进一步提升 OC 操作系统在云原生环境下内核级深度观测的能力，为云上用户提升内核问题排查效率，保障业务持续性.</description>
+    </item>
+    <item>
+      <title>HUATUO（华佗）荣获《OSCAR 尖峰开源项目及开源社区》称号</title>
+      <link>https://huatuo.tech/blog/2025-10-28-huatuo-oscar-event/</link>
+      <pubDate>Sun, 26 Oct 2025 10:19:02 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2025-10-28-huatuo-oscar-event/</guid>
+      <description>&lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO（华佗）&lt;/a&gt; 凭借其在技术创新、社区建设等方面的卓越表现，荣获中国信息通信研究院、中国通信标准化协会颁发的《OSCAR 尖峰开源项目及开源社区》 奖项 &amp;hellip;</description>
+    </item>
+  </channel>
+</rss>

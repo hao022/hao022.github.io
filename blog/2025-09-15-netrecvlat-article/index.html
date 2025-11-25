@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>应用篇：深入剖析网络收包延迟，从网卡到应用的精确追踪与优化</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, 网络优化, netrecvlat, containers">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 开源发展委员会孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='//fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300italic,500,700,800' rel='stylesheet' type='text/css'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1764078720" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="HUATUO 开源技术">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en_us">
+<meta property="og:site_name" content="HUATUO 开源技术">
+<meta property="og:title" content="应用篇：深入剖析网络收包延迟，从网卡到应用的精确追踪与优化">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/blog/2025-09-15-netrecvlat-article/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 开源发展委员会孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2025-09-15-net-cover.jpeg">
+<meta property="og:image:type" content="image/jpeg">
+
+
+
+  <meta property="og:image:width" content="900">
+  <meta property="og:image:height" content="600">
+
+
+<meta property="og:updated_time" content="2025-11-25T13:51:59Z">
+
+  
+  
+  
+  <meta property="article:tag" content="HUATUO">
+  <meta property="article:tag" content="网络优化">
+  <meta property="article:tag" content="netrecvlat">
+  <meta property="article:tag" content="containers">
+  <meta property="article:tag" content="可观测性">
+  <meta property="article:tag" content="BPF">
+  
+  
+  <meta property="article:published_time" content="2025-09-15T07:00:00-0400">
+  <meta property="article:modified_time" content="2025-11-25T13:51:59Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="应用篇：深入剖析网络收包延迟，从网卡到应用的精确追踪与优化">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2025-09-15-net-cover.jpeg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 开源发展委员会孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+    
+  </head>
+
+  <body>
+
+    <div id="all">
+
+        
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm " role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/logo.png" alt="应用篇：深入剖析网络收包延迟，从网卡到应用的精确追踪与优化 logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/logo-small.png" alt="应用篇：深入剖析网络收包延迟，从网卡到应用的精确追踪与优化 logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">应用篇：深入剖析网络收包延迟，从网卡到应用的精确追踪与优化 - 跳到主页</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">切换导航</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/quickstart/">快速开始</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown use-yamm yamm-fw ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">文档 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            <li>
+                            <div class="yamm-content">
+                            <div class="row">
+                                
+                                <div class="col-sm-3">
+                                
+                                    
+                                    
+                                    <h5>指标文档</h5>
+                                    
+                                    <ul>
+                                    
+                                    <li><a href="/docs/metrics">统计指标</a></li>
+                                    <li><a href="/docs/events">事件指标</a></li>
+                                    <li><a href="/docs/autotracing">追踪指标</a></li>
+                                    </ul>
+                                    
+                                    
+                                
+                                    
+                                    
+                                
+                                    
+                                    
+                                    <h5>故障案例</h5>
+                                    
+                                    <ul>
+                                    
+                                    <li><a href="">案例汇总</a></li>
+                                    </ul>
+                                    
+                                    
+                                
+                                </div>
+                                <div class="col-sm-3">
+                                
+                                    
+                                    
+                                
+                                    
+                                    
+                                    <h5>开发者文档</code></h5>
+                                    
+                                    <ul>
+                                    
+                                    <li><a href="/docs/how-to-add-metrcis">添加统计指标</a></li>
+                                    
+                                    <li><a href="/docs/how-to-add-events">添加事件指标</a></li>
+                                    
+                                    <li><a href="/docs/how-to-add-autotracing">添加追踪功能</a></li>
+                                    
+                                    </ul>
+                                    
+                                    
+                                
+                                    
+                                    
+                                
+                                </div>
+                                
+                                <div class="col-sm-3">
+                                
+                                    
+                                    
+                                
+                                    
+                                    
+                                
+                                    
+                                    
+                                
+                                </div>
+                                <div class="col-sm-3">
+                                
+                                    
+                                    
+                                
+                                    
+                                    
+                                
+                                    
+                                    
+                                
+                                </div>
+                                
+                            </div>
+                            </div>
+                            </li>
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/download">下载</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    
+                    
+                        <a href="/blog/">博客</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/milestone/">新闻</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/about/">关于</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/contact/">联系</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="https://github.com/ccfos/huatuo">
+                            <img src="https://img.shields.io/github/stars/ccfos/huatuo" height="100%">
+                        </a>
+                    
+                  </li>
+                  
+                  
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        <div id="heading-breadcrumbs">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>应用篇：深入剖析网络收包延迟，从网卡到应用的精确追踪与优化</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+        <div id="content">
+            <div class="container">
+
+                <div class="row">
+
+                    
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                          <p class="text-muted text-uppercase mb-small text-right">
+                            
+                                
+                                最后更新: 2025-11-25,
+			                    作者: <a href="/authors/fanzu8">fanzu8</a>
+                            
+                          </p>
+                        
+
+                        <div id="post-content">
+                          <h2 id="背景与问题">背景与问题</h2>
+<p>在网络性能监控和优化中，入向延迟是一个关键指标。生产环境中通常面临如下问题：</p>
+<ul>
+<li>
+<ol>
+<li>本地 app 没收到包，对端却已超时</li>
+</ol>
+</li>
+<li>
+<ol start="2">
+<li>本地 app 收到包却延迟，但不确定延迟在哪个阶段（对端发出、链路延迟还是本侧网卡、调度、软中断、协议栈、app 性能瓶颈等）</li>
+</ol>
+</li>
+</ul>
+<p>本文讨论问题 2 中，从本机网卡到 app 主动收取包过程中，可能存在的延迟点。</p>
+<p><img src="/img/blog/2025-09-15-netrecvlat-illustration1.png" alt="收方向耗时示意1"></p>
+<p>理想状态我们希望从网线末端就拿到报文的时间戳 <code>t_ideal0</code> 作为报文到达本机的时间点，用户态主动取走报文的时间作为 <code>t_user</code>，这样 <code>t_user - t_ideal0</code> 就是本机收取报文的完整耗时。显然对于 <code>t_ideal0</code> 的获取是不可能的，那么至少要在网卡固件或者驱动甚至更上层获取个 <code>t_ideal1</code> 应该不过分，<code>delta = t_ideal1 - t_ideal0</code>，因此本机收到报文的初始时间获取问题转换为如何使 <code>delta</code> 尽可能小，也就是说<strong>在尽量靠近网卡的位置找一个能打时间戳的点</strong>。</p>
+<p>看下网卡侧的打时间戳的 Capabilities：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ ethtool -T eth0 <span style="color:#75715e"># -T  Show time stamping capabilities</span>
+</span></span><span style="display:flex;"><span>Time stamping parameters <span style="color:#66d9ef">for</span> eth0:
+</span></span><span style="display:flex;"><span>Capabilities:
+</span></span><span style="display:flex;"><span>	hardware-transmit     <span style="color:#f92672">(</span>SOF_TIMESTAMPING_TX_HARDWARE<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>	hardware-receive      <span style="color:#f92672">(</span>SOF_TIMESTAMPING_RX_HARDWARE<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>	hardware-raw-clock    <span style="color:#f92672">(</span>SOF_TIMESTAMPING_RAW_HARDWARE<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>PTP Hardware Clock: <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>Hardware Transmit Timestamp Modes:
+</span></span><span style="display:flex;"><span>	off                   <span style="color:#f92672">(</span>HWTSTAMP_TX_OFF<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>	on                    <span style="color:#f92672">(</span>HWTSTAMP_TX_ON<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>Hardware Receive Filter Modes:
+</span></span><span style="display:flex;"><span>	none                  <span style="color:#f92672">(</span>HWTSTAMP_FILTER_NONE<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>	all                   <span style="color:#f92672">(</span>HWTSTAMP_FILTER_ALL<span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>内核提供通过系统调用 <code>setsockopt</code> 开启报文自动打上时间戳的选项 <code>SO_TIMESTAMPING</code>：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>err <span style="color:#f92672">=</span> <span style="color:#a6e22e">setsockopt</span>(fd, SOL_SOCKET, SO_TIMESTAMPING, <span style="color:#f92672">&amp;</span>val, <span style="color:#66d9ef">sizeof</span>(val));
+</span></span></code></pre></div><p>再看下用户侧如何从报文中获取时间戳， 内核通过 <code>cmsg</code> 把报文的时间戳信息返回上层：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> *	struct scm_timestamping - timestamps exposed through cmsg
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> *
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> *	The timestamping interfaces SO_TIMESTAMPING, MSG_TSTAMP_*
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> *	communicate network timestamps by passing this struct in a cmsg with
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> *	recvmsg(). See Documentation/networking/timestamping.txt for details.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> */</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> scm_timestamping {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">struct</span> timespec ts[<span style="color:#ae81ff">3</span>];
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><p>其中还包括了底层硬件记录的时间戳：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">tcp_update_recv_tstamps</span>(<span style="color:#66d9ef">struct</span> sk_buff <span style="color:#f92672">*</span>skb,
+</span></span><span style="display:flex;"><span>				    <span style="color:#66d9ef">struct</span> scm_timestamping <span style="color:#f92672">*</span>tss)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> (skb<span style="color:#f92672">-&gt;</span>tstamp)
+</span></span><span style="display:flex;"><span>		tss<span style="color:#f92672">-&gt;</span>ts[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> <span style="color:#a6e22e">ktime_to_timespec</span>(skb<span style="color:#f92672">-&gt;</span>tstamp);
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">else</span>
+</span></span><span style="display:flex;"><span>		tss<span style="color:#f92672">-&gt;</span>ts[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> (<span style="color:#66d9ef">struct</span> timespec) {<span style="color:#ae81ff">0</span>};
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">skb_hwtstamps</span>(skb)<span style="color:#f92672">-&gt;</span>hwtstamp)
+</span></span><span style="display:flex;"><span>		tss<span style="color:#f92672">-&gt;</span>ts[<span style="color:#ae81ff">2</span>] <span style="color:#f92672">=</span> <span style="color:#a6e22e">ktime_to_timespec</span>(<span style="color:#a6e22e">skb_hwtstamps</span>(skb)<span style="color:#f92672">-&gt;</span>hwtstamp);
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">else</span>
+</span></span><span style="display:flex;"><span>		tss<span style="color:#f92672">-&gt;</span>ts[<span style="color:#ae81ff">2</span>] <span style="color:#f92672">=</span> (<span style="color:#66d9ef">struct</span> timespec) {<span style="color:#ae81ff">0</span>};
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>我们能不能利用这个时间戳将网络报文收方向的延迟做到分阶段计算并通用化呢？继续往下分析。</p>
+<h2 id="时间戳存放位置">时间戳存放位置</h2>
+<p>时间戳在 skb 中的存放位置有两个地方:</p>
+<ul>
+<li>
+<p>skb-&gt;tstamp 在 <code>sk_buff</code> 的 <code>union</code> 里：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> sk_buff {
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">union</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">ktime_t</span>		tstamp;
+</span></span><span style="display:flex;"><span>        u64		skb_mstamp;
+</span></span><span style="display:flex;"><span>    };
+</span></span><span style="display:flex;"><span>    ...
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div></li>
+<li>
+<p>底层硬件时间戳存放在 <code>sk_buff</code> 的 <code>skb_shared_info</code> 结构中，通过  <code>skb_hwstamps(skb)-&gt;hwstamp</code> 得到其指针，然后读取或修改。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define skb_shinfo(SKB)	((struct skb_shared_info *)(skb_end_pointer(SKB)))
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>...
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">inline</span> <span style="color:#66d9ef">struct</span> skb_shared_hwtstamps <span style="color:#f92672">*</span><span style="color:#a6e22e">skb_hwtstamps</span>(<span style="color:#66d9ef">struct</span> sk_buff <span style="color:#f92672">*</span>skb)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">skb_shinfo</span>(skb)<span style="color:#f92672">-&gt;</span>hwtstamps;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> skb_shared_hwtstamps {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">ktime_t</span>	hwtstamp;
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div></li>
+</ul>
+<h2 id="硬件时间戳">硬件时间戳</h2>
+<p>硬件时间戳由网卡驱动实现的 napi 的 <code>poll</code> 接口提供，这里给出 mlx 和 ixgbe 的部分驱动代码调用关系作参考：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>mlx5: <span style="color:#a6e22e">netif_napi_add</span>(netdev, <span style="color:#f92672">&amp;</span>c<span style="color:#f92672">-&gt;</span>napi, mlx5e_napi_poll, <span style="color:#ae81ff">64</span>);
+</span></span><span style="display:flex;"><span>mlx5e_napi_poll
+</span></span><span style="display:flex;"><span>    mlx5e_poll_rx_cq
+</span></span><span style="display:flex;"><span>        mlx5e_handle_rx_cqe
+</span></span><span style="display:flex;"><span>            mlx5e_complete_rx_cqe
+</span></span><span style="display:flex;"><span>                mlx5e_build_rx_skb
+</span></span><span style="display:flex;"><span>                    <span style="color:#a6e22e">skb_hwtstamps</span>(skb)<span style="color:#f92672">-&gt;</span>hwtstamp <span style="color:#f92672">=</span><span style="color:#a6e22e">mlx5_timecounter_cyc2time</span>(rq<span style="color:#f92672">-&gt;</span>clock, <span style="color:#a6e22e">get_cqe_ts</span>(cqe));
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>ixgbe: <span style="color:#a6e22e">netif_napi_add</span>(adapter<span style="color:#f92672">-&gt;</span>netdev, <span style="color:#f92672">&amp;</span>q_vector<span style="color:#f92672">-&gt;</span>napi, ixgbe_poll, <span style="color:#ae81ff">64</span>);
+</span></span><span style="display:flex;"><span>ixgbe_poll
+</span></span><span style="display:flex;"><span>    ixgbe_clean_rx_irq
+</span></span><span style="display:flex;"><span>        ixgbe_process_skb_fields
+</span></span><span style="display:flex;"><span>            ixgbe_ptp_rx_hwtstamp
+</span></span><span style="display:flex;"><span>                ixgbe_ptp_rx_rgtstamp
+</span></span><span style="display:flex;"><span>                    <span style="color:#a6e22e">ixgbe_ptp_convert_to_hwtstamp</span>(adapter, <span style="color:#a6e22e">skb_hwtstamps</span>(skb), regval);
+</span></span><span style="display:flex;"><span>                        <span style="color:#a6e22e">skb_hwtstamps</span>(skb)
+</span></span></code></pre></div><p>可以看到 mlx 和 ixgbe 打硬件时间戳的方式有所不同，其中 ixgbe 还依赖 PTP(Precision Time
+Protocol) 方式去生成硬件时间戳。</p>
+<p>验证看看开启硬件时间戳后收到的数据长什么样，开启网卡收包时间戳：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ hwstamp_ctl -r <span style="color:#ae81ff">1</span> -i eth0 <span style="color:#75715e"># -r [0..14]   select receive time stamping: 1 time stamp any incoming packet</span>
+</span></span><span style="display:flex;"><span>current settings:
+</span></span><span style="display:flex;"><span>tx_type <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>rx_filter <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>new settings:
+</span></span><span style="display:flex;"><span>tx_type <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>rx_filter <span style="color:#ae81ff">1</span>
+</span></span></code></pre></div><p>硬件时间戳存放在 <code>sk_buff</code> 的 <code>skb_shared_info</code> 结构中，通过  <code>skb_hwstamps(skb)-&gt;hwstamp</code> 获取其指针， bpftrace 工具中将函数层层展开如下，
+在点 <code>netif_receive_skb</code> 用 bpftrace 工具验证：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ bpftrace -e <span style="color:#e6db74">&#39;tracepoint:net:netif_receive_skb {$skb = (struct sk_buff *)args-&gt;skbaddr; printf(&#34;%llx\n&#34;, ((struct skb_shared_info *)($skb-&gt;head + $skb-&gt;end))-&gt;hwtstamps.hwtstamp);}&#39;</span>
+</span></span><span style="display:flex;"><span>// 开启前
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>// 开启后
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">1698221031030014635</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">1698221056659251659</span>
+</span></span></code></pre></div><p>需要注意的是在驱动层打时间戳的方法 <code>timecounter_cyc2time()</code> 或者 <code>ixgbe_ptp_convert_to_hwtstamp</code> 与上层获取到的内核提供的墙上时钟时间戳的 <code>ktime_get_real()</code> 存在偏差，本地测试发现其偏差随时间推移逐渐变化，不是简单的线性关系，涉及 ptp 主从时间同步，在用 <code>linuxptp</code> 同步之后明显偏差减小但依然存在，这与驱动从网卡 phc 获取时间的具体实现有关，需要搞清 phc、ptp 这一块不同驱动的实现才能更好的利用硬件时间戳，当然也可以定期读取 phc 的时间戳与系统时间戳计算 offset 作为参考值。phc 时间戳获取可通过 SYS_CLOCK_GETTIME 实现，offset 的估计值计算方法参考： <a href="https://github.com/facebook/time/blob/main/phc/offset.go#L83">https://github.com/facebook/time/blob/main/phc/offset.go#L83</a>，
+因此想通过在最靠近网线的网卡层获取报文到达本机的初始时间没那么简单。</p>
+<h2 id="软件时间戳">软件时间戳</h2>
+<p>再往上一层找，好像除了内核协议栈收包入口函数 <code>netif_receive_skb</code> 再没有一个距离网卡更近一点的一个统一入口了。对代码进行梳理然后逐个分析是否存在 <code>netif_receive_skb</code> 调用前还有打时间戳的地方：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">非</span> NAPI: 
+</span></span><span style="display:flex;"><span>netif_rx
+</span></span><span style="display:flex;"><span>    netif_rx_internal
+</span></span><span style="display:flex;"><span>        enqueue_to_backlog
+</span></span><span style="display:flex;"><span>            softnet_data.input_pkt_queue <span style="color:#f92672">-&gt;</span> backlog <span style="color:#f92672">-&gt;</span> softnet_data.poll_list
+</span></span><span style="display:flex;"><span>        <span style="color:#960050;background-color:#1e0010">软中断</span>
+</span></span><span style="display:flex;"><span>            net_rx_action
+</span></span><span style="display:flex;"><span>                process_backlog
+</span></span><span style="display:flex;"><span>                    __netif_receive_skb
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>NAPI:
+</span></span><span style="display:flex;"><span>IRQ
+</span></span><span style="display:flex;"><span>    napi_schedule
+</span></span><span style="display:flex;"><span>        softnet_data.poll_list
+</span></span><span style="display:flex;"><span>    <span style="color:#960050;background-color:#1e0010">软中断</span>
+</span></span><span style="display:flex;"><span>        poll
+</span></span><span style="display:flex;"><span>            napi_gro_receive
+</span></span><span style="display:flex;"><span>                netif_receive_skb_internal
+</span></span><span style="display:flex;"><span>                    __netif_receive_skb
+</span></span></code></pre></div><p>发现无论是走 napi 还是不走 napi 的路径都有在上送协议栈前打时间戳的地方，看来是有希望：</p>
+<ul>
+<li>
+<p>不走 napi</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>netif_rx_internal
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">net_timestamp_check</span>(netdev_tstamp_prequeue, skb); <span style="color:#f92672">&lt;--</span>
+</span></span><span style="display:flex;"><span>    enqueue_to_backlog
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div></li>
+<li>
+<p>走 napi</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>netif_receive_skb_internal
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">net_timestamp_check</span>(netdev_tstamp_prequeue, skb); <span style="color:#f92672">&lt;--</span>
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div></li>
+</ul>
+<p>其中 <code>net_timestamp_check</code> 相关实现如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define net_timestamp_check(COND, SKB)				\
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">	if (static_branch_unlikely(&amp;netstamp_needed_key)) {	\
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">		if ((COND) &amp;&amp; !(SKB)-&gt;tstamp)			\
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">			__net_timestamp(SKB);			\
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">	}							\
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">inline</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">__net_timestamp</span>(<span style="color:#66d9ef">struct</span> sk_buff <span style="color:#f92672">*</span>skb)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>	skb<span style="color:#f92672">-&gt;</span>tstamp <span style="color:#f92672">=</span> <span style="color:#a6e22e">ktime_get_real</span>(); <span style="color:#f92672">&lt;--</span> <span style="color:#960050;background-color:#1e0010">内核打印的时间戳（</span>wall time<span style="color:#960050;background-color:#1e0010">）</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ sysctl -a |grep netdev_tstamp_prequeue
+</span></span><span style="display:flex;"><span>net.core.netdev_tstamp_prequeue <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> &lt;-- 决定打时间戳位置在 RPS 前
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 如何开启打此时间戳的功能可参考 HUATUO 代码</span>
+</span></span></code></pre></div><p>但是这样，从上面调用路径的解析可以清楚看到对于走 NAPI 的路径的报文就没办法覆盖软中断的延迟了，也就是说这个 delta 稍微大了一点点，不过也还行，也还能用，这样报文到达本机的初始时间戳 ts0 就差不多解决了。</p>
+<h2 id="计算延迟">计算延迟</h2>
+<p><img src="/img/blog/2025-09-15-netrecvlat-illustration2.png" alt="收方向耗时示意2"></p>
+<ul>
+<li>
+<p><strong>协议栈入口</strong></p>
+<p>前面有提到 <code>netif_receive_skb</code> 为协议栈统一入口函数，内核也有 tracepoint 点，在这里获取时间戳 <code>ts1</code> 作为近似计算驱动、软中断的延迟。</p>
+</li>
+<li>
+<p><strong>协议栈出口</strong></p>
+<p>进入协议栈后，报文到达 <code>tcp_v4_rcv</code> 可认为协议层处理完毕，因此在  <code>tcp_v4_rcv</code> 处获取时间戳 <code>ts2</code> 作为计算协议栈的延迟的基础。</p>
+</li>
+<li>
+<p><strong>用户主动取包</strong></p>
+<p>接下来是用户进程主动调用到 <code>tcp_recvmsg</code> 从 skb 将数据拷贝到 socket 缓冲区, 综合性能损耗和是否通用且是否易于实现，这里选取 <code>skb_copy_datagram_iovec</code> 点作为用户收包的时间点 <code>ts3</code>。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">*	skb_copy_datagram_iter - Copy a datagram to an iovec iterator.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">*	@skb: buffer to copy
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">*	@offset: offset in the buffer to start copying from
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">*	@to: iovec iterator to copy to
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">*	@len: amount of data to copy from buffer to iovec
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">*/</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">skb_copy_datagram_iter</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">struct</span> sk_buff <span style="color:#f92672">*</span>skb, <span style="color:#66d9ef">int</span> offset,
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">struct</span> iov_iter <span style="color:#f92672">*</span>to, <span style="color:#66d9ef">int</span> len)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">trace_skb_copy_datagram_iovec</span>(skb, len);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">__skb_datagram_iter</span>(skb, offset, to, len, false,
+</span></span><span style="display:flex;"><span>            simple_copy_to_iter, NULL);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div></li>
+</ul>
+<p><strong>小结一下：</strong></p>
+<ul>
+<li>近似计算驱动、软中断的延迟: <code>ts1 - ts0</code></li>
+<li>协议栈延迟：<code>ts2 - ts1</code></li>
+<li>用户主动取包延迟：<code>ts3 - ts2</code></li>
+</ul>
+<p>由前面可知，<code>ts0</code> 是内核函数 <code>ktime_get_real</code> 生成的软件的时间戳，</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * ktime_get_real - get the real (wall-) time in ktime_t format
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> */</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">inline</span> <span style="color:#66d9ef">ktime_t</span> <span style="color:#a6e22e">ktime_get_real</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ktime_get_with_offset</span>(TK_OFFS_REAL);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>其格式为 <code>SKB_CLOCK_REALTIME</code> 墙上时钟。为了做到无侵入更通用化，<code>ts1/2/3</code> 的获取可由 bpf 实现，在 <a href="https://github.com/torvalds/linux/commit/c8996c98f703b09afe77a1d247dae691c9849dc1">kernel v6.1</a> 前 bpf helper 里只提供了 <code>bpf_ktime_get_ns</code> 其格式为 <code>SKB_CLOCK_MONOTONIC</code>，两种时间戳格式的偏移估算以及上述三个阶段的延迟计算方法详情可参考 HUATUO 代码。</p>
+<p><strong>总结：</strong></p>
+<p>以上就是 HUATUO 网络收包延迟 netrecvlat 方案的核心逻辑，可以看到此收方向延迟事件方案并没有把检测粒度细化到网卡驱动、vlan 转发、RPS 等环节的耗时，除了考虑到性能消耗和实现存在一定的难度外，还考虑到目前方案在解决通用问题也完全够用。</p>
+<h2 id="应用">应用</h2>
+<ul>
+<li>
+<p><strong>软中断优化</strong></p>
+<p>loopback 接口会在 <code>loopback_xmit</code> 中将时间戳清零，netrecvlat 能计算使用 loopback 接口（走非 napi 路径）通信的报文在软中断中的延迟，因此可通过对 loopback 发压得到包含软中断延迟(<code>ts1 - ts0</code>) 的数据，然后参考该数据对软中断做相关优化，但需要注意的是软中断是针对系统全局的机制，通常优化软中断在业务指标上没有直接的效果，不会带来能立刻看到的明显业务收益，更多的是表现在业务指标的长尾优化。</p>
+<p>软中断优化前后 netrecvlat 事件数量对比
+<img src="/img/blog/2025-09-15-netrecvlat-softirq-optimize.png" alt="软中断优化事件对比"></p>
+<p>业务长尾优化效果
+<img src="/img/blog/2025-09-15-netrecvlat-app-latency-optimize.png" alt="业务长尾延迟优化"></p>
+</li>
+<li>
+<p><strong>问题定界</strong></p>
+<p>在生产环境中，明确 “问题边界” 通常面临两大挑战，我对 “问题边界” 有以下两个维度的理解：</p>
+<ul>
+<li>定位方向：直接影响根因定位的时效与止损策略的制定，明确的定位方向能够显著提升故障排查效率（<em>抓手</em>🤩）</li>
+<li>责任划分：确定问题出现的具体环节与对应责任人（<em>分锅</em>🤩）</li>
+</ul>
+<p>用户主动从内核取包的时间点 <code>ts3</code> 可以将延迟问题划分到用户侧还是内核侧；如果能把硬件时间戳拿到，<code>ts1</code>, <code>ts2</code> 能将延迟锁定到是在驱动、软中断还是协议栈。</p>
+<p><img src="/img/blog/2025-09-15-netrecvlat-dashbroad-demo.png" alt="收网络报延迟-大盘demo"></p>
+</li>
+</ul>
+<h2 id="可能存在的问题以及优化点">可能存在的问题以及优化点</h2>
+<ul>
+<li><code>ts0</code> 考虑更稳定准确的硬件时间戳，同时也可以增加走 NAPI 路径的报文包含软中断的延迟检测</li>
+<li>当前使用墙上时钟，跳变/回拨如何处理？</li>
+<li>高版本内核对 skb 时间戳的处理引入了 <a href="https://github.com/torvalds/linux/blob/4d25ca2d6801cfcf26f7f39c561611ba5be99bf8/include/linux/skbuff.h#L960">tstamp_type</a> 是否可根据不同应用场景设置不同类型的时间值</li>
+<li>报文分批拷贝到用户接收缓冲区的延迟事件可能存在重复（考虑五元组 或 skb 地址去重？）</li>
+<li>ipv6 支持</li>
+<li>阈值设置粒度更细（考虑 qos、延迟敏感业务等）</li>
+<li>kernel v5.18 引入 <a href="https://github.com/torvalds/linux/commit/9bb984f28d5bcb917d35d930fcfb89f90f9449fd">bpf_skb_set_tstamp()</a>，是否会导致阈值失效，如何区分？</li>
+</ul>
+<h2 id="参考">参考</h2>
+<ul>
+<li><a href="https://github.com/torvalds/linux/blob/v5.10/Documentation/networking/timestamping.rst">https://github.com/torvalds/linux/blob/v5.10/Documentation/networking/timestamping.rst</a></li>
+<li><a href="https://github.com/facebook/time">https://github.com/facebook/time</a></li>
+<li><a href="https://docs.ebpf.io/linux/helper-function/bpf_skb_set_tstamp/">https://docs.ebpf.io/linux/helper-function/bpf_skb_set_tstamp/</a></li>
+<li><a href="https://bootlin.com/pub/conferences/2020/elce/tenart-timestamping-and-ptp-in-linux/tenart-timestamping-and-ptp-in-linux.pdf">https://bootlin.com/pub/conferences/2020/elce/tenart-timestamping-and-ptp-in-linux/tenart-timestamping-and-ptp-in-linux.pdf</a></li>
+</ul>
+
+                        </div>
+
+                        
+                        
+                        
+                        <div id="comments"><script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+</div>
+                        
+
+                    </div>
+                    
+
+                    
+
+                    
+
+                    <div class="col-md-3">
+
+                        
+
+                        
+
+<div class="panel panel-default sidebar-menu">
+
+    <div class="panel-heading">
+      <h3 class="panel-title">搜索</h3>
+    </div>
+
+    <div class="panel-body">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" role="search">
+            <div class="input-group">
+                <input type="search" name="q" class="form-control" placeholder="搜索" />
+                <input type="hidden" name="sitesearch" value="https://huatuo.tech/" />
+                <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">标签</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ccf"><i class="fas fa-tags"></i> ccf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/containers"><i class="fas fa-tags"></i> containers</a>
+            </li>
+            
+            <li >
+                <a href="/tags/cpuidle"><i class="fas fa-tags"></i> cpuidle</a>
+            </li>
+            
+            <li >
+                <a href="/tags/hao022"><i class="fas fa-tags"></i> hao022</a>
+            </li>
+            
+            <li >
+                <a href="/tags/huatuo"><i class="fas fa-tags"></i> huatuo</a>
+            </li>
+            
+            <li >
+                <a href="/tags/k8s"><i class="fas fa-tags"></i> k8s</a>
+            </li>
+            
+            <li >
+                <a href="/tags/linux-%e5%86%85%e6%a0%b8"><i class="fas fa-tags"></i> linux 内核</a>
+            </li>
+            
+            <li >
+                <a href="/tags/loadavg"><i class="fas fa-tags"></i> loadavg</a>
+            </li>
+            
+            <li >
+                <a href="/tags/netrecvlat"><i class="fas fa-tags"></i> netrecvlat</a>
+            </li>
+            
+            <li >
+                <a href="/tags/networking"><i class="fas fa-tags"></i> networking</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e4%ba%8b%e4%bb%b6%e6%8c%87%e6%a0%87"><i class="fas fa-tags"></i> 事件指标</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e4%ba%8b%e4%bb%b6%e9%a9%b1%e5%8a%a8"><i class="fas fa-tags"></i> 事件驱动</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7"><i class="fas fa-tags"></i> 可观测性</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%90%88%e4%bd%9c"><i class="fas fa-tags"></i> 合作</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%a4%9c%e8%8e%ba%e7%9b%91%e6%8e%a7"><i class="fas fa-tags"></i> 夜莺监控</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%bc%80%e6%ba%90"><i class="fas fa-tags"></i> 开源</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%81%ab%e7%84%b0%e5%9b%be"><i class="fas fa-tags"></i> 火焰图</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%aa%81%e5%a2%9e%e6%8d%95%e8%8e%b7"><i class="fas fa-tags"></i> 突增捕获</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%bb%9f%e8%ae%a1%e6%8c%87%e6%a0%87"><i class="fas fa-tags"></i> 统计指标</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%bd%91%e7%bb%9c%e4%bc%98%e5%8c%96"><i class="fas fa-tags"></i> 网络优化</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e8%8d%a3%e8%aa%89"><i class="fas fa-tags"></i> 荣誉</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e8%bf%bd%e8%b8%aa%e6%8c%87%e6%a0%87"><i class="fas fa-tags"></i> 追踪指标</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+
+                        
+
+                    </div>
+                    
+
+                    
+
+                </div>
+                
+
+            </div>
+            
+        </div>
+        
+
+        <footer id="footer">
+    <div class="container">
+
+        
+        <div class="col-md-4 col-sm-6">
+            <h4>关于我们</h4>
+
+            <p>一群开源技术爱好者，基础技术研究者。</p>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+        <div class="col-md-4 col-sm-6">
+
+            
+
+        </div>
+        
+
+        
+        <div class="col-md-4 col-sm-6">
+
+          <h4>联系</h4>
+
+            <p class="text-uppercase"><strong>HUATUO 开源技术社区, 欢迎技术交流</strong>
+        <br>中国北京市海淀区西二旗软件园。
+        <br>
+      </p>
+      
+
+	    <a href="/contact" class="btn btn-small btn-template-main">跳到联系页面</a>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025 CCF 开源发展技术委员会、HUATUO 开源技术社区</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+    
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+
+<script src="/js/front.js"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>
