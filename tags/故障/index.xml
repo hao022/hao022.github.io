@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>故障 on HUATUO 开源技术</title>
+    <link>https://huatuo.tech/tags/%E6%95%85%E9%9A%9C/</link>
+    <description>Recent content in 故障 on HUATUO 开源技术</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Thu, 25 Dec 2025 04:17:31 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/tags/%E6%95%85%E9%9A%9C/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>滴滴出行荣获腾讯操作系统生态OC, 杰出贡献单位</title>
+      <link>https://huatuo.tech/blog/2025-12-20-huatuo-and-tencent-outstanding-contribution/</link>
+      <pubDate>Fri, 19 Dec 2025 21:43:17 -0500</pubDate>
+      <guid>https://huatuo.tech/blog/2025-12-20-huatuo-and-tencent-outstanding-contribution/</guid>
+      <description>近日，2025 OpenCloudOS 操作系统生态大会在北京成功举办。会上，滴滴出行荣获年度“杰出贡献单位”奖，体现腾讯操作系统社区对滴滴出行所做贡献的高度认可，更彰显了HUATUO（华佗）社区在推动操作系统可观测生态繁荣方面所做的深刻实践</description>
+    </item>
+    <item>
+      <title> 这些年全面崩溃的互联网大厂系统故障，经验总结</title>
+      <link>https://huatuo.tech/blog/2025-12-16-summary-of-faults-over-the-years/</link>
+      <pubDate>Mon, 15 Dec 2025 23:18:31 -0500</pubDate>
+      <guid>https://huatuo.tech/blog/2025-12-16-summary-of-faults-over-the-years/</guid>
+      <description>本篇博客梳理了历年的全球IT基础设施故障案例，并尝试从中总结一系列经验，指导日常的生产实践。故障难以避免，重要的是如何快速的感知，止损，隔离，恢复。在稳定性保障体系中 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; 能够发挥强大的价值。</description>
+    </item>
+  </channel>
+</rss>
