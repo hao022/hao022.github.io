@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>v2.1.0 on HUATUO Doc</title>
+    <link>https://huatuo.tech/docs/en/v2.1.0/</link>
+    <description>Recent content in v2.1.0 on HUATUO Doc</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <atom:link href="https://huatuo.tech/docs/en/v2.1.0/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Getting started</title>
+      <link>https://huatuo.tech/docs/en/v2.1.0/gettingstarted/quick-start/</link>
+      <pubDate>Wed, 03 Dec 2025 00:00:00 +0000</pubDate>
+      <guid>https://huatuo.tech/docs/en/v2.1.0/gettingstarted/quick-start/</guid>
+      <description>&lt;blockquote&gt;&#xA;&lt;p&gt;To help users quickly experience and deploy HUATUO, this document is divided into three sections: &lt;a href=&#34;https://huatuo.tech/docs/en/v2.1.0/gettingstarted/quick-start/#1-quick-experience&#34;&gt;Quick Experience&lt;/a&gt;，&lt;a href=&#34;https://huatuo.tech/docs/en/v2.1.0/gettingstarted/quick-start/#2-quick-start&#34;&gt;Quick Start&lt;/a&gt;，&lt;a href=&#34;https://huatuo.tech/docs/en/v2.1.0/gettingstarted/quick-start/#3-compilation--deployment&#34;&gt;Compilation &amp;amp; Deployment&lt;/a&gt;.&lt;/p&gt;&lt;/blockquote&gt;&#xA;&lt;h2 id=&#34;1-quick-experience&#34;&gt;1 Quick Experience&lt;a class=&#34;td-heading-self-link&#34; href=&#34;#1-quick-experience&#34; aria-label=&#34;Heading self-link&#34;&gt;&lt;/a&gt;&lt;/h2&gt;&#xA;&lt;p&gt;This section helps you quickly explore the frontend capabilities. You can directly perform various query operations on the frontend dashboard, such as viewing exception event overviews, exception event context information, metric curves, etc. Access the dashboard example without login:&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;&lt;a href=&#34;http://console.huatuo.tech/public-dashboards/a6342b13a1ee4feaba0ebd0876ac6b70&#34;&gt;Events, AutoTracing Dashboard（improvements in progress）&lt;/a&gt;&#xA;&lt;img src=&#34;https://huatuo.tech/docs/img/quickstart-autotrcing-event.png&#34; alt=&#34;autotrcing-event demo diagram​&#34;&gt;&#xA;In the example, jumping to the flame graph page requires login. Account: huatuo Password: huatuo1024&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>
