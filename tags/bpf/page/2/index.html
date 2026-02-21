@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>BPF</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='//fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300italic,500,700,800' rel='stylesheet' type='text/css'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1771655524" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="HUATUO 开源技术">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en_us">
+<meta property="og:site_name" content="HUATUO 开源技术">
+<meta property="og:title" content="BPF">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://huatuo.tech/tags/bpf/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/sharing-default.png">
+<meta property="og:image:type" content="image/png">
+
+
+
+  <meta property="og:image:width" content="428">
+  <meta property="og:image:height" content="149">
+
+
+<meta property="og:updated_time" content="2026-02-21T06:31:59Z">
+
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="BPF">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/sharing-default.png">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+    
+  </head>
+
+  <body>
+
+    <div id="all">
+
+        
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm mouseover" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/logo.png" alt="BPF logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/logo-small.png" alt="BPF logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">BPF - 跳到主页</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">切换导航</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/quickstart/">快速开始</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+                    
+                      
+                    
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">文档 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="/docs/zh/latest/">latest</a></li>
+                            
+                            <li><a href="/docs/zh/v2.1.0/">v2.1.0</a></li>
+                            
+                            <li><a href="/docs/zh/v2.0.0/">v2.0.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+                    
+                      
+                    
+                      
+                    
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/download">下载</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+                    
+                      
+                    
+                      
+                        
+                      
+                    
+                      
+                    
+                  
+
+                  
+                  <li class="dropdown active">
+                    
+                    
+                        <a href="/blog/">博客</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/milestone/">动态</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/about/">关于</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="https://github.com/ccfos/huatuo">
+                            <img src="https://img.shields.io/badge/dynamic/json?label=Stars&amp;query=%24.stargazers_count&amp;url=https%3A%2F%2Fapi.github.com%2Frepos%2Fccfos%2Fhuatuo&amp;style=social&amp;logo=github&amp;formatter=none" height="100%">
+                        </a>
+                    
+                  </li>
+                  
+                  
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        <div id="heading-breadcrumbs">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>BPF</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+        <div id="content">
+            <div class="container">
+                <div class="row">
+                    
+
+                    <div class="col-md-9" id="blog-listing-medium">
+
+                        
+                        
+                        <section class="post">
+                            <div class="row">
+                                <div class="col-md-4">
+                                  <div class="image">
+                                      <a href="https://huatuo.tech/blog/2025-12-16-summary-of-faults-over-the-years/">
+                                          
+                                          <img src="/img/blog/2025-12-16-huatuo-cover.jpg" class="img-responsive" alt="" />
+                                          
+                                      </a>
+                                  </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <h2><a href="https://huatuo.tech/blog/2025-12-16-summary-of-faults-over-the-years/"> 这些年全面崩溃的互联网大厂系统故障，经验总结</a></h2>
+                                    <div class="clearfix">
+                                        <p class="author-category">
+                                          
+					  由 <a href="/authors/%E5%AE%98%E6%96%B9%E5%B0%8F%E7%BC%96">官方小编</a>
+                                          
+                                          
+
+                                        </p>
+                                        
+
+                                        
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+
+                                        <p class="date-comments">
+                                            <a href="https://huatuo.tech/blog/2025-12-16-summary-of-faults-over-the-years/"><i class="far fa-calendar"></i> 2025-12-15</a>
+                                        </p>
+                                        
+                                    </div>
+                                    
+                                    <p class="intro">本篇博客梳理了历年的全球IT基础设施故障案例，并尝试从中总结一系列经验，指导日常的生产实践。故障难以避免，重要的是如何快速的感知，止损，隔离，恢复。在稳定性保障体系中 <a href="https://huatuo.tech/">HUATUO</a> 能够发挥强大的价 …</p>
+                                    <p class="read-more"><a href="https://huatuo.tech/blog/2025-12-16-summary-of-faults-over-the-years/" class="btn btn-template-main">继续阅读</a>
+                                    </p>
+                                    
+                                </div>
+                            </div>
+                        </section>
+                        
+                        <section class="post">
+                            <div class="row">
+                                <div class="col-md-4">
+                                  <div class="image">
+                                      <a href="https://huatuo.tech/blog/2025-11-14-2025-opencloud-submitting/">
+                                          
+                                          <img src="/img/blog/2025-11-14-oc-cover.jpg" class="img-responsive" alt="" />
+                                          
+                                      </a>
+                                  </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <h2><a href="https://huatuo.tech/blog/2025-11-14-2025-opencloud-submitting/">2025 OC 操作系统生态大会，解锁 OS&#43; 多元行业落地场景实践方案</a></h2>
+                                    <div class="clearfix">
+                                        <p class="author-category">
+                                          
+					  由 <a href="/authors/%E5%AE%98%E6%96%B9%E5%B0%8F%E7%BC%96">官方小编</a>
+                                          
+                                          
+
+                                        </p>
+                                        
+
+                                        
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+
+                                        <p class="date-comments">
+                                            <a href="https://huatuo.tech/blog/2025-11-14-2025-opencloud-submitting/"><i class="far fa-calendar"></i> 2025-11-14</a>
+                                        </p>
+                                        
+                                    </div>
+                                    
+                                    <p class="intro"><a href="https://huatuo.tech/">HUATUO 开源技术社区</a> 将与<strong>腾讯、安谋科技、沐曦、绿盟、堡塔、达梦、嘉为</strong>等伙伴，分享一系列经过大规模实践检验的解决方案。这里有最真实的挑战、最实用的经验&hellip;</p>
+                                    <p class="read-more"><a href="https://huatuo.tech/blog/2025-11-14-2025-opencloud-submitting/" class="btn btn-template-main">继续阅读</a>
+                                    </p>
+                                    
+                                </div>
+                            </div>
+                        </section>
+                        
+                        <section class="post">
+                            <div class="row">
+                                <div class="col-md-4">
+                                  <div class="image">
+                                      <a href="https://huatuo.tech/blog/2025-09-30-how-to-use-huatuo-to-solve-packets-loss/">
+                                          
+                                          <img src="/img/blog/2025-09-30-cover.jpg" class="img-responsive" alt="" />
+                                          
+                                      </a>
+                                  </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <h2><a href="https://huatuo.tech/blog/2025-09-30-how-to-use-huatuo-to-solve-packets-loss/">应用篇：如何使用 HUATUO 解决网卡硬件丢包</a></h2>
+                                    <div class="clearfix">
+                                        <p class="author-category">
+                                          
+					  由 <a href="/authors/teresa">teresa</a>
+                                          
+                                          
+
+                                        </p>
+                                        
+
+                                        
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+
+                                        <p class="date-comments">
+                                            <a href="https://huatuo.tech/blog/2025-09-30-how-to-use-huatuo-to-solve-packets-loss/"><i class="far fa-calendar"></i> 2025-09-30</a>
+                                        </p>
+                                        
+                                    </div>
+                                    
+                                    <p class="intro">本文探讨了检测网卡硬件丢包遇到的问题，例如 ethtool 为什么不能应用于常态的硬件丢包检测，并最终给出了 <a href="https://huatuo.tech/">HUATUO</a> 网卡硬件丢包检测解决方案，并提供了一个实际生产环境故障案例 &hellip;</p>
+                                    <p class="read-more"><a href="https://huatuo.tech/blog/2025-09-30-how-to-use-huatuo-to-solve-packets-loss/" class="btn btn-template-main">继续阅读</a>
+                                    </p>
+                                    
+                                </div>
+                            </div>
+                        </section>
+                        
+                        <section class="post">
+                            <div class="row">
+                                <div class="col-md-4">
+                                  <div class="image">
+                                      <a href="https://huatuo.tech/blog/2025-09-26-some-thoughts-on-non-stacking-network-architecture/">
+                                          
+                                          <img src="/img/blog/2025-09-26-cover.jpg" class="img-responsive" alt="" />
+                                          
+                                      </a>
+                                  </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <h2><a href="https://huatuo.tech/blog/2025-09-26-some-thoughts-on-non-stacking-network-architecture/">思考篇：关于双上联去堆叠网络架构的一点总结</a></h2>
+                                    <div class="clearfix">
+                                        <p class="author-category">
+                                          
+					  由 <a href="/authors/hao022">hao022</a>
+                                          
+                                          
+
+                                        </p>
+                                        
+
+                                        
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+
+                                        <p class="date-comments">
+                                            <a href="https://huatuo.tech/blog/2025-09-26-some-thoughts-on-non-stacking-network-architecture/"><i class="far fa-calendar"></i> 2025-09-26</a>
+                                        </p>
+                                        
+                                    </div>
+                                    
+                                    <p class="intro">本文探讨了双上联去堆叠网络架构的设计思路与生产环境中遇到的实际问题（如LACP协议状态与物理链路的监控难点），并引入 <a href="https://huatuo.tech/">HUATUO</a> 解决方案，以实现对物理链路可用性的有效观测 &hellip;</p>
+                                    <p class="read-more"><a href="https://huatuo.tech/blog/2025-09-26-some-thoughts-on-non-stacking-network-architecture/" class="btn btn-template-main">继续阅读</a>
+                                    </p>
+                                    
+                                </div>
+                            </div>
+                        </section>
+                        
+                        <section class="post">
+                            <div class="row">
+                                <div class="col-md-4">
+                                  <div class="image">
+                                      <a href="https://huatuo.tech/blog/2025-09-24-how-to-build-a-robust-system/">
+                                          
+                                          <img src="/img/blog/2025-09-24-cover.jpg" class="img-responsive" alt="" />
+                                          
+                                      </a>
+                                  </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <h2><a href="https://huatuo.tech/blog/2025-09-24-how-to-build-a-robust-system/">思考篇：如何构建一个稳健的系统</a></h2>
+                                    <div class="clearfix">
+                                        <p class="author-category">
+                                          
+					  由 <a href="/authors/hao022">hao022</a>
+                                          
+                                          
+
+                                        </p>
+                                        
+
+                                        
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+
+                                        <p class="date-comments">
+                                            <a href="https://huatuo.tech/blog/2025-09-24-how-to-build-a-robust-system/"><i class="far fa-calendar"></i> 2025-09-23</a>
+                                        </p>
+                                        
+                                    </div>
+                                    
+                                    <p class="intro">该文章介绍了在实际生产过程中，对设计稳健系统的一些思考，形成一些方法论。对基础软件，业务软件，集群软件都有适用性。希望<a href="https://huatuo.tech/">HUATUO</a> 能够为大家在设计稳健系统时提供一些帮助 &hellip;</p>
+                                    <p class="read-more"><a href="https://huatuo.tech/blog/2025-09-24-how-to-build-a-robust-system/" class="btn btn-template-main">继续阅读</a>
+                                    </p>
+                                    
+                                </div>
+                            </div>
+                        </section>
+                        
+                        <section class="post">
+                            <div class="row">
+                                <div class="col-md-4">
+                                  <div class="image">
+                                      <a href="https://huatuo.tech/blog/2025-09-22-how-to-use-huatuo-to-solve-the-problem-of-application-stalling/">
+                                          
+                                          <img src="/img/blog/2025-09-22-tasks-cover.jpg" class="img-responsive" alt="" />
+                                          
+                                      </a>
+                                  </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <h2><a href="https://huatuo.tech/blog/2025-09-22-how-to-use-huatuo-to-solve-the-problem-of-application-stalling/">应用篇：如何使用 HUATUO 解决应用程序卡住问题</a></h2>
+                                    <div class="clearfix">
+                                        <p class="author-category">
+                                          
+					  由 <a href="/authors/hao022">hao022</a>
+                                          
+                                          
+
+                                        </p>
+                                        
+
+                                        
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+
+                                        <p class="date-comments">
+                                            <a href="https://huatuo.tech/blog/2025-09-22-how-to-use-huatuo-to-solve-the-problem-of-application-stalling/"><i class="far fa-calendar"></i> 2025-09-22</a>
+                                        </p>
+                                        
+                                    </div>
+                                    
+                                    <p class="intro">该文章介绍了在实际生产环境中哪些因素可能导致进程“卡顿”，以及 <a href="https://huatuo.tech/">HUATUO</a> 如何观测这些卡顿行为，并附有实际指标看板。最后通过实际的一个案例说明如何定位到卡顿原因，和实际效果 &hellip;</p>
+                                    <p class="read-more"><a href="https://huatuo.tech/blog/2025-09-22-how-to-use-huatuo-to-solve-the-problem-of-application-stalling/" class="btn btn-template-main">继续阅读</a>
+                                    </p>
+                                    
+                                </div>
+                            </div>
+                        </section>
+                        
+                        <section class="post">
+                            <div class="row">
+                                <div class="col-md-4">
+                                  <div class="image">
+                                      <a href="https://huatuo.tech/blog/2025-09-15-netrecvlat-article/">
+                                          
+                                          <img src="/img/blog/2025-09-15-net-cover.jpeg" class="img-responsive" alt="" />
+                                          
+                                      </a>
+                                  </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <h2><a href="https://huatuo.tech/blog/2025-09-15-netrecvlat-article/">应用篇：深入剖析网络收包延迟，从网卡到应用的精确追踪与优化</a></h2>
+                                    <div class="clearfix">
+                                        <p class="author-category">
+                                          
+					  由 <a href="/authors/fanzu8">fanzu8</a>
+                                          
+                                          
+
+                                        </p>
+                                        
+
+                                        
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+
+                                        <p class="date-comments">
+                                            <a href="https://huatuo.tech/blog/2025-09-15-netrecvlat-article/"><i class="far fa-calendar"></i> 2025-09-15</a>
+                                        </p>
+                                        
+                                    </div>
+                                    
+                                    <p class="intro">该文章主要介绍了 <a href="https://huatuo.tech/">HUATUO</a> 网络收方向延迟检测方案。论证了获取时间戳的位置，以及到用户态的接收延迟的检测。最后给出了在生产实践过程中具体问题案例 &hellip;</p>
+                                    <p class="read-more"><a href="https://huatuo.tech/blog/2025-09-15-netrecvlat-article/" class="btn btn-template-main">继续阅读</a>
+                                    </p>
+                                    
+                                </div>
+                            </div>
+                        </section>
+                        
+                        <section class="post">
+                            <div class="row">
+                                <div class="col-md-4">
+                                  <div class="image">
+                                      <a href="https://huatuo.tech/blog/2025-08-27-huatuo-and-nightingale-work-together/">
+                                          
+                                          <img src="/img/blog/2025-08-27-huatuo-cover2.jpg" class="img-responsive" alt="" />
+                                          
+                                      </a>
+                                  </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <h2><a href="https://huatuo.tech/blog/2025-08-27-huatuo-and-nightingale-work-together/">合作篇：打通操作系统可观测性最后一公里</a></h2>
+                                    <div class="clearfix">
+                                        <p class="author-category">
+                                          
+					  由 <a href="/authors/%E5%A4%9C%E8%8E%BA%E7%9B%91%E6%8E%A7">夜莺监控</a>
+                                          
+                                          
+
+                                        </p>
+                                        
+
+                                        
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+
+                                        <p class="date-comments">
+                                            <a href="https://huatuo.tech/blog/2025-08-27-huatuo-and-nightingale-work-together/"><i class="far fa-calendar"></i> 2025-08-27</a>
+                                        </p>
+                                        
+                                    </div>
+                                    
+                                    <p class="intro">即刻部署 <a href="https://huatuo.tech/">HUATUO</a> + <a href="https://n9e.github.io/zh/">夜莺监控</a> 工具组合，快速构建覆盖应用，中间件，数据库，操作系统内核的一体化可观测体系。HUATUO 开箱即用，从各维度全面观测内核，填补了操作系统可观测性领域的空白。</p>
+                                    <p class="read-more"><a href="https://huatuo.tech/blog/2025-08-27-huatuo-and-nightingale-work-together/" class="btn btn-template-main">继续阅读</a>
+                                    </p>
+                                    
+                                </div>
+                            </div>
+                        </section>
+                        
+                        <section class="post">
+                            <div class="row">
+                                <div class="col-md-4">
+                                  <div class="image">
+                                      <a href="https://huatuo.tech/blog/2025-08-19-how-to-use-huatuo-solve-problem-of-container-cpuidle/">
+                                          
+                                          <img src="/img/blog/2025-08-19-huatuo-cover.jpg" class="img-responsive" alt="" />
+                                          
+                                      </a>
+                                  </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <h2><a href="https://huatuo.tech/blog/2025-08-19-how-to-use-huatuo-solve-problem-of-container-cpuidle/">应用篇：如何使用 HUATUO 解决容器 CPUIdle 掉底问题</a></h2>
+                                    <div class="clearfix">
+                                        <p class="author-category">
+                                          
+					  由 <a href="/authors/hao022">hao022</a>
+                                          
+                                          
+
+                                        </p>
+                                        
+
+                                        
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+                                            
+                                        
+
+                                        <p class="date-comments">
+                                            <a href="https://huatuo.tech/blog/2025-08-19-how-to-use-huatuo-solve-problem-of-container-cpuidle/"><i class="far fa-calendar"></i> 2025-08-21</a>
+                                        </p>
+                                        
+                                    </div>
+                                    
+                                    <p class="intro">系统故障诊断面临多重挑战。如何在新技术范式与架构下，构建面向操作系统的低损耗、零侵扰、全景式、持续深度观测能力体系，成为亟待解决的核心问题。本系列文章分享 <a href="https://huatuo.tech/">HUATUO</a> 落地实践 &hellip;</p>
+                                    <p class="read-more"><a href="https://huatuo.tech/blog/2025-08-19-how-to-use-huatuo-solve-problem-of-container-cpuidle/" class="btn btn-template-main">继续阅读</a>
+                                    </p>
+                                    
+                                </div>
+                            </div>
+                        </section>
+                        
+
+                        <ul class="pager">
+                            
+                            <li class="previous"><a href="/tags/bpf/">&larr; 更新</a></li>
+                            
+
+                            
+                            <li class="next disabled"><a href="#">更旧 &rarr;</a></li>
+                            
+                        </ul>
+                    </div>
+                    
+
+                    
+
+                    
+
+                    <div class="col-md-3">
+
+                        
+
+                        
+
+<div class="panel panel-default sidebar-menu">
+
+    <div class="panel-heading">
+      <h3 class="panel-title">搜索</h3>
+    </div>
+
+    <div class="panel-body">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" role="search">
+            <div class="input-group">
+                <input type="search" name="q" class="form-control" placeholder="搜索" />
+                <input type="hidden" name="sitesearch" value="https://huatuo.tech/" />
+                <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">标签</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li class="active">
+                <a href="/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ccf"><i class="fas fa-tags"></i> ccf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/containers"><i class="fas fa-tags"></i> containers</a>
+            </li>
+            
+            <li >
+                <a href="/tags/cpuidle"><i class="fas fa-tags"></i> cpuidle</a>
+            </li>
+            
+            <li >
+                <a href="/tags/hao022"><i class="fas fa-tags"></i> hao022</a>
+            </li>
+            
+            <li >
+                <a href="/tags/huatuo"><i class="fas fa-tags"></i> huatuo</a>
+            </li>
+            
+            <li >
+                <a href="/tags/k8s"><i class="fas fa-tags"></i> k8s</a>
+            </li>
+            
+            <li >
+                <a href="/tags/linux-%e5%86%85%e6%a0%b8"><i class="fas fa-tags"></i> linux 内核</a>
+            </li>
+            
+            <li >
+                <a href="/tags/loadavg"><i class="fas fa-tags"></i> loadavg</a>
+            </li>
+            
+            <li >
+                <a href="/tags/netrecvlat"><i class="fas fa-tags"></i> netrecvlat</a>
+            </li>
+            
+            <li >
+                <a href="/tags/networking"><i class="fas fa-tags"></i> networking</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7"><i class="fas fa-tags"></i> 可观测性</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%90%88%e4%bd%9c"><i class="fas fa-tags"></i> 合作</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%a4%9c%e8%8e%ba%e7%9b%91%e6%8e%a7"><i class="fas fa-tags"></i> 夜莺监控</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%bc%80%e6%ba%90"><i class="fas fa-tags"></i> 开源</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%81%ab%e7%84%b0%e5%9b%be"><i class="fas fa-tags"></i> 火焰图</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%bd%91%e7%bb%9c%e4%bc%98%e5%8c%96"><i class="fas fa-tags"></i> 网络优化</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e8%8d%a3%e8%aa%89"><i class="fas fa-tags"></i> 荣誉</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+
+                        
+
+                    </div>
+                    
+
+                    
+
+                </div>
+                
+            </div>
+            
+        </div>
+        
+
+        <footer id="footer">
+    <div class="container">
+
+        
+        <div class="col-md-4 col-sm-6">
+            <h4>关于我们</h4>
+
+            <p>一群开源技术爱好者，基础技术研究者。</p>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+        <div class="col-md-4 col-sm-6">
+
+            
+
+        </div>
+        
+
+        
+        <div class="col-md-4 col-sm-6">
+
+          <h4>联系</h4>
+
+            <p class="text-uppercase"><strong>HUATUO 开源技术社区, 欢迎技术交流</strong>
+        <br>中国北京市海淀区西二旗软件园。
+        <br>
+      </p>
+      
+
+	    <a href="/about" class="btn btn-small btn-template-main">跳到联系页面</a>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026 HUATUO 开源技术社区</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+    
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+
+<script src="/js/front.js"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

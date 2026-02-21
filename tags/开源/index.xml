@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>开源 on HUATUO 开源技术</title>
+    <link>https://huatuo.tech/tags/%E5%BC%80%E6%BA%90/</link>
+    <description>Recent content in 开源 on HUATUO 开源技术</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 21 Feb 2026 06:31:59 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/tags/%E5%BC%80%E6%BA%90/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>滴滴操作系统可观测项目 HUATUO 正式入驻 CCF</title>
+      <link>https://huatuo.tech/events/2025-08-07-huatuo-open-source-project-has-entered-the-ccf-incubation-phase/</link>
+      <pubDate>Fri, 08 Aug 2025 03:19:58 -0400</pubDate>
+      <guid>https://huatuo.tech/events/2025-08-07-huatuo-open-source-project-has-entered-the-ccf-incubation-phase/</guid>
+      <description>8月2日，&lt;a href=&#34;https://www.didiglobal.com/&#34;&gt;滴滴&lt;/a&gt;宣布其开源云原生操作系统可观测性项目 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; 正式入驻&lt;a href=&#34;https://www.ccf.org.cn/&#34;&gt;中国计算机学会（CCF）&lt;/a&gt;，加入其重点孵化项目序列。本次入驻不仅体现了滴滴长期践行开源共建共享的理念，也希望通过行业协作，共同推动可观测领域操作系统基础设施的高效标准化发展。</description>
+    </item>
+  </channel>
+</rss>

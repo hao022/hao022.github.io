@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Loadavg on HUATUO 开源技术</title>
+    <link>https://huatuo.tech/tags/loadavg/</link>
+    <description>Recent content in Loadavg on HUATUO 开源技术</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 21 Feb 2026 06:31:59 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/tags/loadavg/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>思考篇：如何构建一个稳健的系统</title>
+      <link>https://huatuo.tech/blog/2025-09-24-how-to-build-a-robust-system/</link>
+      <pubDate>Tue, 23 Sep 2025 22:13:21 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2025-09-24-how-to-build-a-robust-system/</guid>
+      <description>该文章介绍了在实际生产过程中，对设计稳健系统的一些思考，形成一些方法论。对基础软件，业务软件，集群软件都有适用性。希望&lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; 能够为大家在设计稳健系统时提供一些帮助 &amp;hellip;</description>
+    </item>
+    <item>
+      <title>应用篇：如何使用 HUATUO 解决应用程序卡住问题</title>
+      <link>https://huatuo.tech/blog/2025-09-22-how-to-use-huatuo-to-solve-the-problem-of-application-stalling/</link>
+      <pubDate>Mon, 22 Sep 2025 10:53:25 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2025-09-22-how-to-use-huatuo-to-solve-the-problem-of-application-stalling/</guid>
+      <description>该文章介绍了在实际生产环境中哪些因素可能导致进程“卡顿”，以及 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; 如何观测这些卡顿行为，并附有实际指标看板。最后通过实际的一个案例说明如何定位到卡顿原因，和实际效果 &amp;hellip;</description>
+    </item>
+  </channel>
+</rss>

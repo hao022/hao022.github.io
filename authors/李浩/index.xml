@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>李浩 on HUATUO 开源技术</title>
+    <link>https://huatuo.tech/authors/%E6%9D%8E%E6%B5%A9/</link>
+    <description>Recent content in 李浩 on HUATUO 开源技术</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 21 Feb 2026 06:31:59 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/authors/%E6%9D%8E%E6%B5%A9/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>如何高效定位服务器概率性应用毛刺问题</title>
+      <link>https://huatuo.tech/blog/2025-12-29-how-to-effectively-resolve-application-failure-issues/</link>
+      <pubDate>Mon, 29 Dec 2025 06:15:17 -0500</pubDate>
+      <guid>https://huatuo.tech/blog/2025-12-29-how-to-effectively-resolve-application-failure-issues/</guid>
+      <description>本篇博客详细梳理了，近期公司某机房的一些机器出现偶发概率性的服务毛刺问题，并最终给出了解决方案，效果立竿见影。在整个定位过程中 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; 发挥了关键作用，体现了其在故障定位中的强大价值。</description>
+    </item>
+  </channel>
+</rss>

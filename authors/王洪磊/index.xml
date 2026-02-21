@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>王洪磊 on HUATUO 开源技术</title>
+    <link>https://huatuo.tech/authors/%E7%8E%8B%E6%B4%AA%E7%A3%8A/</link>
+    <description>Recent content in 王洪磊 on HUATUO 开源技术</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 21 Feb 2026 06:31:59 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/authors/%E7%8E%8B%E6%B4%AA%E7%A3%8A/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>避坑！AMD 服务器指令集引发的故障分析</title>
+      <link>https://huatuo.tech/blog/2026-01-20-fault-analysis-caused-by-amd-server-instruction/</link>
+      <pubDate>Tue, 20 Jan 2026 04:17:34 -0500</pubDate>
+      <guid>https://huatuo.tech/blog/2026-01-20-fault-analysis-caused-by-amd-server-instruction/</guid>
+      <description>本篇重点分析了 AMD 服务器因指令集问题导致的业务容器 CPU 掉底，业务指标抖动问题。涉及 HUATUO 火焰图，libstdc++ 库等</description>
+    </item>
+    <item>
+      <title>避坑！AMD 服务器诡异的耗时毛刺问题</title>
+      <link>https://huatuo.tech/blog/2026-01-13-anlysis-the-amd-server-latency-issue/</link>
+      <pubDate>Tue, 13 Jan 2026 06:11:44 -0500</pubDate>
+      <guid>https://huatuo.tech/blog/2026-01-13-anlysis-the-amd-server-latency-issue/</guid>
+      <description>本篇分析解决 AMD 服务器诡异的毛刺问题，涉及 HUATUO 关键指标，内核选核策略，CPU 架构，内核调度，调度域等核心技术。</description>
+    </item>
+  </channel>
+</rss>

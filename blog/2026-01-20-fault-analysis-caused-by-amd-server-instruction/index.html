@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>避坑！AMD 服务器指令集引发的故障分析</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, 故障">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='//fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300italic,500,700,800' rel='stylesheet' type='text/css'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1771655524" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="HUATUO 开源技术">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en_us">
+<meta property="og:site_name" content="HUATUO 开源技术">
+<meta property="og:title" content="避坑！AMD 服务器指令集引发的故障分析">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/blog/2026-01-20-fault-analysis-caused-by-amd-server-instruction/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2026-01-20-cover.jpg">
+<meta property="og:image:type" content="image/jpg">
+
+
+
+  <meta property="og:image:width" content="400">
+  <meta property="og:image:height" content="267">
+
+
+<meta property="og:updated_time" content="2026-02-21T06:31:59Z">
+
+  
+  
+  
+  <meta property="article:tag" content="HUATUO">
+  <meta property="article:tag" content="BPF">
+  <meta property="article:tag" content="故障">
+  
+  
+  <meta property="article:published_time" content="2026-01-20T04:17:34-0500">
+  <meta property="article:modified_time" content="2026-02-21T06:31:59Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="避坑！AMD 服务器指令集引发的故障分析">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2026-01-20-cover.jpg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+    
+  </head>
+
+  <body>
+
+    <div id="all">
+
+        
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm mouseover" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/logo.png" alt="避坑！AMD 服务器指令集引发的故障分析 logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/logo-small.png" alt="避坑！AMD 服务器指令集引发的故障分析 logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">避坑！AMD 服务器指令集引发的故障分析 - 跳到主页</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">切换导航</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/quickstart/">快速开始</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">文档 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="/docs/zh/latest/">latest</a></li>
+                            
+                            <li><a href="/docs/zh/v2.1.0/">v2.1.0</a></li>
+                            
+                            <li><a href="/docs/zh/v2.0.0/">v2.0.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/download">下载</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    
+                    
+                        <a href="/blog/">博客</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/milestone/">动态</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/about/">关于</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="https://github.com/ccfos/huatuo">
+                            <img src="https://img.shields.io/badge/dynamic/json?label=Stars&amp;query=%24.stargazers_count&amp;url=https%3A%2F%2Fapi.github.com%2Frepos%2Fccfos%2Fhuatuo&amp;style=social&amp;logo=github&amp;formatter=none" height="100%">
+                        </a>
+                    
+                  </li>
+                  
+                  
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        <div id="heading-breadcrumbs">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>避坑！AMD 服务器指令集引发的故障分析</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+        <div id="content">
+            <div class="container">
+
+                <div class="row">
+
+                    
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                          <p class="text-muted text-uppercase mb-small text-right">
+                            
+                                
+                                最后更新: 2026-02-21,
+			                    作者: <a href="/authors/%E7%8E%8B%E6%B4%AA%E7%A3%8A">王洪磊</a>
+                            
+                          </p>
+                        
+
+                        <div id="post-content">
+                          <p>HUATUO（华佗）再出手，解决 AMD 服务器指令集引发的故障问题。</p>
+<h3 id="问题现象">问题现象</h3>
+<p>在一次全链路压测过程中，一个核心服务调度扩容到云上 AMD 服务器后出现 CPU 掉底，业务指标抖动。</p>
+<p><img src="/img/blog/2026-01-20-amd-server-metrics01.png" alt=""></p>
+<p>运维团队将云上容器调度到 IDC 机房后，发现部分机器（主要为 AMD 机型）同样出现抖动问题。</p>
+<p><img src="/img/blog/2026-01-20-amd-server-metrics02.png" alt=""></p>
+<h3 id="问题分析">问题分析</h3>
+<h4 id="huatuo-捕获现场">HUATUO 捕获现场</h4>
+<p>介入问题排查后，我们发现云上机房 HUATUO cpuidle 已经自动捕获到了容器的异常现场：</p>
+<p><img src="/img/blog/2026-01-20-amd-server-flamegraph.png" alt=""></p>
+<p>从内核栈可以观察到一个特殊的热点 urandom_read()，该函数通常调用频率很低，据此怀疑容器存在异常的随机数操作。</p>
+<p>将这一发现同步给业务团队，他们反馈近期变更了采集配置，采集流量比例从 1% 提升至 100%，导致 std::random_device 的调用数量明显增加。因此，业务回滚变更配置，容器再调度至云上机房和 IDC AMD 服务器后，均无抖动问题。</p>
+<p><img src="/img/blog/2026-01-20-amd-server-metrics03.png" alt=""></p>
+<p>为什么只有 AMD 服务器有问题，而 Intel 服务器却没有影响？</p>
+<h4 id="复现问题">复现问题</h4>
+<p>根据线上 HUATUO 抓取的火焰图，可以清晰的看到热点集在两部分：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>- page fault 处理过程与 mmap<span style="color:#f92672">()</span> + __munmap<span style="color:#f92672">()</span> 存在明显的读写信号量争抢。
+</span></span><span style="display:flex;"><span>- 随机数生成过程触发的 urandom_read<span style="color:#f92672">()</span> 存在激烈的 spinlock 争抢。
+</span></span></code></pre></div><p>我们开始在 AMD 机器上复现该问题。基于线上现象，复现场景需要满足两个条件：频繁读取 /dev/urandom，以及并行执行 mmap 和 munmap 操作。在经过调整后，构建的负载如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>- 约40个线程负责随机数生成，单线程内部每次生成随机数后睡眠 0.1 ms。
+</span></span><span style="display:flex;"><span>- 约10个线程进行 mmap 和 munmap 操作，并不进行内存读写，避免触发额外 page fault；单线程内部每次 mmap 与 munmap 之间睡眠 <span style="color:#ae81ff">1</span> ms。
+</span></span></code></pre></div><p>上述负载在 AMD 机器上运行后的效果如下：</p>
+<p><img src="/img/blog/2026-01-20-amd-server-flamegraph02.png" alt=""></p>
+<p>虽然，热点分布和线上问题不完全一致，但与 HUATUO 抓取的火焰图相似度极高：mmap 和 munmap 占据部分热点，urandam 内核态的 urandom_read() 构成另一主要热点。</p>
+<h4 id="继续深挖">继续深挖</h4>
+<p>将上述代码在 Intel 机器运行，出现了非常有趣的现象：整体 CPU 利用率相对较低，且热点主要集中在用户态，且几乎观察不到 urandom_read() 调用。</p>
+<p><img src="/img/blog/2026-01-20-amd-server-flamegraph03.png" alt=""></p>
+<p>进一步的通过 eBPF 打点后确认，urandom_read() 在 Intel 的机器上确实未被触发。因此可以证实代码的行为和硬件平台相关，这个差异可能来自哪里呢？通过火焰图可以发现 urandom_read() 的调用栈非常浅，因此大概率和库实现相关。</p>
+<p>业务应用程序通过 std::random_device 结合 std::mt19937 生成随机数。因此，通过在不同的服务器使用 gdb 观察运行时变量差异。</p>
+<p>AMD 机器上，通过 gdb 读取到 std::random_device._M_file 的地址信息
+<img src="/img/blog/2026-01-20-amd-server-random_device01.png" alt=""></p>
+<p>Intel 机器上，通过 gdb 读取到 std::random_device._M_file 是空指针
+<img src="/img/blog/2026-01-20-amd-server-random_device02.png" alt=""></p>
+<p>看来标准模版库在不同硬件平台存在行为差异。该环境下的标准库版本为 libstdc++-8.5.0，继续分析 random_device 处理：
+<img src="/img/blog/2026-01-20-amd-server-random_device03.png" alt=""></p>
+<p>在初始化阶段确实存在平台相关的差异处理逻辑：当检测到 Intel CPU 时，_M_file 会被置为空；而在其他平台（如 AMD）上，则会打开 /dev/urandom 设备，并将其文件句柄赋值给 _M_file。_M_file 的内容对后面会有什么影响呢？在执行获取随机数种子的时候：</p>
+<ul>
+<li>如果 _M_file 是空，则会执行__x86_rdrand() 返回结果</li>
+<li>如果 _M_file 不是空，则读取 /dev/urandom 设备</li>
+</ul>
+<p><img src="/img/blog/2026-01-20-amd-server-random_device04.png" alt=""></p>
+<blockquote>
+<p>__x86_rdrand() 可以理解为直接调用 x86 架构下的 rdrand 指令，从处理器的硬件随机数生成器获取随机数。采用该方式能够在多数场景下避免更为耗时的 /dev/urandom 设备操作。
+Intel 早期硬件就已支持该特性，并在 libstdc++ 中实现了优化路径；然而 libstdc++ 8.5.0 版本，对 AMD 平台并没有类似优化。</p></blockquote>
+<blockquote>
+<p>AMD 服务器出现 cpu.sys 异常的直接原因是：libstdc++-8.5.0 版本内未支持 AMD 平台使用 rdrand 指令直接获取随机数种子。因此，在生成随机数时，代码只能通过读取设备文件 /dev/urandom 来实现。当这种行为在高并发场景下大规模并行发生时，会不可避免地引发 spinlock 激烈争抢，从而导致 cpu.sys 显著上升。</p></blockquote>
+<p>至此，我们已经研究清楚问题根因。但是，从技术角度看似乎还差一点，线上问题在 urandom_read() 执行过程中出现了大量 page fault，而我们并未复现。原因是什么呢？</p>
+<h4 id="最后一击">最后一击</h4>
+<p>业务容器基于 CentOS 7 镜像构建，标准库为 libstdc++-4.8.5-4.el7.x86_64。因此，使用该版本库，再次构建线上问题场景。
+<img src="/img/blog/2026-01-20-amd-server-random_device05.png" alt=""></p>
+<p>编译相同的测试代码运行，得到的效果如下，完美契合线上火焰图。
+<img src="/img/blog/2026-01-20-amd-server-flamegraph04.png" alt=""></p>
+<p>业务容器 cpu.sys 达到了惊人的 2400%+
+<img src="/img/blog/2026-01-20-amd-server-libstdc-01.png" alt=""></p>
+<p>而相同的代码使用 libstdc++-8.5.0 时，cpu.sys 则在 95%
+<img src="/img/blog/2026-01-20-amd-server-libstdc-02.png" alt=""></p>
+<p>对比两个版本代码，很容易确认优化补丁。该补丁的核心目标是从标准库的 fread() 函数切换到系统调用 read() 来读取 /dev/urandom，主要原因是 fread() 会读取过多的数据。具体超出多少呢？可以通过 bpftrace 工具进行验证：
+<img src="/img/blog/2026-01-20-amd-server-libstdc-03.png" alt=""></p>
+<p>libstdc++-8.5.0 read 只读取 4B，且 copy_to_user 的用户态目的地址在用户栈，不会产生额外 page fault。
+<img src="/img/blog/2026-01-20-amd-server-copy_to_user-01.png" alt="">
+<img src="/img/blog/2026-01-20-amd-server-copy_to_user-02.png" alt="">
+<img src="/img/blog/2026-01-20-amd-server-copy_to_user-03.png" alt=""></p>
+<p>libstdc++-4.8.5 fread() 读取4KB，通过单次64B✖️64次的方式拷贝到用户态。copy_to_user 将数据拷贝到这4K内存过程必然产生 page fault。
+<img src="/img/blog/2026-01-20-amd-server-copy_to_user-04.png" alt="">
+<img src="/img/blog/2026-01-20-amd-server-copy_to_user-05.png" alt="">
+<img src="/img/blog/2026-01-20-amd-server-copy_to_user-06.png" alt=""></p>
+<h3 id="问题总结">问题总结</h3>
+<p>简单总结下：标准库 libstdc++-4.8.5-4.el7.x86_64 std::random_device 存在两个缺陷：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>1. 仅在 Intel 机器支持硬件随机数（rdrand 指令），而在 AMD 机器只能通过/dev/urandom 设备生成随机数。该缺陷导致并发访问 /dev/urandom 设备 spinlock 争抢，推高 cpu.sys。
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>2. 采用 fread<span style="color:#f92672">()</span> 引发额外的内存分配，触发 page fault。该缺陷引入了大量的 page fault。page fault 与容器程序频繁的 mmap/munmap 激烈争抢 mm_struct-&gt;mmap_sem 读写信号量，再次提升 cpu.sys。
+</span></span></code></pre></div><h3 id="解决方案">解决方案</h3>
+<p>这些缺陷在较新版本的 libstdc++ 均已修复：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>94e7477f0c <span style="color:#f92672">(</span><span style="color:#e6db74">&#34;re PR libstdc++/57920 ([c++11] Linux: std::random_device reads too much from /dev/urandom)&#34;</span><span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>b0c0d878a8 <span style="color:#f92672">(</span><span style="color:#e6db74">&#34;PR libstdc++/85494 use rdseed and rand_s in std::random_device&#34;</span><span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>（b0c0d878a8 &ldquo;PR libstdc++/85494 use rdseed and rand_s in std::random_device&rdquo;）主要价值在于增加对 AMD 机型 rdrand 硬件随机数指令。j解决方案建议用户升级操作系统版本（宿主机或者容器镜像）或者 libstdc++ 10.3.1-71 以上版本。测试后，相同的复现程序基于libstdc++.10.3.1-71 + AMD 机器，再无该问题。</p>
+<p><img src="/img/blog/2026-01-20-amd-server-random_device06.png" alt=""></p>
+<h3 id="一点感受">一点感受</h3>
+<p>技术层面的分析至此告一段落。本次排查从用户态代码入手，进入到 gcc 标准库实现，再到内核态的打点验证及汇编代码分析，最终将问题从现象到本质完整梳理完毕，又一个 AMD 机器带来的“惊喜”被抚平了。</p>
+<p>总体而言，本次问题的核心在于老的软件环境与新的硬件设备之间的兼容性矛盾。</p>
+<p>从基础软件的层面，我们需要持续跟前沿技术栈，进一步提升产品对新机型的适配能力。从业务层面，不断迭代升级运行环境同样不可或缺，尽管短期内可能带来一定挑战，但长期来看是推动产品持续优化的关键路径。</p>
+<hr>
+<p><strong>篇尾：</strong></p>
+<ul>
+<li>HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的操作系统深度可观测项目。</li>
+<li>关注微信公众号，或扫码加微信，邀请你加入用户群（请备注姓名+单位）：</li>
+</ul>
+<p><img src="/img/contact-weixin.png" alt="微信"></p>
+<ul>
+<li>仓库1：<a href="https://github.com/ccfos/huatuo">https://github.com/ccfos/huatuo</a></li>
+<li>仓库2：<a href="https://gitlink.org.cn/ccfos/huatuo">https://gitlink.org.cn/ccfos/huatuo</a></li>
+<li>官网：<a href="https://github.com/ccfos/huatuo">https://huatuo.tech/</a></li>
+</ul>
+
+                        </div>
+
+                        
+                        
+                        
+                        <div id="comments"><script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+</div>
+                        
+
+                    </div>
+                    
+
+                    
+
+                    
+
+                    <div class="col-md-3">
+
+                        
+
+                        
+
+<div class="panel panel-default sidebar-menu">
+
+    <div class="panel-heading">
+      <h3 class="panel-title">搜索</h3>
+    </div>
+
+    <div class="panel-body">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" role="search">
+            <div class="input-group">
+                <input type="search" name="q" class="form-control" placeholder="搜索" />
+                <input type="hidden" name="sitesearch" value="https://huatuo.tech/" />
+                <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">标签</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ccf"><i class="fas fa-tags"></i> ccf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/containers"><i class="fas fa-tags"></i> containers</a>
+            </li>
+            
+            <li >
+                <a href="/tags/cpuidle"><i class="fas fa-tags"></i> cpuidle</a>
+            </li>
+            
+            <li >
+                <a href="/tags/hao022"><i class="fas fa-tags"></i> hao022</a>
+            </li>
+            
+            <li >
+                <a href="/tags/huatuo"><i class="fas fa-tags"></i> huatuo</a>
+            </li>
+            
+            <li >
+                <a href="/tags/k8s"><i class="fas fa-tags"></i> k8s</a>
+            </li>
+            
+            <li >
+                <a href="/tags/linux-%e5%86%85%e6%a0%b8"><i class="fas fa-tags"></i> linux 内核</a>
+            </li>
+            
+            <li >
+                <a href="/tags/loadavg"><i class="fas fa-tags"></i> loadavg</a>
+            </li>
+            
+            <li >
+                <a href="/tags/netrecvlat"><i class="fas fa-tags"></i> netrecvlat</a>
+            </li>
+            
+            <li >
+                <a href="/tags/networking"><i class="fas fa-tags"></i> networking</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7"><i class="fas fa-tags"></i> 可观测性</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%90%88%e4%bd%9c"><i class="fas fa-tags"></i> 合作</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%a4%9c%e8%8e%ba%e7%9b%91%e6%8e%a7"><i class="fas fa-tags"></i> 夜莺监控</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%bc%80%e6%ba%90"><i class="fas fa-tags"></i> 开源</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%81%ab%e7%84%b0%e5%9b%be"><i class="fas fa-tags"></i> 火焰图</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%bd%91%e7%bb%9c%e4%bc%98%e5%8c%96"><i class="fas fa-tags"></i> 网络优化</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e8%8d%a3%e8%aa%89"><i class="fas fa-tags"></i> 荣誉</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+
+                        
+
+                    </div>
+                    
+
+                    
+
+                </div>
+                
+
+            </div>
+            
+        </div>
+        
+
+        <footer id="footer">
+    <div class="container">
+
+        
+        <div class="col-md-4 col-sm-6">
+            <h4>关于我们</h4>
+
+            <p>一群开源技术爱好者，基础技术研究者。</p>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+        <div class="col-md-4 col-sm-6">
+
+            
+
+        </div>
+        
+
+        
+        <div class="col-md-4 col-sm-6">
+
+          <h4>联系</h4>
+
+            <p class="text-uppercase"><strong>HUATUO 开源技术社区, 欢迎技术交流</strong>
+        <br>中国北京市海淀区西二旗软件园。
+        <br>
+      </p>
+      
+
+	    <a href="/about" class="btn btn-small btn-template-main">跳到联系页面</a>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026 HUATUO 开源技术社区</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+    
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+
+<script src="/js/front.js"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

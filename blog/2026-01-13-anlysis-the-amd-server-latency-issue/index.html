@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>避坑！AMD 服务器诡异的耗时毛刺问题</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, 故障">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='//fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300italic,500,700,800' rel='stylesheet' type='text/css'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1771655524" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="HUATUO 开源技术">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en_us">
+<meta property="og:site_name" content="HUATUO 开源技术">
+<meta property="og:title" content="避坑！AMD 服务器诡异的耗时毛刺问题">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/blog/2026-01-13-anlysis-the-amd-server-latency-issue/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2026-01-13-cover.jpeg">
+<meta property="og:image:type" content="image/jpeg">
+
+
+
+  <meta property="og:image:width" content="300">
+  <meta property="og:image:height" content="200">
+
+
+<meta property="og:updated_time" content="2026-02-21T06:31:59Z">
+
+  
+  
+  
+  <meta property="article:tag" content="HUATUO">
+  <meta property="article:tag" content="BPF">
+  <meta property="article:tag" content="故障">
+  
+  
+  <meta property="article:published_time" content="2026-01-13T06:11:44-0500">
+  <meta property="article:modified_time" content="2026-02-21T06:31:59Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="避坑！AMD 服务器诡异的耗时毛刺问题">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2026-01-13-cover.jpeg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+    
+  </head>
+
+  <body>
+
+    <div id="all">
+
+        
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm mouseover" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/logo.png" alt="避坑！AMD 服务器诡异的耗时毛刺问题 logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/logo-small.png" alt="避坑！AMD 服务器诡异的耗时毛刺问题 logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">避坑！AMD 服务器诡异的耗时毛刺问题 - 跳到主页</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">切换导航</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/quickstart/">快速开始</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">文档 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="/docs/zh/latest/">latest</a></li>
+                            
+                            <li><a href="/docs/zh/v2.1.0/">v2.1.0</a></li>
+                            
+                            <li><a href="/docs/zh/v2.0.0/">v2.0.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/download">下载</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    
+                    
+                        <a href="/blog/">博客</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/milestone/">动态</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/about/">关于</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="https://github.com/ccfos/huatuo">
+                            <img src="https://img.shields.io/badge/dynamic/json?label=Stars&amp;query=%24.stargazers_count&amp;url=https%3A%2F%2Fapi.github.com%2Frepos%2Fccfos%2Fhuatuo&amp;style=social&amp;logo=github&amp;formatter=none" height="100%">
+                        </a>
+                    
+                  </li>
+                  
+                  
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        <div id="heading-breadcrumbs">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>避坑！AMD 服务器诡异的耗时毛刺问题</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+        <div id="content">
+            <div class="container">
+
+                <div class="row">
+
+                    
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                          <p class="text-muted text-uppercase mb-small text-right">
+                            
+                                
+                                最后更新: 2026-02-21,
+			                    作者: <a href="/authors/%E7%8E%8B%E6%B4%AA%E7%A3%8A">王洪磊</a>
+                            
+                          </p>
+                        
+
+                        <div id="post-content">
+                          <h3 id="问题背景">问题背景</h3>
+<p>某独立集群的多个服务反馈，运行在 AMD 机器上的容器偶发出现较大的耗时毛刺。以如下服务为例，19号容器运行在 AMD 机器上，1号容器运行在Intel机器上。</p>
+<p><img src="/img/blog/2026-01-13-latency-01.png" alt=""></p>
+<p>初步分析，部分原因在于 AMD 机器上容器部署密度较高，导致日志数据采集程序突发新建进程量变大很多，对业务容器进程造成影响。这种影响在高峰期尤为显著。对采集程序调整容器的资源规格后，问题得到一定缓解，但业务团队仍反馈，在非高峰期 AMD 机器上还存在较大的耗时长尾问题。</p>
+<p><img src="/img/blog/2026-01-13-latency-02.png" alt=""></p>
+<h3 id="问题影响">问题影响</h3>
+<p>该集群的服务集中部署在独立机房，影响较为集中。同时，报告类似问题的服务数量较多，涉及数百个业务容器。</p>
+<h3 id="问题分析">问题分析</h3>
+<p>下面详细解释一下调优手段的诞生过程，同时配有详细的线上验证效果。</p>
+<h4 id="现象差异">现象差异</h4>
+<p>问题涉及多个业务线，并在多台物理机出现。我们以耗时较为敏感的业务 A 的容器为研究对象，选取在 AMD 机器耗时长尾显著的 19 号容器进行分析问题，并以 Intel 机器上的 0 号容器作为对照组：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>业务A-0b687-19 amd
+</span></span><span style="display:flex;"><span>业务A-0b687-0 intel
+</span></span></code></pre></div><p>耗时对比如下：0号容器（蓝色曲线）虽然也存在偶发的耗时毛刺，但19号容器（黄色曲线）整体表现更频繁和显著的毛刺现象。</p>
+<p><img src="/img/blog/2026-01-13-latency-03.png" alt=""></p>
+<p>该服务与上下游服务交互较少，其耗时主要取决于CPU计算。通过观察CPU相关指标，发现两个容器在内部争抢上存在显著差异：</p>
+<p><img src="/img/blog/2026-01-13-latency-04.png" alt=""></p>
+<p>内部争抢指标反映了容器内进程间相互等待的强度。据此可以推测，造成P99长尾耗时的进程很可能是在等待容器内部其他进程。在业务代码和流量完全一致的条件下，为何两种机器在内部争抢指标上表现不同？为何进程会在同一调度队列内相互等待？这需要深入分析内核的CPU选核策略。</p>
+<h4 id="选核策略">选核策略</h4>
+<p>基于 select_task_rq_fair() 处理流程以及本次问题，总结如下：</p>
+<ol>
+<li>
+<p>判断本次唤醒任务的工作模式是否属于want_affine类型。wake_wide()是该特性的核心机制，旨在解决早期内核中出现的关联线程过度集中于同一CPU的问题。作为一种启发式判断算法，它能有效避免server/client等互相反复唤醒场景下任务在调度队列中的无效排队。但当前的业务模型并不属于此类情况。</p>
+</li>
+<li>
+<p>以当前 cpu 为起点，逐级向上遍历调度域，并在首个同时包含当前 cpu 和 prev cpu 的调度域中，尝试通过 wake_affine() 选取目标 CPU。wake_affine() 主要采用两种选择策略：WA_IDLE、WA_WEIGHT。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>WA_IDLE
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>1. 为了实现更好的 cache hot，新唤醒的任务优先选择之前运行过的 CPU（prev cpu）作为调度目标，以利用其缓存热效应。所以，当 prev cpu 为 idle 的时候，它将被选择为目标 cpu。
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>2. 若 prev cpu 不处于 idle 状态，且当前执行唤醒操作的 CPU 与 prev cpu 共享LLC，同时满足同步唤醒<span style="color:#f92672">(</span>sync<span style="color:#f92672">)</span>条件且当前 cpu 即将进入 idle 状态，则当前 cpu 可作为目标CPU。
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>WA_WEIGHT
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>若WA_IDLE策略未能成功选出目标 CPU，则通过比较 prev CPU 与当前 CPU 的负载情况来选择目标 CPU。
+</span></span></code></pre></div><p>上述两种策略均未能选出合适的CPU，则将 prev CPU 作为目标 CPU 返回。</p>
+</li>
+<li>
+<p>内核会在目标 CPU所属的LLC域内尝试寻找 idle CPU（参见select_idle_sibling()）。在此过程中，系统仍会优先考虑 cache hot。若未找到 idle CPU，则prev CPU将成为最可能的备选方案。</p>
+</li>
+<li>
+<p>经历了前面的步骤后，任务可能被放入的CPU可能是 prev、current、或者两者所在 LLC 范围内的某一个 idle CPU。</p>
+</li>
+</ol>
+<p><img src="/img/blog/2026-01-13-select-cpu.png" alt=""></p>
+<p>基于上述流程分析，新唤醒的任务很可能保留在之前运行过的CPU所属的 LLC 域内。即使该域内已无空闲CPU，出于缓存热效应原则，任务将进入调度队列等待。</p>
+<p>进一步，AMD 与 Intel CPU 在芯片LLC 差异比较明显。
+Intel CPU 同一物理芯片的所有核心共享 LLC。例如某个物理芯片包含24个核心，开启超线程后呈现为 48 逻辑核心，这些核心共享 LLC。
+AMD CPU 为 单 DIE、多 CCD 架构。Genoa 为例，单个 DIE 包含 12 个 CCD，每个 CCD 集成 8 个核心，开启超线程后，呈现为16个逻辑核心，这些逻辑核心共享 LLC。</p>
+<p><img src="/img/blog/2026-01-13-amd-cpu.png" alt=""></p>
+<p>在单个业务容器中，通常只存在一个主工作进程，整个容器以单一 task_group 作为组调度单元。基于 cache hot 和进程间唤醒关系，这些进程（现成）通常喜欢“在一起”工作，也就是倾向于集中运行在同一个LLC域内，新唤醒的任务将更容易被调度至相同的LLC。</p>
+<h4 id="调优方法">调优方法</h4>
+<p>鉴于AMD架构的特殊性，同一个容器的任务更容易“挤在”一起后，这是否意味着任务将始终在资源受限的条件下运行？事实并非完全如此。</p>
+<p>这涉及到调度器的另一个关键机制——负载均衡。最常见的内核负载均衡发生在某一个 cpu 即将进入 idle 状态时，此时它会尝试从其他繁忙 CPU 上迁移任务到本地执行，也就是通常所说的 new idle balance。对于“繁忙”的判定涉及load weight、util等多种因素，此处不展开讨论。感兴趣的朋友可以自行深入研究，或待后续我们专题讲解。目前只需理解 new idle balance 会尝试从繁忙CPU上拉任务即可。</p>
+<p>负载均衡过程也会考量LLC的影响，但当某个调度域明显过载时，系统允许跨LLC域拉取任务。这为AMD架构中集中在单个CCD内的任务提供了调度到其他CCD运行的机会。以下以问题环境使用的5.10内核为例进行说明（upstream已对相关逻辑和函数名进行调整，此处仅针对该版本）：</p>
+<p><img src="/img/blog/2026-01-13-newidle-balance.png" alt="">
+<img src="/img/blog/2026-01-13-newidle-balance2.png" alt=""></p>
+<p>在本问题场景中，关键路径为 nohz_newidle_balance()。在某个CPU即将进入 idle 状态时，需评估自身是否适合从其他CPU拉取任务。评估过程中会检查 rq-&gt;avg_idle——其底层逻辑是：若预期空闲时间较短，表明该CPU很快将处理自身任务，此时不宜再从其他CPU拉取任务。具体评估标准为比较 this_rq-&gt;avg_idle 与 sysctl_sched_migration_cost。后者表示系统预估的任务迁移时间成本，用于权衡负载均衡的收益。</p>
+<p>这样判断此时拉取任务是否&quot;划算&quot;：若 this_rq-&gt;avg_idle 大于 sysctl_sched_migration_cost，则说明预期的空闲时间足够承担任务迁移开销，此时执行负载均衡是值得的；否则说明空闲窗口过短，不如直接等待后续本地任务调度。</p>
+<p>回到当前工作场景，鉴于观察到AMD平台内部竞争指标显著偏高，有理由怀疑 业务 A 容器内的任务“挤在”一起，且未被其他 idle CPU 有效分单负载。基于此推测，若我们适当调低 sysctl_sched_migration_cost 这个经验阈值，提升 new idle balance 机制的触发概率，就有可能缓解这种争抢情况。</p>
+<h4 id="线上验证效果">线上验证效果</h4>
+<p>线上 AMD 机器上的 sysctl_sched_migration_cost=5000000，即5ms。
+<img src="/img/blog/2026-01-13-sched_migration_cost.png" alt=""></p>
+<p>分别选取受影响的服务 A 19 号容器及服务B 7 号容器所在宿主，做参数优化。以下环比截图，其中绿色线为优化后效果。</p>
+<p>服务A：
+内部争抢指标环比</p>
+<p><img src="/img/blog/2026-01-13-sched_migration_cost-a00.png" alt=""></p>
+<p>业务P99
+<img src="/img/blog/2026-01-13-sched_migration_cost-a01.png" alt=""></p>
+<p>服务 B：
+内部争抢指标环比
+<img src="/img/blog/2026-01-13-sched_migration_cost-b00.png" alt=""></p>
+<p>业务P99
+<img src="/img/blog/2026-01-13-sched_migration_cost-b01.png" alt=""></p>
+<h4 id="优化结论">优化结论</h4>
+<p>针对 AMD 机器，优化 kernel.sched_migration_cost_ns 内核参数有效的将进程平铺到所有 CCD，进而解决业务毛刺问题。</p>
+<hr>
+<p><strong>篇尾：</strong></p>
+<ul>
+<li>HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的操作系统深度可观测项目。</li>
+<li>关注微信公众号，或扫码加微信，邀请你加入用户群（请备注姓名+单位）：</li>
+</ul>
+<p><img src="/img/contact-weixin.png" alt="微信"></p>
+<ul>
+<li>仓库1：<a href="https://github.com/ccfos/huatuo">https://github.com/ccfos/huatuo</a></li>
+<li>仓库2：<a href="https://gitlink.org.cn/ccfos/huatuo">https://gitlink.org.cn/ccfos/huatuo</a></li>
+<li>官网：<a href="https://github.com/ccfos/huatuo">https://huatuo.tech/</a></li>
+</ul>
+
+                        </div>
+
+                        
+                        
+                        
+                        <div id="comments"><script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+</div>
+                        
+
+                    </div>
+                    
+
+                    
+
+                    
+
+                    <div class="col-md-3">
+
+                        
+
+                        
+
+<div class="panel panel-default sidebar-menu">
+
+    <div class="panel-heading">
+      <h3 class="panel-title">搜索</h3>
+    </div>
+
+    <div class="panel-body">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" role="search">
+            <div class="input-group">
+                <input type="search" name="q" class="form-control" placeholder="搜索" />
+                <input type="hidden" name="sitesearch" value="https://huatuo.tech/" />
+                <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">标签</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ccf"><i class="fas fa-tags"></i> ccf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/containers"><i class="fas fa-tags"></i> containers</a>
+            </li>
+            
+            <li >
+                <a href="/tags/cpuidle"><i class="fas fa-tags"></i> cpuidle</a>
+            </li>
+            
+            <li >
+                <a href="/tags/hao022"><i class="fas fa-tags"></i> hao022</a>
+            </li>
+            
+            <li >
+                <a href="/tags/huatuo"><i class="fas fa-tags"></i> huatuo</a>
+            </li>
+            
+            <li >
+                <a href="/tags/k8s"><i class="fas fa-tags"></i> k8s</a>
+            </li>
+            
+            <li >
+                <a href="/tags/linux-%e5%86%85%e6%a0%b8"><i class="fas fa-tags"></i> linux 内核</a>
+            </li>
+            
+            <li >
+                <a href="/tags/loadavg"><i class="fas fa-tags"></i> loadavg</a>
+            </li>
+            
+            <li >
+                <a href="/tags/netrecvlat"><i class="fas fa-tags"></i> netrecvlat</a>
+            </li>
+            
+            <li >
+                <a href="/tags/networking"><i class="fas fa-tags"></i> networking</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7"><i class="fas fa-tags"></i> 可观测性</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%90%88%e4%bd%9c"><i class="fas fa-tags"></i> 合作</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%a4%9c%e8%8e%ba%e7%9b%91%e6%8e%a7"><i class="fas fa-tags"></i> 夜莺监控</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%bc%80%e6%ba%90"><i class="fas fa-tags"></i> 开源</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%81%ab%e7%84%b0%e5%9b%be"><i class="fas fa-tags"></i> 火焰图</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%bd%91%e7%bb%9c%e4%bc%98%e5%8c%96"><i class="fas fa-tags"></i> 网络优化</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e8%8d%a3%e8%aa%89"><i class="fas fa-tags"></i> 荣誉</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+
+                        
+
+                    </div>
+                    
+
+                    
+
+                </div>
+                
+
+            </div>
+            
+        </div>
+        
+
+        <footer id="footer">
+    <div class="container">
+
+        
+        <div class="col-md-4 col-sm-6">
+            <h4>关于我们</h4>
+
+            <p>一群开源技术爱好者，基础技术研究者。</p>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+        <div class="col-md-4 col-sm-6">
+
+            
+
+        </div>
+        
+
+        
+        <div class="col-md-4 col-sm-6">
+
+          <h4>联系</h4>
+
+            <p class="text-uppercase"><strong>HUATUO 开源技术社区, 欢迎技术交流</strong>
+        <br>中国北京市海淀区西二旗软件园。
+        <br>
+      </p>
+      
+
+	    <a href="/about" class="btn btn-small btn-template-main">跳到联系页面</a>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026 HUATUO 开源技术社区</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+    
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+
+<script src="/js/front.js"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

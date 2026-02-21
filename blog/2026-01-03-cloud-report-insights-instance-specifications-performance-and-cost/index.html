@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>云报告洞察，实例规格、性能、成本选择</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, 故障">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='//fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300italic,500,700,800' rel='stylesheet' type='text/css'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1771655524" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="HUATUO 开源技术">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en_us">
+<meta property="og:site_name" content="HUATUO 开源技术">
+<meta property="og:title" content="云报告洞察，实例规格、性能、成本选择">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/blog/2026-01-03-cloud-report-insights-instance-specifications-performance-and-cost/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2026-01-03-huatuo-cover.jpg">
+<meta property="og:image:type" content="image/jpg">
+
+
+
+  <meta property="og:image:width" content="600">
+  <meta property="og:image:height" content="400">
+
+
+<meta property="og:updated_time" content="2026-02-21T06:31:59Z">
+
+  
+  
+  
+  <meta property="article:tag" content="HUATUO">
+  <meta property="article:tag" content="BPF">
+  <meta property="article:tag" content="故障">
+  
+  
+  <meta property="article:published_time" content="2026-01-03T00:31:48-0500">
+  <meta property="article:modified_time" content="2026-02-21T06:31:59Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="云报告洞察，实例规格、性能、成本选择">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2026-01-03-huatuo-cover.jpg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+    
+  </head>
+
+  <body>
+
+    <div id="all">
+
+        
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm mouseover" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/logo.png" alt="云报告洞察，实例规格、性能、成本选择 logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/logo-small.png" alt="云报告洞察，实例规格、性能、成本选择 logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">云报告洞察，实例规格、性能、成本选择 - 跳到主页</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">切换导航</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/quickstart/">快速开始</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">文档 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="/docs/zh/latest/">latest</a></li>
+                            
+                            <li><a href="/docs/zh/v2.1.0/">v2.1.0</a></li>
+                            
+                            <li><a href="/docs/zh/v2.0.0/">v2.0.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/download">下载</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    
+                    
+                        <a href="/blog/">博客</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/milestone/">动态</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/about/">关于</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="https://github.com/ccfos/huatuo">
+                            <img src="https://img.shields.io/badge/dynamic/json?label=Stars&amp;query=%24.stargazers_count&amp;url=https%3A%2F%2Fapi.github.com%2Frepos%2Fccfos%2Fhuatuo&amp;style=social&amp;logo=github&amp;formatter=none" height="100%">
+                        </a>
+                    
+                  </li>
+                  
+                  
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        <div id="heading-breadcrumbs">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>云报告洞察，实例规格、性能、成本选择</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+        <div id="content">
+            <div class="container">
+
+                <div class="row">
+
+                    
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                          <p class="text-muted text-uppercase mb-small text-right">
+                            
+                                
+                                最后更新: 2026-02-21,
+			                    作者: <a href="/authors/hao022">HAO022</a>
+                            
+                          </p>
+                        
+
+                        <div id="post-content">
+                          <h3 id="实例资源类型">实例资源类型</h3>
+<p>生产实践中，云厂商根据工作负载类型划分如下资源模型，此外相同的资源模型又分为不同的规格。</p>
+<ul>
+<li>通用型：cpu/memory = 1:4，适用于通用互联网应用、Web 网站、Java 应用服务、游戏服务等场景。</li>
+<li>计算型：cpu/memory = 1:2，适用于数据分析、批量计算、视频编码、机器学习等场景。</li>
+<li>存储型：cpu/memory = 1:4，适用于 Hadoop MapReduce、HDFS、Hive、HBase 等存储场景。</li>
+<li>内存型：cpu/memory = 1:8，适用于内存数据库、数据分析与挖掘、分布式内存缓存。</li>
+</ul>
+<p>AWS/阿里云将实例类型分为上述几种类型，具体信息可以查看如下链接:</p>
+<ul>
+<li>
+<p><a href="https://www.amazonaws.cn/en/ec2/instance-types/">https://www.amazonaws.cn/en/ec2/instance-types/</a></p>
+</li>
+<li>
+<p><a href="https://help.aliyun.com/zh/ecs/user-guide/general-purpose-instance-families">https://help.aliyun.com/zh/ecs/user-guide/general-purpose-instance-families</a></p>
+</li>
+</ul>
+<p>阿里云通用型实例规格族 g9ae，有 10 种资源规格。</p>
+<table>
+  <thead>
+      <tr>
+          <th><strong>实例规格</strong></th>
+          <th><strong>vCPU</strong></th>
+          <th><strong>内存（GiB）</strong></th>
+          <th><strong>网络带宽基础/突发（Gbit/s）</strong></th>
+          <th><strong>云盘带宽基础/突发（Gbit/s）</strong></th>
+          <th><strong>云盘IOPS基础</strong></th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>ecs.g9ae.large</td>
+          <td>2</td>
+          <td>8</td>
+          <td>2.5/最高25</td>
+          <td>2.5/最高20</td>
+          <td>最高20万</td>
+      </tr>
+      <tr>
+          <td>ecs.g9ae.xlarge</td>
+          <td>4</td>
+          <td>16</td>
+          <td>4/最高25</td>
+          <td>3/最高20</td>
+          <td>最高20万</td>
+      </tr>
+      <tr>
+          <td>ecs.g9ae.2xlarge</td>
+          <td>8</td>
+          <td>32</td>
+          <td>6/最高25</td>
+          <td>4/最高20</td>
+          <td>最高20万</td>
+      </tr>
+      <tr>
+          <td>ecs.g9ae.4xlarge</td>
+          <td>16</td>
+          <td>64</td>
+          <td>10/最高25</td>
+          <td>5.5/最高20</td>
+          <td>最高20万</td>
+      </tr>
+      <tr>
+          <td>ecs.g9ae.8xlarge</td>
+          <td>32</td>
+          <td>128</td>
+          <td>16/最高25</td>
+          <td>8/最高20</td>
+          <td>最高20万</td>
+      </tr>
+      <tr>
+          <td>ecs.g9ae.12xlarge</td>
+          <td>48</td>
+          <td>192</td>
+          <td>25/无</td>
+          <td>13/无</td>
+          <td>15万</td>
+      </tr>
+      <tr>
+          <td>ecs.g9ae.16xlarge</td>
+          <td>64</td>
+          <td>256</td>
+          <td>32/无</td>
+          <td>16/无</td>
+          <td>20万</td>
+      </tr>
+      <tr>
+          <td>ecs.g9ae.24xlarge</td>
+          <td>96</td>
+          <td>384</td>
+          <td>50/无</td>
+          <td>25/无</td>
+          <td>30万</td>
+      </tr>
+      <tr>
+          <td>ecs.g9ae.32xlarge</td>
+          <td>128</td>
+          <td>512</td>
+          <td>64/无</td>
+          <td>32/无</td>
+          <td>40万</td>
+      </tr>
+      <tr>
+          <td>ecs.g9ae.48xlarge</td>
+          <td>192</td>
+          <td>768</td>
+          <td>100/无</td>
+          <td>50/无</td>
+          <td>60万</td>
+      </tr>
+  </tbody>
+</table>
+<p>AWS 通用型 M8g (New Generation)，有 12 种资源规格。</p>
+<table>
+  <thead>
+      <tr>
+          <th>Instance size</th>
+          <th>vCPU</th>
+          <th>Memory (GiB)</th>
+          <th>Network bandwidth (Gbps)</th>
+          <th>Amazon EBS bandwidth (Gbps)</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>m8g.medium</td>
+          <td>1</td>
+          <td>4</td>
+          <td>Up to 12.5</td>
+          <td>Up to 10</td>
+      </tr>
+      <tr>
+          <td>m8g.large</td>
+          <td>2</td>
+          <td>8</td>
+          <td>Up to 12.5</td>
+          <td>Up to 10</td>
+      </tr>
+      <tr>
+          <td>m8g.xlarge</td>
+          <td>4</td>
+          <td>16</td>
+          <td>Up to 12.5</td>
+          <td>Up to 10</td>
+      </tr>
+      <tr>
+          <td>m8g.2xlarge</td>
+          <td>8</td>
+          <td>32</td>
+          <td>Up to 15</td>
+          <td>Up to 10</td>
+      </tr>
+      <tr>
+          <td>m8g.4xlarge</td>
+          <td>16</td>
+          <td>64</td>
+          <td>Up to 15</td>
+          <td>Up to 10</td>
+      </tr>
+      <tr>
+          <td>m8g.8xlarge</td>
+          <td>32</td>
+          <td>128</td>
+          <td>15</td>
+          <td>10</td>
+      </tr>
+      <tr>
+          <td>m8g.12xlarge</td>
+          <td>48</td>
+          <td>192</td>
+          <td>22.5</td>
+          <td>15</td>
+      </tr>
+      <tr>
+          <td>m8g.16xlarge</td>
+          <td>64</td>
+          <td>256</td>
+          <td>30</td>
+          <td>20</td>
+      </tr>
+      <tr>
+          <td>m8g.24xlarge</td>
+          <td>96</td>
+          <td>384</td>
+          <td>40</td>
+          <td>30</td>
+      </tr>
+      <tr>
+          <td>m8g.48xlarge</td>
+          <td>192</td>
+          <td>768</td>
+          <td>50</td>
+          <td>40</td>
+      </tr>
+      <tr>
+          <td>m8g.metal-24xl</td>
+          <td>96</td>
+          <td>384</td>
+          <td>40</td>
+          <td>30</td>
+      </tr>
+      <tr>
+          <td>m8g.metal-48xl</td>
+          <td>192</td>
+          <td>768</td>
+          <td>50</td>
+          <td>40</td>
+      </tr>
+  </tbody>
+</table>
+<h3 id="实例大小选择">实例大小选择</h3>
+<p>上述资源划的数据来自AWS，阿里云，但并未说明背后的思考。Cockroach Labs 2022 年对主流公有云 56 种实例类型和 107 种配置进行公正测试，以帮助用户选择最佳的工作负载实例（https://www.cockroachlabs.com/guides/2022-cloud-report），回答用户“<em><strong>使用更多较小的节点，还是使用较少的较大的节点更好？</strong></em>”。该报告给出丰富的数据样本，并开源所有测试用例（https://github.com/cockroachlabs/cloud-report）。为比较不同实例性能，基准测试均以 per-vCPU 性能展示。</p>
+<p>报告洞察：** 小规格实例优于大规格实例且和 CPU 型号，云平台，实例类型无关**。</p>
+<p>在 OLTP 和 CPU 基准测试中，可以发现在特定实例类型上运行的小型实例，总是占据性能优势，无论 CPU 平台、云提供商还是实例类型如何。根据实例类型，这些差距从 5% 到 30% 不等。</p>
+<p><img src="/img/blog/2026-01-03-vm-small-large-00.png" alt=""></p>
+<p>为了解释小型节点和大型节点之间的性能差异，进行了其他方面的测试，发现 NUMA，CPU 变速时钟技术会影响性能。但是这些因素不足以说明实例规模之间的性能差异。具体测试包括以下实验：</p>
+<ul>
+<li>控制特定 CPU/实例信息偏差。</li>
+<li>采样运行时处理器频率（Turbo Boost）。</li>
+<li>设计在大型节点和小节点之间具有相同 vCPU 的测试（16 x 8 vCPU 节点与4 x 32 vCPU 节点在相同压力复杂度下比较）。</li>
+</ul>
+<p><img src="/img/blog/2026-01-03-vm-small-large-01.png" alt=""></p>
+<h3 id="实例内存计算比例">实例内存计算比例</h3>
+<p>实例规格影响着整体性能，那么通用资源模型的内存计算比例为什么是1:4而非其他？云厂商除了资源管理，成本效率外，下面从技术角度分析为什么通用型计算内存资源占比为1:4。</p>
+<ul>
+<li>计算内存比例1:2 提升至1:4，实例性能提升较大（c5.2xlarge, c5n.2xlarge, m6i.2xlarge）；</li>
+<li>计算内存比例1:4 提升至1:8，实例性能提升不明显，甚至略有下降（m6i.8xlarge，r5.8xlarege，r5n.8xlarege）；</li>
+</ul>
+<p><img src="/img/blog/2026-01-03-vm-small-large-vs00.png" alt=""></p>
+<p><img src="/img/blog/2026-01-03-vm-small-large-vs01.png" alt=""></p>
+<ul>
+<li>计算内存比例影响性能一致性，计算内存比例1:1,1:2 表现出性能波动，而1:4,1:8 性能一致性较强。</li>
+</ul>
+<p><img src="/img/blog/2026-01-03-vm-small-large-vs02.png" alt=""></p>
+<p>上述所有实例型号信息见附录。</p>
+<h3 id="实例成本">实例成本</h3>
+<p>无论您选择哪个云，所有三个提供商都提供具有竞争力的性价比解决方案。在固定的工作负载复杂度为 1,200 个仓库时，更大的节点提供了最佳的性价比，主要因为小节点的价格中存储占比更大。这确实赋予了大节点定价优势。</p>
+<p><img src="/img/blog/2026-01-03-vm-small-large-vs03.png" alt=""></p>
+<h3 id="附录">附录</h3>
+<p><img src="/img/blog/2026-01-03-vm-type-aws.png" alt=""></p>
+<p><img src="/img/blog/2026-01-03-vm-type-gcp.png" alt=""></p>
+<p><img src="/img/blog/2026-01-03-vm-type-azure.png" alt=""></p>
+<hr>
+<p><strong>篇尾：</strong></p>
+<ul>
+<li>关注微信公众号【HUATUO 开源技术】，或扫码加微信，邀请你加入用户群（请备注姓名+单位）：<img src="/img/contact-weixin.png" alt="微信"></li>
+<li>代码仓库：<a href="https://github.com/ccfos/huatuo">https://github.com/ccfos/huatuo</a> or <a href="https://gitlink.org.cn/ccfos/huatuo">https://gitlink.org.cn/ccfos/huatuo</a></li>
+<li>官方网站：<a href="https://github.com/ccfos/huatuo">https://huatuo.tech/</a></li>
+</ul>
+
+                        </div>
+
+                        
+                        
+                        
+                        <div id="comments"><script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+</div>
+                        
+
+                    </div>
+                    
+
+                    
+
+                    
+
+                    <div class="col-md-3">
+
+                        
+
+                        
+
+<div class="panel panel-default sidebar-menu">
+
+    <div class="panel-heading">
+      <h3 class="panel-title">搜索</h3>
+    </div>
+
+    <div class="panel-body">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" role="search">
+            <div class="input-group">
+                <input type="search" name="q" class="form-control" placeholder="搜索" />
+                <input type="hidden" name="sitesearch" value="https://huatuo.tech/" />
+                <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">标签</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ccf"><i class="fas fa-tags"></i> ccf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/containers"><i class="fas fa-tags"></i> containers</a>
+            </li>
+            
+            <li >
+                <a href="/tags/cpuidle"><i class="fas fa-tags"></i> cpuidle</a>
+            </li>
+            
+            <li >
+                <a href="/tags/hao022"><i class="fas fa-tags"></i> hao022</a>
+            </li>
+            
+            <li >
+                <a href="/tags/huatuo"><i class="fas fa-tags"></i> huatuo</a>
+            </li>
+            
+            <li >
+                <a href="/tags/k8s"><i class="fas fa-tags"></i> k8s</a>
+            </li>
+            
+            <li >
+                <a href="/tags/linux-%e5%86%85%e6%a0%b8"><i class="fas fa-tags"></i> linux 内核</a>
+            </li>
+            
+            <li >
+                <a href="/tags/loadavg"><i class="fas fa-tags"></i> loadavg</a>
+            </li>
+            
+            <li >
+                <a href="/tags/netrecvlat"><i class="fas fa-tags"></i> netrecvlat</a>
+            </li>
+            
+            <li >
+                <a href="/tags/networking"><i class="fas fa-tags"></i> networking</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7"><i class="fas fa-tags"></i> 可观测性</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%90%88%e4%bd%9c"><i class="fas fa-tags"></i> 合作</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%a4%9c%e8%8e%ba%e7%9b%91%e6%8e%a7"><i class="fas fa-tags"></i> 夜莺监控</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%bc%80%e6%ba%90"><i class="fas fa-tags"></i> 开源</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%81%ab%e7%84%b0%e5%9b%be"><i class="fas fa-tags"></i> 火焰图</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%bd%91%e7%bb%9c%e4%bc%98%e5%8c%96"><i class="fas fa-tags"></i> 网络优化</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e8%8d%a3%e8%aa%89"><i class="fas fa-tags"></i> 荣誉</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+
+                        
+
+                    </div>
+                    
+
+                    
+
+                </div>
+                
+
+            </div>
+            
+        </div>
+        
+
+        <footer id="footer">
+    <div class="container">
+
+        
+        <div class="col-md-4 col-sm-6">
+            <h4>关于我们</h4>
+
+            <p>一群开源技术爱好者，基础技术研究者。</p>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+        <div class="col-md-4 col-sm-6">
+
+            
+
+        </div>
+        
+
+        
+        <div class="col-md-4 col-sm-6">
+
+          <h4>联系</h4>
+
+            <p class="text-uppercase"><strong>HUATUO 开源技术社区, 欢迎技术交流</strong>
+        <br>中国北京市海淀区西二旗软件园。
+        <br>
+      </p>
+      
+
+	    <a href="/about" class="btn btn-small btn-template-main">跳到联系页面</a>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026 HUATUO 开源技术社区</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+    
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+
+<script src="/js/front.js"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

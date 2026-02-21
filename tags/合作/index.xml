@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>合作 on HUATUO 开源技术</title>
+    <link>https://huatuo.tech/tags/%E5%90%88%E4%BD%9C/</link>
+    <description>Recent content in 合作 on HUATUO 开源技术</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 21 Feb 2026 06:31:59 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/tags/%E5%90%88%E4%BD%9C/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>2025 OC 操作系统生态大会，解锁 OS&#43; 多元行业落地场景实践方案</title>
+      <link>https://huatuo.tech/blog/2025-11-14-2025-opencloud-submitting/</link>
+      <pubDate>Fri, 14 Nov 2025 06:54:44 -0500</pubDate>
+      <guid>https://huatuo.tech/blog/2025-11-14-2025-opencloud-submitting/</guid>
+      <description>&lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO 开源技术社区&lt;/a&gt; 将与&lt;strong&gt;腾讯、安谋科技、沐曦、绿盟、堡塔、达梦、嘉为&lt;/strong&gt;等伙伴，分享一系列经过大规模实践检验的解决方案。这里有最真实的挑战、最实用的经验&amp;hellip;</description>
+    </item>
+    <item>
+      <title>腾讯操作系统 OC 和 HUATUO (华佗) 深度集成</title>
+      <link>https://huatuo.tech/events/2025-11-11-opencloudos-and-huatuo-together/</link>
+      <pubDate>Mon, 10 Nov 2025 19:12:53 -0500</pubDate>
+      <guid>https://huatuo.tech/events/2025-11-11-opencloudos-and-huatuo-together/</guid>
+      <description>滴滴 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO（华佗）&lt;/a&gt; 和腾讯操作系统 OC 深度集成，进一步提升 OC 操作系统在云原生环境下内核级深度观测的能力，为云上用户提升内核问题排查效率，保障业务持续性.</description>
+    </item>
+  </channel>
+</rss>

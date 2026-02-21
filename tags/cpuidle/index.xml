@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>CPUIdle on HUATUO 开源技术</title>
+    <link>https://huatuo.tech/tags/cpuidle/</link>
+    <description>Recent content in CPUIdle on HUATUO 开源技术</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 21 Feb 2026 06:31:59 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/tags/cpuidle/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>应用篇：如何使用 HUATUO 解决容器 CPUIdle 掉底问题</title>
+      <link>https://huatuo.tech/blog/2025-08-19-how-to-use-huatuo-solve-problem-of-container-cpuidle/</link>
+      <pubDate>Thu, 21 Aug 2025 10:14:29 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2025-08-19-how-to-use-huatuo-solve-problem-of-container-cpuidle/</guid>
+      <description>系统故障诊断面临多重挑战。如何在新技术范式与架构下，构建面向操作系统的低损耗、零侵扰、全景式、持续深度观测能力体系，成为亟待解决的核心问题。本系列文章分享 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; 落地实践 &amp;hellip;</description>
+    </item>
+  </channel>
+</rss>

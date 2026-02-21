@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>应用篇：如何使用 HUATUO 解决应用程序卡住问题</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, loadavg, containers">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='//fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300italic,500,700,800' rel='stylesheet' type='text/css'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1771655524" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="HUATUO 开源技术">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en_us">
+<meta property="og:site_name" content="HUATUO 开源技术">
+<meta property="og:title" content="应用篇：如何使用 HUATUO 解决应用程序卡住问题">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/blog/2025-09-22-how-to-use-huatuo-to-solve-the-problem-of-application-stalling/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2025-09-22-tasks-cover.jpg">
+<meta property="og:image:type" content="image/jpg">
+
+
+
+  <meta property="og:image:width" content="900">
+  <meta property="og:image:height" content="600">
+
+
+<meta property="og:updated_time" content="2026-02-21T06:31:59Z">
+
+  
+  
+  
+  <meta property="article:tag" content="HUATUO">
+  <meta property="article:tag" content="loadavg">
+  <meta property="article:tag" content="containers">
+  <meta property="article:tag" content="可观测性">
+  <meta property="article:tag" content="BPF">
+  
+  
+  <meta property="article:published_time" content="2025-09-22T10:53:25-0400">
+  <meta property="article:modified_time" content="2026-02-21T06:31:59Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="应用篇：如何使用 HUATUO 解决应用程序卡住问题">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2025-09-22-tasks-cover.jpg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+    
+  </head>
+
+  <body>
+
+    <div id="all">
+
+        
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm mouseover" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/logo.png" alt="应用篇：如何使用 HUATUO 解决应用程序卡住问题 logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/logo-small.png" alt="应用篇：如何使用 HUATUO 解决应用程序卡住问题 logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">应用篇：如何使用 HUATUO 解决应用程序卡住问题 - 跳到主页</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">切换导航</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/quickstart/">快速开始</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">文档 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="/docs/zh/latest/">latest</a></li>
+                            
+                            <li><a href="/docs/zh/v2.1.0/">v2.1.0</a></li>
+                            
+                            <li><a href="/docs/zh/v2.0.0/">v2.0.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/download">下载</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    
+                    
+                        <a href="/blog/">博客</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/milestone/">动态</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/about/">关于</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="https://github.com/ccfos/huatuo">
+                            <img src="https://img.shields.io/badge/dynamic/json?label=Stars&amp;query=%24.stargazers_count&amp;url=https%3A%2F%2Fapi.github.com%2Frepos%2Fccfos%2Fhuatuo&amp;style=social&amp;logo=github&amp;formatter=none" height="100%">
+                        </a>
+                    
+                  </li>
+                  
+                  
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        <div id="heading-breadcrumbs">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>应用篇：如何使用 HUATUO 解决应用程序卡住问题</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+        <div id="content">
+            <div class="container">
+
+                <div class="row">
+
+                    
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                          <p class="text-muted text-uppercase mb-small text-right">
+                            
+                                
+                                最后更新: 2026-02-21,
+			                    作者: <a href="/authors/hao022">hao022</a>
+                            
+                          </p>
+                        
+
+                        <div id="post-content">
+                          <h3 id="问题描述">问题描述</h3>
+<p>在实际工作中，经常遇到业务程序卡顿问题。哪些场景会导致程序卡顿呢？从 Linux 内核角度看：</p>
+<ol>
+<li>容器进程超出CPU配额，在未来的一段时间无法得到调度。</li>
+<li>宿主机存在高优进程或容器，低优先级进程获取CPU资源被挤压。</li>
+<li>进程数突增，导致业务进程在调度队列排队过久，运行延迟。</li>
+<li>进程等待IO资源，一直处于D状态。</li>
+<li>容器或者物理机因内存资源不足进入直接回收，同步操作阻塞进程运行。</li>
+</ol>
+<p>上面只是一些例子，在实际的生产环境，影响因素还很多。另外 &ldquo;卡顿&rdquo; 假象也很多。:(</p>
+<h3 id="如何解决">如何解决</h3>
+<p>针对上面场景，HUATUO :</p>
+<ol>
+<li>支持容器的throttle指标，通过该指标能够清晰的看出容器进程是否被“限流”。</li>
+<li>支持容器内外部争抢指标（滴滴操作系统内核）。</li>
+<li>支持调度队列指标。通过该指标能够看出调度队列长度，判断是否经历了调度延迟。</li>
+<li>支持自动化的autotracing，当处于D状态的进程数过多时，阈值触发自动获取容器所有D状态调用栈，进程信息等，方便排查哪里出现了资源阻塞。</li>
+<li>支持针对直接回收耗时检测，超出阈值则打印被阻塞的进程信息，容器信息，调用栈等。</li>
+</ol>
+<h3 id="查看指标">查看指标</h3>
+<ol>
+<li>安装华佗，见 <a href="https://huatuo.tech/quickstart/">https://huatuo.tech/quickstart/</a></li>
+<li>获取指标：
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>curl -s localhost:19704/metrics
+</span></span></code></pre></div></li>
+<li>huatuo_bamai_cpu_stat_container_nr_throttled 表示容器进程被&quot;限流&quot;的次数
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>huatuo_bamai_cpu_stat_container_nr_throttled<span style="color:#f92672">{</span>container_host<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span>,container_hostnamespace<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span>,container_level<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span>,container_name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span>,container_type<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;Sidecar&#34;</span>,host<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span>,region<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;r&#34;</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">22</span>
+</span></span></code></pre></div><img src="/img/blog/2025-09-22-container-throttle.png" alt=""></li>
+<li>huatuo_bamai_runqlat_container_nlat_04 表示容器进程在调度队列等待的时间，其中落在第四分区（表示50+ms）的次数为24。
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>huatuo_bamai_runqlat_container_nlat_04<span style="color:#f92672">{</span>container_host<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span>,container_hostnamespace<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span>,container_level<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span>,container_name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span>,container_type<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;Normal&#34;</span>,host<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span>,region<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;r&#34;</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">24</span>
+</span></span></code></pre></div><img src="/img/blog/2025-09-22-container-runqlat.png" alt=""></li>
+<li>loadavg 表示容器级别的 loadavg 状态，HUATUO 自动触发捕获：
+<img src="/img/blog/2025-09-22-container-dload.png" alt=""></li>
+</ol>
+<h3 id="实际案例">实际案例</h3>
+<ol>
+<li>
+<p>问题描述：X 业务容器请求下游服务突发超时。在超时时间点，HUATUO 捕获到大量的 dload 内核事件。dload 具体信息如下，同时结合内核代码可以确认当时该容器因内存紧张进入了回收逻辑，回收过程对pagecache进行刷脏，并阻塞在 wait_iff_congested 函数等待IO 完成。</p>
+</li>
+<li>
+<p>业务出现突然耗时增加：
+<img src="/img/blog/2025-09-22-case-rpc.png" alt=""></p>
+</li>
+<li>
+<p>HUATUO 捕获如下dload 事件：
+<img src="/img/blog/2025-09-22-case-dload.png" alt=""></p>
+</li>
+<li>
+<p>内核在回收内存过程因IO进入睡眠
+<img src="/img/blog/2025-09-22-case-codes.png" alt=""></p>
+</li>
+</ol>
+<hr>
+<p><strong>篇尾：</strong></p>
+<ul>
+<li>关注微信公众号【HUATUO 开源技术】留言，或扫码添加工作人员微信，邀请您加入用户群（请备注姓名+单位）：<img src="/img/contact-weixin.png" alt="微信"></li>
+<li>代码仓库：<a href="https://github.com/ccfos/huatuo">https://github.com/ccfos/huatuo</a></li>
+<li>官方网站：<a href="https://github.com/ccfos/huatuo">https://huatuo.tech/</a></li>
+</ul>
+
+                        </div>
+
+                        
+                        
+                        
+                        <div id="comments"><script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+</div>
+                        
+
+                    </div>
+                    
+
+                    
+
+                    
+
+                    <div class="col-md-3">
+
+                        
+
+                        
+
+<div class="panel panel-default sidebar-menu">
+
+    <div class="panel-heading">
+      <h3 class="panel-title">搜索</h3>
+    </div>
+
+    <div class="panel-body">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" role="search">
+            <div class="input-group">
+                <input type="search" name="q" class="form-control" placeholder="搜索" />
+                <input type="hidden" name="sitesearch" value="https://huatuo.tech/" />
+                <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">标签</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ccf"><i class="fas fa-tags"></i> ccf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/containers"><i class="fas fa-tags"></i> containers</a>
+            </li>
+            
+            <li >
+                <a href="/tags/cpuidle"><i class="fas fa-tags"></i> cpuidle</a>
+            </li>
+            
+            <li >
+                <a href="/tags/hao022"><i class="fas fa-tags"></i> hao022</a>
+            </li>
+            
+            <li >
+                <a href="/tags/huatuo"><i class="fas fa-tags"></i> huatuo</a>
+            </li>
+            
+            <li >
+                <a href="/tags/k8s"><i class="fas fa-tags"></i> k8s</a>
+            </li>
+            
+            <li >
+                <a href="/tags/linux-%e5%86%85%e6%a0%b8"><i class="fas fa-tags"></i> linux 内核</a>
+            </li>
+            
+            <li >
+                <a href="/tags/loadavg"><i class="fas fa-tags"></i> loadavg</a>
+            </li>
+            
+            <li >
+                <a href="/tags/netrecvlat"><i class="fas fa-tags"></i> netrecvlat</a>
+            </li>
+            
+            <li >
+                <a href="/tags/networking"><i class="fas fa-tags"></i> networking</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7"><i class="fas fa-tags"></i> 可观测性</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%90%88%e4%bd%9c"><i class="fas fa-tags"></i> 合作</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%a4%9c%e8%8e%ba%e7%9b%91%e6%8e%a7"><i class="fas fa-tags"></i> 夜莺监控</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%bc%80%e6%ba%90"><i class="fas fa-tags"></i> 开源</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%81%ab%e7%84%b0%e5%9b%be"><i class="fas fa-tags"></i> 火焰图</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%bd%91%e7%bb%9c%e4%bc%98%e5%8c%96"><i class="fas fa-tags"></i> 网络优化</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e8%8d%a3%e8%aa%89"><i class="fas fa-tags"></i> 荣誉</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+
+                        
+
+                    </div>
+                    
+
+                    
+
+                </div>
+                
+
+            </div>
+            
+        </div>
+        
+
+        <footer id="footer">
+    <div class="container">
+
+        
+        <div class="col-md-4 col-sm-6">
+            <h4>关于我们</h4>
+
+            <p>一群开源技术爱好者，基础技术研究者。</p>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+        <div class="col-md-4 col-sm-6">
+
+            
+
+        </div>
+        
+
+        
+        <div class="col-md-4 col-sm-6">
+
+          <h4>联系</h4>
+
+            <p class="text-uppercase"><strong>HUATUO 开源技术社区, 欢迎技术交流</strong>
+        <br>中国北京市海淀区西二旗软件园。
+        <br>
+      </p>
+      
+
+	    <a href="/about" class="btn btn-small btn-template-main">跳到联系页面</a>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026 HUATUO 开源技术社区</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+    
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+
+<script src="/js/front.js"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

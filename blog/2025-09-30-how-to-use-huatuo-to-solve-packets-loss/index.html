@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>应用篇：如何使用 HUATUO 解决网卡硬件丢包</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, networking">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='//fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300italic,500,700,800' rel='stylesheet' type='text/css'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1771655524" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="HUATUO 开源技术">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en_us">
+<meta property="og:site_name" content="HUATUO 开源技术">
+<meta property="og:title" content="应用篇：如何使用 HUATUO 解决网卡硬件丢包">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/blog/2025-09-30-how-to-use-huatuo-to-solve-packets-loss/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2025-09-30-cover.jpg">
+<meta property="og:image:type" content="image/jpg">
+
+
+
+  <meta property="og:image:width" content="900">
+  <meta property="og:image:height" content="600">
+
+
+<meta property="og:updated_time" content="2026-02-21T06:31:59Z">
+
+  
+  
+  
+  <meta property="article:tag" content="HUATUO">
+  <meta property="article:tag" content="networking">
+  <meta property="article:tag" content="可观测性">
+  <meta property="article:tag" content="BPF">
+  
+  
+  <meta property="article:published_time" content="2025-09-30T04:33:21-0400">
+  <meta property="article:modified_time" content="2026-02-21T06:31:59Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="应用篇：如何使用 HUATUO 解决网卡硬件丢包">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2025-09-30-cover.jpg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+    
+  </head>
+
+  <body>
+
+    <div id="all">
+
+        
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm mouseover" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/logo.png" alt="应用篇：如何使用 HUATUO 解决网卡硬件丢包 logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/logo-small.png" alt="应用篇：如何使用 HUATUO 解决网卡硬件丢包 logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">应用篇：如何使用 HUATUO 解决网卡硬件丢包 - 跳到主页</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">切换导航</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/quickstart/">快速开始</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">文档 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="/docs/zh/latest/">latest</a></li>
+                            
+                            <li><a href="/docs/zh/v2.1.0/">v2.1.0</a></li>
+                            
+                            <li><a href="/docs/zh/v2.0.0/">v2.0.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/download">下载</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    
+                    
+                        <a href="/blog/">博客</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/milestone/">动态</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/about/">关于</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="https://github.com/ccfos/huatuo">
+                            <img src="https://img.shields.io/badge/dynamic/json?label=Stars&amp;query=%24.stargazers_count&amp;url=https%3A%2F%2Fapi.github.com%2Frepos%2Fccfos%2Fhuatuo&amp;style=social&amp;logo=github&amp;formatter=none" height="100%">
+                        </a>
+                    
+                  </li>
+                  
+                  
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        <div id="heading-breadcrumbs">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>应用篇：如何使用 HUATUO 解决网卡硬件丢包</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+        <div id="content">
+            <div class="container">
+
+                <div class="row">
+
+                    
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                          <p class="text-muted text-uppercase mb-small text-right">
+                            
+                                
+                                最后更新: 2026-02-21,
+			                    作者: <a href="/authors/teresa">teresa</a>
+                            
+                          </p>
+                        
+
+                        <div id="post-content">
+                          <h3 id="问题描述">问题描述</h3>
+<p>在网络性能监测中，丢包量是关键指标之一。传输层丢包通常由协议栈自行记录，而网卡设备丢包则常因AOC模块不可用、网卡收发队列满载或物理链路错误等原因引发。如何有效监测此类丢包情况，成为一项实际挑战。</p>
+<h3 id="问题现状">问题现状</h3>
+<p>目前，网络层丢包量通常通过 rx_dropped 指标进行统计，该指标也是网络设备监控的常用依据。然而，rx_dropped 并未进一步区分硬件层面丢包与协议栈统计的丢包，导致根因定位存在困难。</p>
+<p><img src="/img/blog/2025-09-30-rx-packets.png" alt=""></p>
+<h3 id="查看指标">查看指标</h3>
+<p>针对于上述场景，HUATUO 提供了专门针对硬件层面的丢包量。安装 HUATUO，执行：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>curl -X GET http://localhost:19704/metrics  | grep -i netdev_hw
+</span></span></code></pre></div><p>获取指标</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># HELP huatuo_bamai_netdev_hw_rx_dropped count of packets dropped at hardware level</span>
+</span></span><span style="display:flex;"><span>huatuo_bamai_netdev_hw_rx_dropped<span style="color:#f92672">{</span>device<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;eth0&#34;</span>,driver<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;XXX&#34;</span>,host<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;XXXXXX&#34;</span>,region<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;XXX&#34;</span><span style="color:#f92672">}</span> 1.230197e+06
+</span></span></code></pre></div><p><img src="/img/blog/2025-09-30-netdev-rx-drop.png" alt=""></p>
+<h3 id="实际案例">实际案例</h3>
+<ol>
+<li>问题描述：某上游业务容器报传输层在 16:00 ～ 17:00 时间内 SYN-ACK 丢包，可以看到此业务容器网络流量并无大波动，且出方向并无 dropped。</li>
+<li>入向：
+<img src="/img/blog/2025-09-30-container-rx.png" alt=""></li>
+<li>出向：
+<img src="/img/blog/2025-09-30-container-tx.png" alt=""></li>
+<li>问题定位：HuaTuo 根因定位 dropwatch 工具可检测报文丢失情况，并无相关机器丢包输出，则说明此 SYN-ACK 数据包并不在协议栈。</li>
+<li>此容器所在宿主机器网络流量入向有丢包：
+<img src="/img/blog/2025-09-30-container-drop.png" alt=""></li>
+<li>根据 ethtool 可以看到其 dropped 累积量较大。同时观测到 huatuo 硬件丢包在持续增加。
+<img src="/img/blog/2025-09-30-netdev-ethtool.png" alt="">
+<img src="/img/blog/2025-09-30-netdev-huatuo.png" alt=""></li>
+</ol>
+<h3 id="网卡硬件丢包设计">网卡硬件丢包设计</h3>
+<h4 id="1-有哪些困难">1. 有哪些困难？</h4>
+<p>在实现硬件丢包指标的过程中，引入了几类困难：</p>
+<ol>
+<li>厂商网卡驱动实现不统一，同样的统计项在不同驱动里可能含义不同或根本不提供；</li>
+<li>ethtool 工具不适合长时间在可观测场景中使用；</li>
+</ol>
+<p>因此我们需要一个<strong>兼容多驱动、低侵入、避免锁竞争</strong>且具有可验证性的 通用监控方案。</p>
+<h4 id="2-为什么不能依赖-ethtool">2. 为什么不能依赖 ethtool？</h4>
+<p>ethtool 的用户空间工具通过 ioctl(SIOCETHTOOL) 进入内核，内核在处理此类请求时会在 dev_ioctl 分支里拿 rtnl 大锁：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">send_ioctl</span>(<span style="color:#66d9ef">struct</span> cmd_context <span style="color:#f92672">*</span>ctx, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>cmd)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    ctx<span style="color:#f92672">-&gt;</span>ifr.ifr_data <span style="color:#f92672">=</span> cmd;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">ioctl</span>(ctx<span style="color:#f92672">-&gt;</span>fd, SIOCETHTOOL, <span style="color:#f92672">&amp;</span>ctx<span style="color:#f92672">-&gt;</span>ifr);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">/* 内核中 dev_ioctl 处理 SIOCETHTOOL 时会加上 rtnl 锁 */</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">case</span> SIOCETHTOOL:
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">dev_load</span>(net, ifr<span style="color:#f92672">-&gt;</span>ifr_name);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">rtnl_lock</span>(); <span style="color:#75715e">// -&gt; 这里会全局串行化 dev_ethtool 的调用
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    ret <span style="color:#f92672">=</span> <span style="color:#a6e22e">dev_ethtool</span>(net, ifr);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">rtnl_unlock</span>();
+</span></span></code></pre></div><p>这意味着所有通过 ethtool 的操作都可能在内核中串行执行（持锁期间），在大量网口或高并发查询场景，会引起显著的延迟和锁竞争风险，因此不应作为高频次实时监控的主路径。</p>
+<h4 id="3-内核中的丢包统计">3. 内核中的丢包统计</h4>
+<p>内核通过 dev_get_stats 给上层（例如 /proc/net/dev、sysfs）提供一份 rtnl_link_stats64 统计结构：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> rtnl_link_stats64 <span style="color:#f92672">*</span><span style="color:#a6e22e">dev_get_stats</span>(<span style="color:#66d9ef">struct</span> net_device <span style="color:#f92672">*</span>dev,
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">struct</span> rtnl_link_stats64 <span style="color:#f92672">*</span>storage)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">struct</span> net_device_ops <span style="color:#f92672">*</span>ops <span style="color:#f92672">=</span> dev<span style="color:#f92672">-&gt;</span>netdev_ops;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (ops<span style="color:#f92672">-&gt;</span>ndo_get_stats64) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">memset</span>(storage, <span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">sizeof</span>(<span style="color:#f92672">*</span>storage));
+</span></span><span style="display:flex;"><span>        ops<span style="color:#f92672">-&gt;</span><span style="color:#a6e22e">ndo_get_stats64</span>(dev, storage); <span style="color:#75715e">// 驱动层面统计（通常为“硬件丢包”）
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/* 软件丢包统计累加 */</span>
+</span></span><span style="display:flex;"><span>    storage<span style="color:#f92672">-&gt;</span>rx_dropped <span style="color:#f92672">+=</span> (<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span>)<span style="color:#a6e22e">atomic_long_read</span>(<span style="color:#f92672">&amp;</span>dev<span style="color:#f92672">-&gt;</span>rx_dropped);
+</span></span><span style="display:flex;"><span>    storage<span style="color:#f92672">-&gt;</span>tx_dropped <span style="color:#f92672">+=</span> (<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span>)<span style="color:#a6e22e">atomic_long_read</span>(<span style="color:#f92672">&amp;</span>dev<span style="color:#f92672">-&gt;</span>tx_dropped);
+</span></span><span style="display:flex;"><span>    storage<span style="color:#f92672">-&gt;</span>rx_nohandler <span style="color:#f92672">+=</span> (<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span>)<span style="color:#a6e22e">atomic_long_read</span>(<span style="color:#f92672">&amp;</span>dev<span style="color:#f92672">-&gt;</span>rx_nohandler);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> storage;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ol>
+<li>
+<p><strong>ops-&gt;ndo_get_stats64</strong>：由驱动实现，通常反映驱动/硬件层面的统计（被我们称为 硬件丢包）。</p>
+</li>
+<li>
+<p><strong>dev-&gt;rx_dropped</strong>：协议栈在运行时维护并更新的计数（我们称为 软件丢包）。</p>
+</li>
+<li>
+<p>内核对这些计数的注释中还说明，rx_dropped 表示被接收但未处理的包，而像 rx_missed_errors 这类字段通常用于设备层未捕获/被丢弃的包。 /proc/net/dev 会把两者合并显示为“drop”列。</p>
+</li>
+</ol>
+<h4 id="4-不同驱动实现差异">4. 不同驱动实现差异</h4>
+<p>实践中我们发现：不同厂商的网卡驱动对“硬件丢包/总丢包”的实现方式并不统一：</p>
+<ol>
+<li>ixgbe、bnxt：会单独维护并暴露 rx_missed_errors（硬件丢包），可以直接读取 sysfs 的 rx_missed_errors 作为硬件丢包指标；</li>
+<li>mlx5、i40e：没有单独输出硬件丢包字段，或者驱动内部把某些计数混合到了 rx_dropped，这时需要额外手段将“软件丢包”剥离出来，才能估算出真实的硬件丢包；</li>
+</ol>
+<p>因此我们的实现流程为：
+<img src="/img/blog/2025-09-30-huatuo-rx-arch.png" alt=""></p>
+<h4 id="5-bpf-实现示例">5. BPF 实现示例</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span><span style="color:#75715e">/* BPF map：key 是 ifindex，value 是累积的软件丢包数 */</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">__uint</span>(type, BPF_MAP_TYPE_HASH);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">__type</span>(key, u32);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">__type</span>(value, u64);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">__uint</span>(max_entries, <span style="color:#ae81ff">1024</span>);
+</span></span><span style="display:flex;"><span>} rx_sw_dropped_stats <span style="color:#a6e22e">SEC</span>(<span style="color:#e6db74">&#34;.maps&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">/* 示例 kprobe：位置根据目标内核/需求选择（这里仅作示意）；
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">   可针对触发软件丢包的函数点放置 kprobe（例如协议栈返回丢弃路径处）。*/</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">SEC</span>(<span style="color:#e6db74">&#34;kprobe/example_drop_path&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">BPF_KPROBE</span>(record_sw_drop, <span style="color:#66d9ef">struct</span> device <span style="color:#f92672">*</span>dev)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">struct</span> net_device <span style="color:#f92672">*</span>netdev <span style="color:#f92672">=</span> <span style="color:#a6e22e">container_of</span>(dev, <span style="color:#66d9ef">struct</span> net_device, dev);
+</span></span><span style="display:flex;"><span>    u32 ifindex <span style="color:#f92672">=</span> <span style="color:#a6e22e">BPF_CORE_READ</span>(netdev, ifindex);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/* 注意：不同内核对 rx_dropped 的存储类型不同，可能需要 BPF_CORE_READ(..., rx_dropped.counter)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">       或者直接 BPF_CORE_READ(..., rx_dropped)。具体以编译时 CO-RE 抛出的结果为准。 */</span>
+</span></span><span style="display:flex;"><span>    u64 sw <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>    sw <span style="color:#f92672">=</span> <span style="color:#a6e22e">BPF_CORE_READ</span>(netdev, rx_dropped);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">bpf_map_update_elem</span>(<span style="color:#f92672">&amp;</span>rx_sw_dropped_stats, <span style="color:#f92672">&amp;</span>ifindex, <span style="color:#f92672">&amp;</span>sw, BPF_ANY);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><hr>
+<p><strong>篇尾：</strong></p>
+<ul>
+<li>关注微信公众号【HUATUO 开源技术】留言，或扫码添加工作人员微信，邀请您加入用户群（请备注姓名+单位）：<img src="/img/contact-weixin.png" alt="微信"></li>
+<li>代码仓库：<a href="https://github.com/ccfos/huatuo">https://github.com/ccfos/huatuo</a></li>
+<li>官方网站：<a href="https://github.com/ccfos/huatuo">https://huatuo.tech/</a></li>
+</ul>
+
+                        </div>
+
+                        
+                        
+                        
+                        <div id="comments"><script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+</div>
+                        
+
+                    </div>
+                    
+
+                    
+
+                    
+
+                    <div class="col-md-3">
+
+                        
+
+                        
+
+<div class="panel panel-default sidebar-menu">
+
+    <div class="panel-heading">
+      <h3 class="panel-title">搜索</h3>
+    </div>
+
+    <div class="panel-body">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" role="search">
+            <div class="input-group">
+                <input type="search" name="q" class="form-control" placeholder="搜索" />
+                <input type="hidden" name="sitesearch" value="https://huatuo.tech/" />
+                <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">标签</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ccf"><i class="fas fa-tags"></i> ccf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/containers"><i class="fas fa-tags"></i> containers</a>
+            </li>
+            
+            <li >
+                <a href="/tags/cpuidle"><i class="fas fa-tags"></i> cpuidle</a>
+            </li>
+            
+            <li >
+                <a href="/tags/hao022"><i class="fas fa-tags"></i> hao022</a>
+            </li>
+            
+            <li >
+                <a href="/tags/huatuo"><i class="fas fa-tags"></i> huatuo</a>
+            </li>
+            
+            <li >
+                <a href="/tags/k8s"><i class="fas fa-tags"></i> k8s</a>
+            </li>
+            
+            <li >
+                <a href="/tags/linux-%e5%86%85%e6%a0%b8"><i class="fas fa-tags"></i> linux 内核</a>
+            </li>
+            
+            <li >
+                <a href="/tags/loadavg"><i class="fas fa-tags"></i> loadavg</a>
+            </li>
+            
+            <li >
+                <a href="/tags/netrecvlat"><i class="fas fa-tags"></i> netrecvlat</a>
+            </li>
+            
+            <li >
+                <a href="/tags/networking"><i class="fas fa-tags"></i> networking</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7"><i class="fas fa-tags"></i> 可观测性</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%90%88%e4%bd%9c"><i class="fas fa-tags"></i> 合作</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%a4%9c%e8%8e%ba%e7%9b%91%e6%8e%a7"><i class="fas fa-tags"></i> 夜莺监控</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%bc%80%e6%ba%90"><i class="fas fa-tags"></i> 开源</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%81%ab%e7%84%b0%e5%9b%be"><i class="fas fa-tags"></i> 火焰图</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%bd%91%e7%bb%9c%e4%bc%98%e5%8c%96"><i class="fas fa-tags"></i> 网络优化</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e8%8d%a3%e8%aa%89"><i class="fas fa-tags"></i> 荣誉</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+
+                        
+
+                    </div>
+                    
+
+                    
+
+                </div>
+                
+
+            </div>
+            
+        </div>
+        
+
+        <footer id="footer">
+    <div class="container">
+
+        
+        <div class="col-md-4 col-sm-6">
+            <h4>关于我们</h4>
+
+            <p>一群开源技术爱好者，基础技术研究者。</p>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+        <div class="col-md-4 col-sm-6">
+
+            
+
+        </div>
+        
+
+        
+        <div class="col-md-4 col-sm-6">
+
+          <h4>联系</h4>
+
+            <p class="text-uppercase"><strong>HUATUO 开源技术社区, 欢迎技术交流</strong>
+        <br>中国北京市海淀区西二旗软件园。
+        <br>
+      </p>
+      
+
+	    <a href="/about" class="btn btn-small btn-template-main">跳到联系页面</a>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026 HUATUO 开源技术社区</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+    
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+
+<script src="/js/front.js"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

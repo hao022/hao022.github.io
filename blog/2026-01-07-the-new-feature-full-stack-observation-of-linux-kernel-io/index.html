@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>新特性！支持 Linux 内核 IO 全栈观测</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, 故障">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='//fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300italic,500,700,800' rel='stylesheet' type='text/css'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1771655524" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="HUATUO 开源技术">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en_us">
+<meta property="og:site_name" content="HUATUO 开源技术">
+<meta property="og:title" content="新特性！支持 Linux 内核 IO 全栈观测">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/blog/2026-01-07-the-new-feature-full-stack-observation-of-linux-kernel-io/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2026-01-07-iotracing-cover.jpg">
+<meta property="og:image:type" content="image/jpg">
+
+
+
+  <meta property="og:image:width" content="300">
+  <meta property="og:image:height" content="200">
+
+
+<meta property="og:updated_time" content="2026-02-21T06:31:59Z">
+
+  
+  
+  
+  <meta property="article:tag" content="HUATUO">
+  <meta property="article:tag" content="BPF">
+  <meta property="article:tag" content="故障">
+  
+  
+  <meta property="article:published_time" content="2026-01-06T22:48:20-0500">
+  <meta property="article:modified_time" content="2026-02-21T06:31:59Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="新特性！支持 Linux 内核 IO 全栈观测">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2026-01-07-iotracing-cover.jpg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+    
+  </head>
+
+  <body>
+
+    <div id="all">
+
+        
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm mouseover" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/logo.png" alt="新特性！支持 Linux 内核 IO 全栈观测 logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/logo-small.png" alt="新特性！支持 Linux 内核 IO 全栈观测 logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">新特性！支持 Linux 内核 IO 全栈观测 - 跳到主页</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">切换导航</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/quickstart/">快速开始</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">文档 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="/docs/zh/latest/">latest</a></li>
+                            
+                            <li><a href="/docs/zh/v2.1.0/">v2.1.0</a></li>
+                            
+                            <li><a href="/docs/zh/v2.0.0/">v2.0.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/download">下载</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    
+                    
+                        <a href="/blog/">博客</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/milestone/">动态</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/about/">关于</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="https://github.com/ccfos/huatuo">
+                            <img src="https://img.shields.io/badge/dynamic/json?label=Stars&amp;query=%24.stargazers_count&amp;url=https%3A%2F%2Fapi.github.com%2Frepos%2Fccfos%2Fhuatuo&amp;style=social&amp;logo=github&amp;formatter=none" height="100%">
+                        </a>
+                    
+                  </li>
+                  
+                  
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        <div id="heading-breadcrumbs">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>新特性！支持 Linux 内核 IO 全栈观测</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+        <div id="content">
+            <div class="container">
+
+                <div class="row">
+
+                    
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                          <p class="text-muted text-uppercase mb-small text-right">
+                            
+                                
+                                最后更新: 2026-02-21,
+			                    作者: <a href="/authors/%E6%88%B4%E5%9D%A4%E6%B5%B7">戴坤海</a>
+                            
+                          </p>
+                        
+
+                        <div id="post-content">
+                          <p>本篇重点介绍 HUATUO 强悍的 IO 全栈观测能力，实现原理以及故障定位案例。</p>
+<h3 id="用户痛点">用户痛点</h3>
+<p>磁盘被打爆，却找不到罪魁祸首。深夜，监控系统突然报警: 磁盘 IOPS 爆表，磁盘利用率达到 100%！业务响应超时 …</p>
+<p>紧急登录服务器，使用各种 IO 工具，试图找出元凶，却：</p>
+<ol>
+<li>能看到某个进程在触发 IO 操作，却不知道它具体在读写哪个文件</li>
+<li>能看到磁盘在疯狂写入，却不知道这些 IO 来自哪个业务进程</li>
+<li>能看到内核线程在刷脏页，却根本无法追踪到原始的业务进程</li>
+<li>能看到 IO 吞吐量，却不知道这些 IO 的延迟情况，无法定位性能瓶颈</li>
+</ol>
+<p>不能全景的分析 &ldquo;是谁在写&rdquo;、&ldquo;写到哪里&rdquo;、&ldquo;为什么慢&rdquo;。排查陷入僵局，业务继续受影响&hellip;</p>
+<h3 id="解决方案">解决方案</h3>
+<p>iotracing 来了！这是一款基于 eBPF 技术的 IO 追踪工具，能够让你一步到位找到高 IO 的所有信息：</p>
+<ul>
+<li>IO 属于哪个进程，支持 PID 和进程名</li>
+<li>IO 属于哪个容器，支持容器化环境</li>
+<li>IO 写到哪个磁盘，支持设备号</li>
+<li>IO 写到哪个文件，支持完整文件路径和 inode 号</li>
+<li>IO 延迟分析，支持 q2c、d2c 延迟，找出性能瓶颈</li>
+<li>刷脏回写追踪，即使内核线程刷脏页，也能追溯到原始进程</li>
+<li>高延迟调用栈，捕获超过阈值的 IO，显示完整内核调用栈</li>
+</ul>
+<h3 id="基础用法">基础用法</h3>
+<h4 id="1-快速上手">1. 快速上手</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ iotracing --duration <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>PID      COMMAND              FS_READ FS_WRITE DISK_READ DISK_WRITE FILES
+</span></span><span style="display:flex;"><span><span style="color:#f92672">=======</span>  <span style="color:#f92672">====================</span> <span style="color:#f92672">=======</span> <span style="color:#f92672">========</span> <span style="color:#f92672">=========</span> <span style="color:#f92672">==========</span> <span style="color:#f92672">=====</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">12345</span>    mysql                5.2GB    1.8GB    6.1GB      2.2GB     <span style="color:#ae81ff">128</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">67890</span>    nginx                2.1GB    890MB    2.3GB      950MB     <span style="color:#ae81ff">45</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">11223</span>    java-app             1.5GB    3.2GB    1.8GB      3.5GB     <span style="color:#ae81ff">256</span>
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div><p>输出进程按照磁盘IO量排序，mysql 进程是最大的 IO 消耗者，每秒读取 5.2GB、写入 1.8GB！</p>
+<h4 id="2-深入分析">2. 深入分析</h4>
+<p>此外，该工具还会输出读写文件信息：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">===========================================================================</span>
+</span></span><span style="display:flex;"><span>PID: <span style="color:#ae81ff">12345</span>     TOTAL_IO: R<span style="color:#f92672">=</span>5.2GB W<span style="color:#f92672">=</span>1.8GB  FILES: <span style="color:#ae81ff">128</span>
+</span></span><span style="display:flex;"><span>COMMAND: /usr/sbin/mysqld
+</span></span><span style="display:flex;"><span>-----------------------------------
+</span></span><span style="display:flex;"><span>DEVICE  FS_READ FS_WRITE DISK_READ DISK_WRITE   LATENCY<span style="color:#f92672">(</span>μs<span style="color:#f92672">)</span>      FILE/INODE
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>8:0<span style="color:#f92672">]</span>   512MB    256MB     512MB      256MB       q2c<span style="color:#f92672">=</span><span style="color:#ae81ff">450</span> d2c<span style="color:#f92672">=</span><span style="color:#ae81ff">300</span> /var/lib/mysql/ibdata1 <span style="color:#f92672">(</span>1234567<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>8:0<span style="color:#f92672">]</span>   480MB    240MB     480MB      240MB       q2c<span style="color:#f92672">=</span><span style="color:#ae81ff">420</span> d2c<span style="color:#f92672">=</span><span style="color:#ae81ff">250</span> /var/lib/mysql/ib_logfile0 <span style="color:#f92672">(</span>1234568<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>8:0<span style="color:#f92672">]</span>   256MB    128MB     256MB      128MB       q2c<span style="color:#f92672">=</span><span style="color:#ae81ff">480</span> d2c<span style="color:#f92672">=</span><span style="color:#ae81ff">350</span> /var/lib/mysql/test/table1.ibd <span style="color:#f92672">(</span>1234569<span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>这里展示了进程操作的文件，可以看到 MySQL 正在疯狂读写 ibdata1、 ib_logfile0、table1.ibd。延迟 q2c，d2c 信息一目了然。</p>
+<h4 id="3-容器环境">3. 容器环境</h4>
+<p>识别 IO 来自哪个容器。在容器环境，iotracing 还能显示容器信息 container_hostname ：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ iotracing --duration <span style="color:#ae81ff">10</span> --json | jq
+</span></span><span style="display:flex;"><span><span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;process_io_data&#34;</span>: <span style="color:#f92672">[</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;pid&#34;</span>: 12345,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;comm&#34;</span>: <span style="color:#e6db74">&#34;java-app&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;container_hostname&#34;</span>: <span style="color:#e6db74">&#34;order-service-7d9f8b4c5-x2k3p&#34;</span>,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;fs_read&#34;</span>: 1073741824,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;fs_write&#34;</span>: 3221225472,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;disk_read&#34;</span>: 1200000000,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;disk_write&#34;</span>: 3500000000,
+</span></span><span style="display:flex;"><span>      <span style="color:#e6db74">&#34;file_count&#34;</span>: <span style="color:#ae81ff">256</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><h4 id="4-回写-io-追踪">4. 回写 IO 追踪</h4>
+<p>普通的工具只能抓到一堆内核线程kworker在刷脏页，无法定位到io具体来源的业务进程。</p>
+<p><img src="/img/blog/2026-01-07-iotracing-biotop.png" alt=""></p>
+<p>iotracing 不仅准确识别到回写io的来源进程，更是精准定位到了io所属的文件。</p>
+<p><img src="/img/blog/2026-01-07-iotracing-view.png" alt=""></p>
+<h3 id="高级用法">高级用法</h3>
+<p>你一定遇到过这样的场景：</p>
+<ul>
+<li>凌晨监控告警：某台服务器磁盘 IO 突然飙升到 100%，持续 30 秒后自动恢复</li>
+<li>业务影响：这 30 秒内，数据库查询超时，用户请求失败率飙升</li>
+<li>排查困境：等你收到告警并登录服务器时，IO 已经恢复正常了。你不知道刚才发生了什么，更不知道如何复现</li>
+</ul>
+<p>这是典型的突发 IO 问题：突发大量的 IO 请求，持续时间短，但影响严重！HUATUO autotracing 框架搭配 iotracing 可以实时监控的 IO 负载，当出现异常突增或者延迟异常时，会自动调用 iotracing 抓取磁盘快照，以供后续的问题根因分析。</p>
+<h3 id="生产环境案例">生产环境案例</h3>
+<p>下面以一个真实的案例来看  iotracing 在服务器 IO 异常突增的场景发挥的作用。</p>
+<p><img src="/img/blog/2026-01-07-iotracing-autotracing01.png" alt=""></p>
+<p>HUATUO 观测到服务器在 17:50 左右发生一次大量读磁盘请求。</p>
+<p><img src="/img/blog/2026-01-07-iotracing-autotracing02.png" alt=""></p>
+<h3 id="技术原理">技术原理</h3>
+<p>iotracing 实现原理核心架构如下图:</p>
+<p><img src="/img/blog/2026-01-07-iotracing-workflow.png" alt=""></p>
+<h3 id="总结">总结</h3>
+<p>HUATUO iotracing 将打造 IO 性能分析的终极工具，未来开放更多特性。</p>
+<hr>
+<p><strong>篇尾：</strong></p>
+<ul>
+<li>HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的操作系统深度可观测项目。</li>
+<li>关注微信公众号，或扫码加微信，邀请你加入用户群（请备注姓名+单位）：</li>
+</ul>
+<p><img src="/img/contact-weixin.png" alt="微信"></p>
+<ul>
+<li>仓库1：<a href="https://github.com/ccfos/huatuo">https://github.com/ccfos/huatuo</a></li>
+<li>仓库2：<a href="https://gitlink.org.cn/ccfos/huatuo">https://gitlink.org.cn/ccfos/huatuo</a></li>
+<li>官网：<a href="https://github.com/ccfos/huatuo">https://huatuo.tech/</a></li>
+</ul>
+
+                        </div>
+
+                        
+                        
+                        
+                        <div id="comments"><script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+</div>
+                        
+
+                    </div>
+                    
+
+                    
+
+                    
+
+                    <div class="col-md-3">
+
+                        
+
+                        
+
+<div class="panel panel-default sidebar-menu">
+
+    <div class="panel-heading">
+      <h3 class="panel-title">搜索</h3>
+    </div>
+
+    <div class="panel-body">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" role="search">
+            <div class="input-group">
+                <input type="search" name="q" class="form-control" placeholder="搜索" />
+                <input type="hidden" name="sitesearch" value="https://huatuo.tech/" />
+                <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">标签</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ccf"><i class="fas fa-tags"></i> ccf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/containers"><i class="fas fa-tags"></i> containers</a>
+            </li>
+            
+            <li >
+                <a href="/tags/cpuidle"><i class="fas fa-tags"></i> cpuidle</a>
+            </li>
+            
+            <li >
+                <a href="/tags/hao022"><i class="fas fa-tags"></i> hao022</a>
+            </li>
+            
+            <li >
+                <a href="/tags/huatuo"><i class="fas fa-tags"></i> huatuo</a>
+            </li>
+            
+            <li >
+                <a href="/tags/k8s"><i class="fas fa-tags"></i> k8s</a>
+            </li>
+            
+            <li >
+                <a href="/tags/linux-%e5%86%85%e6%a0%b8"><i class="fas fa-tags"></i> linux 内核</a>
+            </li>
+            
+            <li >
+                <a href="/tags/loadavg"><i class="fas fa-tags"></i> loadavg</a>
+            </li>
+            
+            <li >
+                <a href="/tags/netrecvlat"><i class="fas fa-tags"></i> netrecvlat</a>
+            </li>
+            
+            <li >
+                <a href="/tags/networking"><i class="fas fa-tags"></i> networking</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7"><i class="fas fa-tags"></i> 可观测性</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%90%88%e4%bd%9c"><i class="fas fa-tags"></i> 合作</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%a4%9c%e8%8e%ba%e7%9b%91%e6%8e%a7"><i class="fas fa-tags"></i> 夜莺监控</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%bc%80%e6%ba%90"><i class="fas fa-tags"></i> 开源</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%81%ab%e7%84%b0%e5%9b%be"><i class="fas fa-tags"></i> 火焰图</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%bd%91%e7%bb%9c%e4%bc%98%e5%8c%96"><i class="fas fa-tags"></i> 网络优化</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e8%8d%a3%e8%aa%89"><i class="fas fa-tags"></i> 荣誉</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+
+                        
+
+                    </div>
+                    
+
+                    
+
+                </div>
+                
+
+            </div>
+            
+        </div>
+        
+
+        <footer id="footer">
+    <div class="container">
+
+        
+        <div class="col-md-4 col-sm-6">
+            <h4>关于我们</h4>
+
+            <p>一群开源技术爱好者，基础技术研究者。</p>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+        <div class="col-md-4 col-sm-6">
+
+            
+
+        </div>
+        
+
+        
+        <div class="col-md-4 col-sm-6">
+
+          <h4>联系</h4>
+
+            <p class="text-uppercase"><strong>HUATUO 开源技术社区, 欢迎技术交流</strong>
+        <br>中国北京市海淀区西二旗软件园。
+        <br>
+      </p>
+      
+
+	    <a href="/about" class="btn btn-small btn-template-main">跳到联系页面</a>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026 HUATUO 开源技术社区</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+    
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+
+<script src="/js/front.js"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

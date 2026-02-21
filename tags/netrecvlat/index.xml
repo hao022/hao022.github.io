@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Netrecvlat on HUATUO 开源技术</title>
+    <link>https://huatuo.tech/tags/netrecvlat/</link>
+    <description>Recent content in Netrecvlat on HUATUO 开源技术</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 21 Feb 2026 06:31:59 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/tags/netrecvlat/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>应用篇：深入剖析网络收包延迟，从网卡到应用的精确追踪与优化</title>
+      <link>https://huatuo.tech/blog/2025-09-15-netrecvlat-article/</link>
+      <pubDate>Mon, 15 Sep 2025 07:00:00 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2025-09-15-netrecvlat-article/</guid>
+      <description>该文章主要介绍了 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; 网络收方向延迟检测方案。论证了获取时间戳的位置，以及到用户态的接收延迟的检测。最后给出了在生产实践过程中具体问题案例 &amp;hellip;</description>
+    </item>
+  </channel>
+</rss>

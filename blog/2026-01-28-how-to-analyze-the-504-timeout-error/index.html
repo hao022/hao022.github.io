@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>避坑！504 超时错误的元凶竟然是它</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, 故障">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='//fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300italic,500,700,800' rel='stylesheet' type='text/css'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1771655524" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="HUATUO 开源技术">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en_us">
+<meta property="og:site_name" content="HUATUO 开源技术">
+<meta property="og:title" content="避坑！504 超时错误的元凶竟然是它">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/blog/2026-01-28-how-to-analyze-the-504-timeout-error/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2026-01-28-cover.jpeg">
+<meta property="og:image:type" content="image/jpeg">
+
+
+
+  <meta property="og:image:width" content="300">
+  <meta property="og:image:height" content="200">
+
+
+<meta property="og:updated_time" content="2026-02-21T06:31:59Z">
+
+  
+  
+  
+  <meta property="article:tag" content="HUATUO">
+  <meta property="article:tag" content="BPF">
+  <meta property="article:tag" content="故障">
+  
+  
+  <meta property="article:published_time" content="2026-01-28T08:19:46-0500">
+  <meta property="article:modified_time" content="2026-02-21T06:31:59Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="避坑！504 超时错误的元凶竟然是它">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2026-01-28-cover.jpeg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+    
+  </head>
+
+  <body>
+
+    <div id="all">
+
+        
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm mouseover" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/logo.png" alt="避坑！504 超时错误的元凶竟然是它 logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/logo-small.png" alt="避坑！504 超时错误的元凶竟然是它 logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">避坑！504 超时错误的元凶竟然是它 - 跳到主页</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">切换导航</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/quickstart/">快速开始</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">文档 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="/docs/zh/latest/">latest</a></li>
+                            
+                            <li><a href="/docs/zh/v2.1.0/">v2.1.0</a></li>
+                            
+                            <li><a href="/docs/zh/v2.0.0/">v2.0.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/download">下载</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    
+                    
+                        <a href="/blog/">博客</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/milestone/">动态</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/about/">关于</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="https://github.com/ccfos/huatuo">
+                            <img src="https://img.shields.io/badge/dynamic/json?label=Stars&amp;query=%24.stargazers_count&amp;url=https%3A%2F%2Fapi.github.com%2Frepos%2Fccfos%2Fhuatuo&amp;style=social&amp;logo=github&amp;formatter=none" height="100%">
+                        </a>
+                    
+                  </li>
+                  
+                  
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        <div id="heading-breadcrumbs">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>避坑！504 超时错误的元凶竟然是它</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+        <div id="content">
+            <div class="container">
+
+                <div class="row">
+
+                    
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                          <p class="text-muted text-uppercase mb-small text-right">
+                            
+                                
+                                最后更新: 2026-02-21,
+			                    作者: <a href="/authors/%E8%83%A1%E6%B4%AA">胡洪</a>
+                            
+                          </p>
+                        
+
+                        <div id="post-content">
+                          <p>HUATUO（华佗）再出手，抓出 504 超时错误元凶！</p>
+<h3 id="问题背景">问题背景</h3>
+<p>公司业务 A 反馈，在访问服务 B 时出现大量的 504 错误，且大概率在建立连接时出现，而非读写超时。</p>
+<h3 id="问题影响">问题影响</h3>
+<p>该服务作为核心流量入口，承担着全局流量调度与管控的职责，位于核心链路，一旦批量异常，将导致大范围业务访问中断，潜在风险影响极大。</p>
+<h3 id="问题分析">问题分析</h3>
+<p>当 A 服务访问 B 服务时，若出现大量建立连接或者传输失败超时，则会返回 504 超时错误。网络架构简图如下：</p>
+<p><img src="/img/blog/2026-01-28-a-and-b.png" alt=""></p>
+<p>开始问题分析，在 14:40 A 服务访问 B 服务时建连失败，A 服务侧的监控如下：</p>
+<p><img src="/img/blog/2026-01-28-a-metrics.png" alt=""></p>
+<p>查询出现上述问题的容器，比较巧合，这些容器均在同一台宿主机，那我们就先从单机入手：</p>
+<p><img src="/img/blog/2026-01-28-a-metrics2.png" alt=""></p>
+<h4 id="祭出大法">祭出大法</h4>
+<p>重点来了！为了揭开这 504 背后的神秘面纱，祭出 HUATUO autotracing 大法，通过观察 HUATUO autotracing 大盘，惊奇地发现 HUATUO 在 14:40 抓取到多起宿主机 dropwatch 丢包事件：</p>
+<p><img src="/img/blog/2026-01-28-huatuo-dropwatch.png" alt=""></p>
+<p>HUATUO dropwatch，是一个基于 eBPF 实现的丢包检测工具，它常态运行实时监控宿主机、容器 TCP 丢包事件。简单说下基础原理，Linux 内核通过如下两种方式释放 skb：</p>
+<ul>
+<li>包被成功处理 consume_skb</li>
+<li>包被丢弃 kfree_skb</li>
+</ul>
+<p><img src="/img/blog/2026-01-28-huatuo-dropwatch2.png" alt=""></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>SEC<span style="color:#f92672">(</span><span style="color:#e6db74">&#34;tracepoint/skb/kfree_skb&#34;</span><span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>int bpf_kfree_skb_prog<span style="color:#f92672">(</span>struct trace_event_raw_kfree_skb *ctx<span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>因此 dropwatch 通过 kfree_skb tracepoint 获取丢包事件，获取网络信息如 IP，端口，TCP 标记，调用栈，进程信息等。</p>
+<p><img src="/img/blog/2026-01-28-huatuo-dropwatch3.png" alt=""></p>
+<p>通过 HUATUO 大盘发现，丢包出现在 TCP 建立连接（SYN_SENT、FIN_WAIT1）和数据传输（ESTABLISHED）阶段。从调用栈可见，丢包时的最终调用函数均为上图标红的三个函数，且都是在发送时丢包。</p>
+<p>以 SYN_SENT 状态为例，该阶段丢包表明 TCP SYN 包在发送过程中被丢弃。由于内核的 SYN 重传机制通常在约1秒后触发重传，若 nginx proxy_connect_timeout 设置过短（如0.5秒），则会在重传前判定连接超时，直接返回 504 Gateway Timeout。</p>
+<p>在 ESTABLISHED 状态进行数据传输时，由于 TCP 具备快速重传机制，数据传输过程中的丢包对业务层影响较小，感知不明显，这与业务侧的实际反馈相符。</p>
+<h4 id="再进一步">再进一步</h4>
+<p>那么，为什么会丢包？为了便于分析，我们按照协议栈的分层结构，将上述调用栈的执行流程简化为：</p>
+<p><img src="/img/blog/2026-01-28-huatuo-tcp.png" alt=""></p>
+<blockquote>
+<p>小提示：可依据上图的skb传输流程进行层级映射，结合 dropwatch 捕获的内核丢包调用栈，从而精确定位丢包发生于协议栈的具体环节。</p></blockquote>
+<p>__dev_queue_xmit 在哪里调用了 kfree_skb_list ？用 BPF 脚本获取调用栈信息，此时可知 kfree_skb_list 在 __dev_queue_xmit+2214 位置的上一行。</p>
+<p><img src="/img/blog/2026-01-28-huatuo-bpftrace.png" alt=""></p>
+<p>我们采用 crash 工具，执行下面的反汇编命令：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>crash vmlinux
+</span></span><span style="display:flex;"><span>dis -l __dev_queue_xmit
+</span></span></code></pre></div><p>得到 __dev_queue_xmit 函数的汇编指令与其对应的内核源代码行交错显示：</p>
+<p><img src="/img/blog/2026-01-28-huatuo-crash.png" alt=""></p>
+<p>可以看到当时是在net/core/dev.c:3524调用了 kfree_skb_list 函数执行丢包：</p>
+<p><img src="/img/blog/2026-01-28-huatuo-code.png" alt=""></p>
+<p>然而，当前存在两个执行路径会将 skb 赋值给 to_free 进行释放。这很可能是由于 qdisc 的状态为 __QDISC_STATE_DEACTIVATED，从而导致丢包。为验证这一推断，我们继续使用以下 BPF 脚本来捕获 kfree_skb 调用时 qdisc 的状态（即 q-&gt;state）：</p>
+<p><img src="/img/blog/2026-01-28-huatuo-code2.png" alt=""></p>
+<p>BPF 程序捕获到 qdisc 状态值 q-&gt;state 为 2，这表明其 bit 1 已被置位。qdisc 状态为 __QDISC_STATE_DEACTIVATED。</p>
+<p><img src="/img/blog/2026-01-28-huatuo-code3.png" alt=""></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">enum</span> <span style="color:#66d9ef">qdisc_state_t</span> {
+</span></span><span style="display:flex;"><span>        __QDISC_STATE_SCHED,
+</span></span><span style="display:flex;"><span>        __QDISC_STATE_DEACTIVATED,
+</span></span><span style="display:flex;"><span>        __QDISC_STATE_MISSED,
+</span></span><span style="display:flex;"><span>        __QDISC_STATE_DRAINING,
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><p>Qdisc DEACTIVATED 状态和网卡状态有关，因此查看当时网卡接口状态，HUATUO autotracing 大盘的网卡指标 netdev_events carrier_down，确认在 14:40 网卡链路出现异常，进而导致丢包。</p>
+<p><img src="/img/blog/2026-01-28-huatuo-down.png" alt=""></p>
+<p>至此，该问题分析的非常清楚，根因就是网卡链路出现问题，而这类异常事件很难被观测到，但 HUATUO（华佗）却很好的支持了这个特性。</p>
+<h4 id="最后一击">最后一击</h4>
+<p>造成宿主机侧网卡的物理层(carrier)down掉通常有两种情况：</p>
+<ul>
+<li>
+<p>光模块/线缆正常，NIC 网卡固件或者硬件问题（netdev_events carrier_down 可感知）：
+<img src="/img/blog/2026-01-28-huatuo-down2.png" alt=""></p>
+</li>
+<li>
+<p>光模块/线缆问题（netdev_events carrier_down 可感知)，如下图，主要是收光弱导致的网卡偶尔down掉：
+<img src="/img/blog/2026-01-28-huatuo-down3.png" alt=""></p>
+</li>
+</ul>
+<p>线缆、光模块、网卡固件/硬件问题会导致物理机网卡 carrier down，交换机侧的端口 down 也会导致对端物理机网口 carrier down。另外进程/管理员操作也会导致网口 down，但是 admin_down。</p>
+<ul>
+<li>怎么区分：参考 HUATUO 的  linkstatus_* 指标</li>
+<li>怎么及时事件通知：参考 HUATUO 的 netdev_events 事件</li>
+</ul>
+<h3 id="最后总结">最后总结</h3>
+<p>有了 HUATUO 之后，排查故障根因变得前所未有的简单。用好 HUATUO，很多问题都能在第一时间被发现并定位。希望大家在日常运维和开发中，多多尝试、积极使用，让根因定位变得轻松高效。</p>
+<h3 id="参考链接">参考链接</h3>
+<p><a href="https://github.com/ccfos/huatuo/blob/main/core/events/dropwatch.go">https://github.com/ccfos/huatuo/blob/main/core/events/dropwatch.go</a>
+<a href="https://github.com/ccfos/huatuo/blob/main/core/events/netdev_events.go">https://github.com/ccfos/huatuo/blob/main/core/events/netdev_events.go</a>
+<a href="https://github.com/torvalds/linux">https://github.com/torvalds/linux</a>
+<a href="https://www.kernel.org/doc/Documentation/networking/operstates.txt">https://www.kernel.org/doc/Documentation/networking/operstates.txt</a></p>
+<hr>
+<p><strong>篇尾：</strong></p>
+<ul>
+<li>HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的操作系统深度可观测项目。</li>
+<li>关注微信公众号，或扫码加微信，邀请你加入用户群（请备注姓名+单位）：</li>
+</ul>
+<p><img src="/img/contact-weixin.png" alt="微信"></p>
+<ul>
+<li>仓库1：<a href="https://github.com/ccfos/huatuo">https://github.com/ccfos/huatuo</a></li>
+<li>仓库2：<a href="https://gitlink.org.cn/ccfos/huatuo">https://gitlink.org.cn/ccfos/huatuo</a></li>
+<li>官网：<a href="https://github.com/ccfos/huatuo">https://huatuo.tech/</a></li>
+</ul>
+
+                        </div>
+
+                        
+                        
+                        
+                        <div id="comments"><script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+</div>
+                        
+
+                    </div>
+                    
+
+                    
+
+                    
+
+                    <div class="col-md-3">
+
+                        
+
+                        
+
+<div class="panel panel-default sidebar-menu">
+
+    <div class="panel-heading">
+      <h3 class="panel-title">搜索</h3>
+    </div>
+
+    <div class="panel-body">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" role="search">
+            <div class="input-group">
+                <input type="search" name="q" class="form-control" placeholder="搜索" />
+                <input type="hidden" name="sitesearch" value="https://huatuo.tech/" />
+                <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">标签</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ccf"><i class="fas fa-tags"></i> ccf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/containers"><i class="fas fa-tags"></i> containers</a>
+            </li>
+            
+            <li >
+                <a href="/tags/cpuidle"><i class="fas fa-tags"></i> cpuidle</a>
+            </li>
+            
+            <li >
+                <a href="/tags/hao022"><i class="fas fa-tags"></i> hao022</a>
+            </li>
+            
+            <li >
+                <a href="/tags/huatuo"><i class="fas fa-tags"></i> huatuo</a>
+            </li>
+            
+            <li >
+                <a href="/tags/k8s"><i class="fas fa-tags"></i> k8s</a>
+            </li>
+            
+            <li >
+                <a href="/tags/linux-%e5%86%85%e6%a0%b8"><i class="fas fa-tags"></i> linux 内核</a>
+            </li>
+            
+            <li >
+                <a href="/tags/loadavg"><i class="fas fa-tags"></i> loadavg</a>
+            </li>
+            
+            <li >
+                <a href="/tags/netrecvlat"><i class="fas fa-tags"></i> netrecvlat</a>
+            </li>
+            
+            <li >
+                <a href="/tags/networking"><i class="fas fa-tags"></i> networking</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7"><i class="fas fa-tags"></i> 可观测性</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%90%88%e4%bd%9c"><i class="fas fa-tags"></i> 合作</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%a4%9c%e8%8e%ba%e7%9b%91%e6%8e%a7"><i class="fas fa-tags"></i> 夜莺监控</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%bc%80%e6%ba%90"><i class="fas fa-tags"></i> 开源</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%81%ab%e7%84%b0%e5%9b%be"><i class="fas fa-tags"></i> 火焰图</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%bd%91%e7%bb%9c%e4%bc%98%e5%8c%96"><i class="fas fa-tags"></i> 网络优化</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e8%8d%a3%e8%aa%89"><i class="fas fa-tags"></i> 荣誉</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+
+                        
+
+                    </div>
+                    
+
+                    
+
+                </div>
+                
+
+            </div>
+            
+        </div>
+        
+
+        <footer id="footer">
+    <div class="container">
+
+        
+        <div class="col-md-4 col-sm-6">
+            <h4>关于我们</h4>
+
+            <p>一群开源技术爱好者，基础技术研究者。</p>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+        <div class="col-md-4 col-sm-6">
+
+            
+
+        </div>
+        
+
+        
+        <div class="col-md-4 col-sm-6">
+
+          <h4>联系</h4>
+
+            <p class="text-uppercase"><strong>HUATUO 开源技术社区, 欢迎技术交流</strong>
+        <br>中国北京市海淀区西二旗软件园。
+        <br>
+      </p>
+      
+
+	    <a href="/about" class="btn btn-small btn-template-main">跳到联系页面</a>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026 HUATUO 开源技术社区</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+    
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+
+<script src="/js/front.js"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

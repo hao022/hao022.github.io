@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Containers on HUATUO 开源技术</title>
+    <link>https://huatuo.tech/tags/containers/</link>
+    <description>Recent content in Containers on HUATUO 开源技术</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 21 Feb 2026 06:31:59 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/tags/containers/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>思考篇：如何构建一个稳健的系统</title>
+      <link>https://huatuo.tech/blog/2025-09-24-how-to-build-a-robust-system/</link>
+      <pubDate>Tue, 23 Sep 2025 22:13:21 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2025-09-24-how-to-build-a-robust-system/</guid>
+      <description>该文章介绍了在实际生产过程中，对设计稳健系统的一些思考，形成一些方法论。对基础软件，业务软件，集群软件都有适用性。希望&lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; 能够为大家在设计稳健系统时提供一些帮助 &amp;hellip;</description>
+    </item>
+    <item>
+      <title>应用篇：如何使用 HUATUO 解决应用程序卡住问题</title>
+      <link>https://huatuo.tech/blog/2025-09-22-how-to-use-huatuo-to-solve-the-problem-of-application-stalling/</link>
+      <pubDate>Mon, 22 Sep 2025 10:53:25 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2025-09-22-how-to-use-huatuo-to-solve-the-problem-of-application-stalling/</guid>
+      <description>该文章介绍了在实际生产环境中哪些因素可能导致进程“卡顿”，以及 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; 如何观测这些卡顿行为，并附有实际指标看板。最后通过实际的一个案例说明如何定位到卡顿原因，和实际效果 &amp;hellip;</description>
+    </item>
+    <item>
+      <title>应用篇：深入剖析网络收包延迟，从网卡到应用的精确追踪与优化</title>
+      <link>https://huatuo.tech/blog/2025-09-15-netrecvlat-article/</link>
+      <pubDate>Mon, 15 Sep 2025 07:00:00 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2025-09-15-netrecvlat-article/</guid>
+      <description>该文章主要介绍了 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; 网络收方向延迟检测方案。论证了获取时间戳的位置，以及到用户态的接收延迟的检测。最后给出了在生产实践过程中具体问题案例 &amp;hellip;</description>
+    </item>
+    <item>
+      <title>应用篇：如何使用 HUATUO 解决容器 CPUIdle 掉底问题</title>
+      <link>https://huatuo.tech/blog/2025-08-19-how-to-use-huatuo-solve-problem-of-container-cpuidle/</link>
+      <pubDate>Thu, 21 Aug 2025 10:14:29 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2025-08-19-how-to-use-huatuo-solve-problem-of-container-cpuidle/</guid>
+      <description>系统故障诊断面临多重挑战。如何在新技术范式与架构下，构建面向操作系统的低损耗、零侵扰、全景式、持续深度观测能力体系，成为亟待解决的核心问题。本系列文章分享 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; 落地实践 &amp;hellip;</description>
+    </item>
+  </channel>
+</rss>

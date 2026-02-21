@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>可观测性 on HUATUO 开源技术</title>
+    <link>https://huatuo.tech/tags/%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7/</link>
+    <description>Recent content in 可观测性 on HUATUO 开源技术</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 21 Feb 2026 06:31:59 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/tags/%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>应用篇：如何使用 HUATUO 解决网卡硬件丢包</title>
+      <link>https://huatuo.tech/blog/2025-09-30-how-to-use-huatuo-to-solve-packets-loss/</link>
+      <pubDate>Tue, 30 Sep 2025 04:33:21 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2025-09-30-how-to-use-huatuo-to-solve-packets-loss/</guid>
+      <description>本文探讨了检测网卡硬件丢包遇到的问题，例如 ethtool 为什么不能应用于常态的硬件丢包检测，并最终给出了 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; 网卡硬件丢包检测解决方案，并提供了一个实际生产环境故障案例 &amp;hellip;</description>
+    </item>
+    <item>
+      <title>思考篇：关于双上联去堆叠网络架构的一点总结</title>
+      <link>https://huatuo.tech/blog/2025-09-26-some-thoughts-on-non-stacking-network-architecture/</link>
+      <pubDate>Fri, 26 Sep 2025 03:20:47 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2025-09-26-some-thoughts-on-non-stacking-network-architecture/</guid>
+      <description>本文探讨了双上联去堆叠网络架构的设计思路与生产环境中遇到的实际问题（如LACP协议状态与物理链路的监控难点），并引入 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; 解决方案，以实现对物理链路可用性的有效观测 &amp;hellip;</description>
+    </item>
+    <item>
+      <title>思考篇：如何构建一个稳健的系统</title>
+      <link>https://huatuo.tech/blog/2025-09-24-how-to-build-a-robust-system/</link>
+      <pubDate>Tue, 23 Sep 2025 22:13:21 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2025-09-24-how-to-build-a-robust-system/</guid>
+      <description>该文章介绍了在实际生产过程中，对设计稳健系统的一些思考，形成一些方法论。对基础软件，业务软件，集群软件都有适用性。希望&lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; 能够为大家在设计稳健系统时提供一些帮助 &amp;hellip;</description>
+    </item>
+    <item>
+      <title>应用篇：如何使用 HUATUO 解决应用程序卡住问题</title>
+      <link>https://huatuo.tech/blog/2025-09-22-how-to-use-huatuo-to-solve-the-problem-of-application-stalling/</link>
+      <pubDate>Mon, 22 Sep 2025 10:53:25 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2025-09-22-how-to-use-huatuo-to-solve-the-problem-of-application-stalling/</guid>
+      <description>该文章介绍了在实际生产环境中哪些因素可能导致进程“卡顿”，以及 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; 如何观测这些卡顿行为，并附有实际指标看板。最后通过实际的一个案例说明如何定位到卡顿原因，和实际效果 &amp;hellip;</description>
+    </item>
+    <item>
+      <title>应用篇：深入剖析网络收包延迟，从网卡到应用的精确追踪与优化</title>
+      <link>https://huatuo.tech/blog/2025-09-15-netrecvlat-article/</link>
+      <pubDate>Mon, 15 Sep 2025 07:00:00 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2025-09-15-netrecvlat-article/</guid>
+      <description>该文章主要介绍了 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; 网络收方向延迟检测方案。论证了获取时间戳的位置，以及到用户态的接收延迟的检测。最后给出了在生产实践过程中具体问题案例 &amp;hellip;</description>
+    </item>
+    <item>
+      <title>合作篇：打通操作系统可观测性最后一公里</title>
+      <link>https://huatuo.tech/blog/2025-08-27-huatuo-and-nightingale-work-together/</link>
+      <pubDate>Wed, 27 Aug 2025 01:08:32 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2025-08-27-huatuo-and-nightingale-work-together/</guid>
+      <description>即刻部署 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; + &lt;a href=&#34;https://n9e.github.io/zh/&#34;&gt;夜莺监控&lt;/a&gt; 工具组合，快速构建覆盖应用，中间件，数据库，操作系统内核的一体化可观测体系。HUATUO 开箱即用，从各维度全面观测内核，填补了操作系统可观测性领域的空白。</description>
+    </item>
+    <item>
+      <title>应用篇：如何使用 HUATUO 解决容器 CPUIdle 掉底问题</title>
+      <link>https://huatuo.tech/blog/2025-08-19-how-to-use-huatuo-solve-problem-of-container-cpuidle/</link>
+      <pubDate>Thu, 21 Aug 2025 10:14:29 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2025-08-19-how-to-use-huatuo-solve-problem-of-container-cpuidle/</guid>
+      <description>系统故障诊断面临多重挑战。如何在新技术范式与架构下，构建面向操作系统的低损耗、零侵扰、全景式、持续深度观测能力体系，成为亟待解决的核心问题。本系列文章分享 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; 落地实践 &amp;hellip;</description>
+    </item>
+    <item>
+      <title>滴滴操作系统可观测项目 HUATUO 正式入驻 CCF</title>
+      <link>https://huatuo.tech/events/2025-08-07-huatuo-open-source-project-has-entered-the-ccf-incubation-phase/</link>
+      <pubDate>Fri, 08 Aug 2025 03:19:58 -0400</pubDate>
+      <guid>https://huatuo.tech/events/2025-08-07-huatuo-open-source-project-has-entered-the-ccf-incubation-phase/</guid>
+      <description>8月2日，&lt;a href=&#34;https://www.didiglobal.com/&#34;&gt;滴滴&lt;/a&gt;宣布其开源云原生操作系统可观测性项目 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; 正式入驻&lt;a href=&#34;https://www.ccf.org.cn/&#34;&gt;中国计算机学会（CCF）&lt;/a&gt;，加入其重点孵化项目序列。本次入驻不仅体现了滴滴长期践行开源共建共享的理念，也希望通过行业协作，共同推动可观测领域操作系统基础设施的高效标准化发展。</description>
+    </item>
+  </channel>
+</rss>

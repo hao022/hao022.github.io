@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>HUATUO 开源技术</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='//fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300italic,500,700,800' rel='stylesheet' type='text/css'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1771655523" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="HUATUO 开源技术">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en_us">
+<meta property="og:site_name" content="HUATUO 开源技术">
+<meta property="og:title" content="HUATUO 开源技术">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://huatuo.tech/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/sharing-default.png">
+<meta property="og:image:type" content="image/png">
+
+
+
+  <meta property="og:image:width" content="428">
+  <meta property="og:image:height" content="149">
+
+
+<meta property="og:updated_time" content="2026-02-21T06:31:59Z">
+
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="HUATUO 开源技术">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/sharing-default.png">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+    
+  </head>
+
+  <body>
+
+    <div id="all">
+
+        
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm mouseover" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/logo.png" alt="HUATUO 开源技术 logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/logo-small.png" alt="HUATUO 开源技术 logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">HUATUO 开源技术 - 跳到主页</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">切换导航</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/quickstart/">快速开始</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">文档 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="/docs/zh/latest/">latest</a></li>
+                            
+                            <li><a href="/docs/zh/v2.1.0/">v2.1.0</a></li>
+                            
+                            <li><a href="/docs/zh/v2.0.0/">v2.0.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/download">下载</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/blog/">博客</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/milestone/">动态</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/about/">关于</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="https://github.com/ccfos/huatuo">
+                            <img src="https://img.shields.io/badge/dynamic/json?label=Stars&amp;query=%24.stargazers_count&amp;url=https%3A%2F%2Fapi.github.com%2Frepos%2Fccfos%2Fhuatuo&amp;style=social&amp;logo=github&amp;formatter=none" height="100%">
+                        </a>
+                    
+                  </li>
+                  
+                  
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        
+
+
+<section>
+    <div class="home-carousel">
+        <div class="dark-mask"></div>
+        <div class="container">
+            <div class="homepage owl-carousel"
+                data-autoplay="true"
+                data-slide-speed="2000"
+                data-pagination-speed="1000">
+                
+                <div class="item">
+                    
+                        <div class="row">
+                            <div class="col-sm-5 right">
+                                <h1>低损耗内核全景观测</h1>
+                                <p>精细化、全维度、全景观测<br>自适应退避<br>资源损耗与观测精度动态平衡</p>
+                            </div>
+                            <div class="col-sm-7">
+                                <img class="img-responsive" src="img/carousel/template-all-bpf-tools-removebg-preview.png" alt="">
+                            </div>
+                        </div>
+                    
+                </div>
+                
+                <div class="item">
+                    
+                        <div class="row">
+                            <div class="col-sm-5 right">
+                                <h1>事件驱动诊断</h1>
+                                <ul class="list-style-none">
+   <li>事件驱动、动态捕获</li>
+   <li>关键路径、精准埋点</li>
+   <li>寄存器、调用堆栈、资源状态自动诊断</li>
+ </ul>
+
+                            </div>
+                            <div class="col-sm-7">
+                                <img class="img-responsive" src="img/carousel/template-bpf-event.jpeg" alt="">
+                            </div>
+                        </div>
+                    
+                </div>
+                
+                <div class="item">
+                    
+                        <div class="row">
+                            <div class="col-sm-5 right">
+                                <h1>持续性能剖析</h1>
+                                <ul class="list-style-none">
+  <li>全方位、全场景、多语言</li>
+  <li>持续性能剖析</li>
+  <li>助力业务持续优化、迭代、更新</li>
+</ul>
+
+                            </div>
+                            <div class="col-sm-7">
+                                <img class="img-responsive" src="img/carousel/template-profiling.png" alt="">
+                            </div>
+                        </div>
+                    
+                </div>
+                
+                <div class="item">
+                    
+                        <div class="row">
+                            <div class="col-sm-5 right">
+                                <h1>全自动化追踪</h1>
+                                <ul class="list-style-none">
+  <li>启发式追踪算法</li>
+  <li>自动化快照留存</li>
+  <li>一站式解决突发毛刺痛点</li>
+</ul>
+
+                            </div>
+                            <div class="col-sm-7">
+                                <img class="img-responsive" src="img/carousel/template-auto-burst.png" alt="">
+                            </div>
+                        </div>
+                    
+                </div>
+                
+            </div>
+            
+        </div>
+    </div>
+</section>
+
+
+
+
+
+        
+
+
+
+<section class="bar background-white">
+    <div class="container">
+        
+        
+
+        
+
+        
+
+        
+          <div class="row row-0 row-odd">
+            
+
+                
+                
+                    
+
+                    <div class="col-md-4 col-0 col-odd">
+                        <div class="box-simple">
+                            
+                                <div class="icon">
+                                    <i class="fas fa-desktop"></i>
+                                </div>
+                            
+                            <h3>低损耗内核全景观测</h3>
+                            <p>基于 BPF 技术，保持性能损耗小于1%的基准水位，实现对内存管理、CPU 调度、网络及块 IO 子系统等核心模块的精细化、全维度、全景观测与性能剖析。</p>
+                        </div>
+                    </div>
+                
+            
+
+                
+                
+                    
+
+                    <div class="col-md-4 col-1 col-even">
+                        <div class="box-simple">
+                            
+                                <div class="icon">
+                                    <i class="fas fa-print"></i>
+                                </div>
+                            
+                            <h3>异常事件驱动诊断</h3>
+                            <p>基于异常事件驱动的运行时上下文捕获机制，聚焦内核异常与慢速路径的精准埋点。针对调度延迟、协议栈丢包、中断关闭过长等事件，自动生成诊断信息。</p>
+                        </div>
+                    </div>
+                
+            
+
+                
+                
+                    
+
+                    <div class="col-md-4 col-2 col-odd">
+                        <div class="box-simple">
+                            
+                                <div class="icon">
+                                    <i class="fas fa-globe"></i>
+                                </div>
+                            
+                            <h3>全自动化追踪 AutoTracing</h3>
+                            <p>采用启发式追踪算法，解决云原生复杂场景下的性能毛刺故障。针对 CPU idle 掉底，CPU SYS 突增，IO 突增，Load 突增等棘手问题，实现自动化快照留存。</p>
+                        </div>
+                    </div>
+                
+            
+          </div>
+        
+          <div class="row row-1 row-even">
+            
+
+                
+                
+                    
+
+                    <div class="col-md-4 col-0 col-odd">
+                        <div class="box-simple">
+                            
+                                <div class="icon">
+                                    <i class="fas fa-lightbulb"></i>
+                                </div>
+                            
+                            <h3>持续性能剖析 Profiling</h3>
+                            <p>持续对操作系统内核，应用程序进行全方位、全场景、多语言性能剖析，涉及 CPU、内存、I/O、 锁、解释性编程语言，力助业务持续的优化迭代更新。</p>
+                        </div>
+                    </div>
+                
+            
+
+                
+                
+                    
+
+                    <div class="col-md-4 col-1 col-even">
+                        <div class="box-simple">
+                            
+                                <div class="icon">
+                                    <i class="far fa-envelope"></i>
+                                </div>
+                            
+                            <h3>分布式链路追踪 Tracing</h3>
+                            <p>以网络为中心的面向服务请求的分布式链路追踪，支持在大规模分布式系统中的跨节点追踪，提供微服务调用的全景视图，保障系统在复杂场景下的稳定性。</p>
+                        </div>
+                    </div>
+                
+            
+
+                
+                
+                    
+
+                    <div class="col-md-4 col-2 col-odd">
+                        <div class="box-simple">
+                            
+                                <div class="icon">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            
+                            <h3>开源技术生态融合</h3>
+                            <p>无缝对接开源技术栈。支持物理机和云原生部署，自动感知 K8S 容器/标签/注解，自动关联操作系统内核事件，消除数据孤岛。兼容主流操作系统发行版。</p>
+                        </div>
+                    </div>
+                
+            
+          </div>
+        
+    </div>
+</section>
+
+
+
+
+
+
+        
+
+
+
+<section class="bar background-pentagon no-mb">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="heading text-center">
+                    <h2>最佳实践</h2>
+                </div>
+
+                <p class="lead">
+                  
+                </p>
+
+                
+
+                <ul class="owl-carousel testimonials same-height-row"
+                    data-items="3"
+                    data-autoplay="true"
+                    data-slide-speed="2000"
+                    data-pagination-speed="1000">
+                    
+                    <li class="item">
+                        <div class="testimonial same-height-always">
+                            <div class="bottom">
+                                <div class="name-picture">
+                                    <h5>通用计算：云原生集群</h5>
+                                    <p>General-Purpose Computing</p>
+                                </div>
+                            </div>
+                            <div class="text">
+                                <p>为容器，物理节点，控制节点，提供丰富的观测指标，内核事件，追踪火焰图，性能剖析。</p>
+                            </div>
+                        </div>
+                    </li>
+                    
+                    <li class="item">
+                        <div class="testimonial same-height-always">
+                            <div class="bottom">
+                                <div class="name-picture">
+                                    <h5>AI 计算：模型训练、推理</h5>
+                                    <p>AI Computing</p>
+                                </div>
+                            </div>
+                            <div class="text">
+                                <p>扩展 GPU 硬件故障检测能力，提供 CPU, Memory, PCIe, HCA 等硬件健康状态。</p>
+                            </div>
+                        </div>
+                    </li>
+                    
+                    <li class="item">
+                        <div class="testimonial same-height-always">
+                            <div class="bottom">
+                                <div class="name-picture">
+                                    <h5>云计算：开源操作系统</h5>
+                                    <p>Cloud Computing</p>
+                                </div>
+                            </div>
+                            <div class="text">
+                                <p>深度与华为 Euler，阿里 Anolis，腾讯 TencentOS 等社区合作，让用云更简单。</p>
+                            </div>
+                        </div>
+                    </li>
+                    
+                    <li class="item">
+                        <div class="testimonial same-height-always">
+                            <div class="bottom">
+                                <div class="name-picture">
+                                    <h5>裸金属服务器：基础服务</h5>
+                                    <p>Bare Metal Server</p>
+                                </div>
+                            </div>
+                            <div class="text">
+                                <p>为存储，大数据，消息队列，微服务等基础服务、业务应用提供故障诊断能力。</p>
+                            </div>
+                        </div>
+                    </li>
+                    
+                    <li class="item">
+                        <div class="testimonial same-height-always">
+                            <div class="bottom">
+                                <div class="name-picture">
+                                    <h5>容灾演练：稳定性保障</h5>
+                                    <p>Disaster Backup and Recovery</p>
+                                </div>
+                            </div>
+                            <div class="text">
+                                <p>适用于全链路压测，放火演练，故障注入，机房容灾等场景，让用户看清应用性能表现。</p>
+                            </div>
+                        </div>
+                    </li>
+                    
+                </ul>
+
+                
+
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+
+
+
+
+
+        
+
+
+
+
+        
+
+<section class="bar background-white no-mb">
+    <div class="container">
+
+        <div class="col-md-12">
+            <div class="heading text-center">
+                <h2>最新博客</h2>
+            </div>
+
+            <p class="lead">
+              
+            </p>
+
+            
+
+            <div class="row">
+                
+                
+                <div class="col-md-3 col-sm-6">
+                    <div class="box-image-text blog">
+                        <div class="top">
+                            <div class="image" style="overflow:hidden">
+                                
+                                <img src="/img/blog/2026-02-21-database-cover.png" class="img-responsive" alt="" />
+                                
+                            </div>
+                            <div class="bg"></div>
+                            <div class="text">
+                                <p class="buttons">
+                                    <a href="https://huatuo.tech/blog/2026-02-21-how-ebpf-could-make-faster-database-systems/" class="btn btn-template-transparent-primary"><i class="fas fa-link"></i> 阅读更多</a>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="content">
+                            <h4><a href="https://huatuo.tech/blog/2026-02-21-how-ebpf-could-make-faster-database-systems/">P99Conf：eBPF 构建更快的数据库系统</a></h4>
+                            <p class="author-category">
+			    
+			      由 <a href="/authors/%E5%AE%98%E6%96%B9%E5%B0%8F%E7%BC%96">官方小编</a>
+                            
+                            
+                                
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                在 2026-02-20
+                            
+                            </p>
+                            
+                            <p class="intro">本篇介绍了数据库在现在操作系统上遇到的痛点，以及 eBPF 如何解决优化这些系统性能瓶颈，BPF-DB 给出了全新的思路。</p>
+                            <p class="read-more">
+                              <a href="https://huatuo.tech/blog/2026-02-21-how-ebpf-could-make-faster-database-systems/" class="btn btn-template-main">继续阅读</a>
+                            </p>
+                            
+                        </div>
+                    </div>
+                    
+
+                </div>
+                
+                <div class="col-md-3 col-sm-6">
+                    <div class="box-image-text blog">
+                        <div class="top">
+                            <div class="image" style="overflow:hidden">
+                                
+                                <img src="/img/blog/2026-02-01-huatuo-cover.jpg" class="img-responsive" alt="" />
+                                
+                            </div>
+                            <div class="bg"></div>
+                            <div class="text">
+                                <p class="buttons">
+                                    <a href="https://huatuo.tech/blog/2026-02-01-ebpf-research-shows-kernel-tech-powering-modern-ai/" class="btn btn-template-transparent-primary"><i class="fas fa-link"></i> 阅读更多</a>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="content">
+                            <h4><a href="https://huatuo.tech/blog/2026-02-01-ebpf-research-shows-kernel-tech-powering-modern-ai/">eBPF 正成为现代 AI 基础设施的重要部分</a></h4>
+                            <p class="author-category">
+			    
+			      由 <a href="/authors/%E5%AE%98%E6%96%B9%E5%B0%8F%E7%BC%96">官方小编</a>
+                            
+                            
+                                
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                在 2026-02-01
+                            
+                            </p>
+                            
+                            <p class="intro">本篇介绍了 eBPF 基金会发布的一份研究报告，该报告清晰地揭示了一个正在发生的重大转变，eBPF 正赋能 AI 基础设施。</p>
+                            <p class="read-more">
+                              <a href="https://huatuo.tech/blog/2026-02-01-ebpf-research-shows-kernel-tech-powering-modern-ai/" class="btn btn-template-main">继续阅读</a>
+                            </p>
+                            
+                        </div>
+                    </div>
+                    
+
+                </div>
+                
+                <div class="col-md-3 col-sm-6">
+                    <div class="box-image-text blog">
+                        <div class="top">
+                            <div class="image" style="overflow:hidden">
+                                
+                                <img src="/img/blog/2026-01-28-cover.jpeg" class="img-responsive" alt="" />
+                                
+                            </div>
+                            <div class="bg"></div>
+                            <div class="text">
+                                <p class="buttons">
+                                    <a href="https://huatuo.tech/blog/2026-01-28-how-to-analyze-the-504-timeout-error/" class="btn btn-template-transparent-primary"><i class="fas fa-link"></i> 阅读更多</a>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="content">
+                            <h4><a href="https://huatuo.tech/blog/2026-01-28-how-to-analyze-the-504-timeout-error/">避坑！504 超时错误的元凶竟然是它</a></h4>
+                            <p class="author-category">
+			    
+			      由 <a href="/authors/%E8%83%A1%E6%B4%AA">胡洪</a>
+                            
+                            
+                                
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                在 2026-01-28
+                            
+                            </p>
+                            
+                            <p class="intro">本篇重点分析了核心链路服务出现 504 错误的根因，其中 HUATUO 发挥了关键作用，无论丢包还是网卡硬件故障。</p>
+                            <p class="read-more">
+                              <a href="https://huatuo.tech/blog/2026-01-28-how-to-analyze-the-504-timeout-error/" class="btn btn-template-main">继续阅读</a>
+                            </p>
+                            
+                        </div>
+                    </div>
+                    
+
+                </div>
+                
+                <div class="col-md-3 col-sm-6">
+                    <div class="box-image-text blog">
+                        <div class="top">
+                            <div class="image" style="overflow:hidden">
+                                
+                                <img src="/img/blog/2026-01-20-cover.jpg" class="img-responsive" alt="" />
+                                
+                            </div>
+                            <div class="bg"></div>
+                            <div class="text">
+                                <p class="buttons">
+                                    <a href="https://huatuo.tech/blog/2026-01-20-fault-analysis-caused-by-amd-server-instruction/" class="btn btn-template-transparent-primary"><i class="fas fa-link"></i> 阅读更多</a>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="content">
+                            <h4><a href="https://huatuo.tech/blog/2026-01-20-fault-analysis-caused-by-amd-server-instruction/">避坑！AMD 服务器指令集引发的故障分析</a></h4>
+                            <p class="author-category">
+			    
+			      由 <a href="/authors/%E7%8E%8B%E6%B4%AA%E7%A3%8A">王洪磊</a>
+                            
+                            
+                                
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                在 2026-01-20
+                            
+                            </p>
+                            
+                            <p class="intro">本篇重点分析了 AMD 服务器因指令集问题导致的业务容器 CPU 掉底，业务指标抖动问题。涉及 HUATUO 火焰图，libstdc++ 库等</p>
+                            <p class="read-more">
+                              <a href="https://huatuo.tech/blog/2026-01-20-fault-analysis-caused-by-amd-server-instruction/" class="btn btn-template-main">继续阅读</a>
+                            </p>
+                            
+                        </div>
+                    </div>
+                    
+
+                </div>
+                
+
+            </div>
+            
+
+            
+
+        </div>
+    </div>
+    
+</section>
+
+
+
+
+        
+        
+
+<section class="bar background-white no-mb">
+    <div class="container">
+
+        <div class="col-md-12">
+            <div class="heading text-center">
+                <h2>最新动态</h2>
+            </div>
+
+            <p class="lead">
+                <h4></h4>
+            </p>
+
+            
+            <div class="row">
+                
+                
+                
+                <div class="col-md-3 col-sm-6">
+                    <div class="box-image-text blog">
+                        <div class="top">
+                            <div class="image" style="overflow:hidden">
+                                
+                                <img src="/img/blog/2026-01-22-huatuo-cover.jpeg" class="img-responsive" alt="" />
+                                
+                            </div>
+                            <div class="bg"></div>
+                            <div class="text">
+                                <p class="buttons">
+                                    <a href="https://huatuo.tech/events/2026-01-22-huatuo-and-ebpf-foundation-work-together/" class="btn btn-template-transparent-primary"><i class="fas fa-link"></i> 阅读更多</a>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="content">
+                            <h4><a href="https://huatuo.tech/events/2026-01-22-huatuo-and-ebpf-foundation-work-together/">HUATUO (华佗)被 eBPF 基金会列为新兴项目</a></h4>
+                        </div>
+                    </div>
+                    
+
+                </div>
+                
+                <div class="col-md-3 col-sm-6">
+                    <div class="box-image-text blog">
+                        <div class="top">
+                            <div class="image" style="overflow:hidden">
+                                
+                                <img src="/img/blog/2025-12-20-cover.jpg" class="img-responsive" alt="" />
+                                
+                            </div>
+                            <div class="bg"></div>
+                            <div class="text">
+                                <p class="buttons">
+                                    <a href="https://huatuo.tech/events/2025-12-20-huatuo-and-tencent-outstanding-contribution/" class="btn btn-template-transparent-primary"><i class="fas fa-link"></i> 阅读更多</a>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="content">
+                            <h4><a href="https://huatuo.tech/events/2025-12-20-huatuo-and-tencent-outstanding-contribution/">滴滴出行荣获腾讯操作系统生态OC, 杰出贡献单位</a></h4>
+                        </div>
+                    </div>
+                    
+
+                </div>
+                
+                <div class="col-md-3 col-sm-6">
+                    <div class="box-image-text blog">
+                        <div class="top">
+                            <div class="image" style="overflow:hidden">
+                                
+                                <img src="/img/blog/2025-11-11-oc-cover.jpg" class="img-responsive" alt="" />
+                                
+                            </div>
+                            <div class="bg"></div>
+                            <div class="text">
+                                <p class="buttons">
+                                    <a href="https://huatuo.tech/events/2025-11-11-opencloudos-and-huatuo-together/" class="btn btn-template-transparent-primary"><i class="fas fa-link"></i> 阅读更多</a>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="content">
+                            <h4><a href="https://huatuo.tech/events/2025-11-11-opencloudos-and-huatuo-together/">腾讯操作系统 OC 和 HUATUO (华佗) 深度集成</a></h4>
+                        </div>
+                    </div>
+                    
+
+                </div>
+                
+                <div class="col-md-3 col-sm-6">
+                    <div class="box-image-text blog">
+                        <div class="top">
+                            <div class="image" style="overflow:hidden">
+                                
+                                <img src="/img/blog/2025-10-28-oscar-cover.jpeg" class="img-responsive" alt="" />
+                                
+                            </div>
+                            <div class="bg"></div>
+                            <div class="text">
+                                <p class="buttons">
+                                    <a href="https://huatuo.tech/events/2025-10-28-huatuo-oscar-event/" class="btn btn-template-transparent-primary"><i class="fas fa-link"></i> 阅读更多</a>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="content">
+                            <h4><a href="https://huatuo.tech/events/2025-10-28-huatuo-oscar-event/">荣获《OSCAR 尖峰开源项目及开源社区》称号</a></h4>
+                        </div>
+                    </div>
+                    
+
+                </div>
+                
+
+            </div>
+            
+            
+
+        </div>
+    </div>
+    
+</section>
+
+
+
+
+
+        
+
+
+
+<section class="bar background-gray no-mb">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="heading text-center">
+                    <h2>我们的用户</h2>
+                </div>
+
+                <p class="lead">
+                  
+                </p>
+
+                <ul class="image-gallery" >
+                    
+                    <li class="image-item">
+                        <img src="img/clients/client-didichuxing.png" alt="滴滴出行">
+                    </li>
+                    
+                    <li class="image-item">
+                        <img src="img/clients/client-flashcat.png" alt="快猫星云">
+                    </li>
+                    
+                    <li class="image-item">
+                        <img src="img/clients/client-ccf.png" alt="中国计算机协会">
+                    </li>
+                    
+                    <li class="image-item">
+                        <img src="img/clients/client-xiecheng.png" alt="https://www.ctrip.com/">
+                    </li>
+                    
+                    <li class="image-item">
+                        <img src="img/clients/client-huaxiaozhu.png" alt="https://hxz.didichuxing.com/">
+                    </li>
+                    
+                    <li class="image-item">
+                        <img src="img/clients/client-baidu.png" alt="https://cloud.baidu.com/">
+                    </li>
+                    
+                    <li class="image-item">
+                        <img src="img/clients/client-xiaomi.png" alt="https://www.mi.com/">
+                    </li>
+                    
+                    <li class="image-item">
+                        <img src="img/clients/client-metax.png" alt="https://www.metax-tech.com/">
+                    </li>
+                    
+                    <li class="image-item">
+                        <img src="img/clients/client-oc.png" alt="https://opencloudos.org/">
+                    </li>
+                    
+                    <li class="image-item">
+                        <img src="img/clients/client-anolis.png" alt="龙蜥社区">
+                    </li>
+                    
+                    <li class="image-item">
+                        <img src="img/clients/client-euler.png" alt="欧拉社区">
+                    </li>
+                    
+                    <li class="image-item">
+                        <img src="img/clients/client-kylinos.png" alt="https://www.kylinos.cn/">
+                    </li>
+                    
+                    <li class="image-item">
+                        <img src="img/clients/client-fedora.png" alt="https://fedoraproject.org/">
+                    </li>
+                    
+                    <li class="image-item">
+                        <img src="img/clients/client-centos.png" alt="https://www.centos.org/">
+                    </li>
+                    
+                    <li class="image-item">
+                        <img src="img/clients/client-ubuntu.png" alt="https://ubuntu.com/">
+                    </li>
+                    
+                    <li class="image-item">
+                        <img src="img/clients/client-muhefangda.png" alt="">
+                    </li>
+                    
+                    <li class="image-item">
+                        <img src="img/clients/client-xingbake.png" alt="https://www.starbucks.com.cn/">
+                    </li>
+                    
+                    <li class="image-item">
+                        <img src="img/clients/client-byd.png" alt="https://www.byd.com/cn">
+                    </li>
+                    
+                    <li class="image-item">
+                        <img src="img/clients/client-yunmai.png" alt="https://www.yunsilicon.com/about.html">
+                    </li>
+                    
+                    <li class="image-item">
+                        <img src="img/clients/client-zhada.png" alt="https://www.sc.com/cn/">
+                    </li>
+                    
+                    <li class="image-item">
+                        <img src="img/clients/client-bilibili.png" alt="https://www.bilibili.com/">
+                    </li>
+                    
+                    <li class="image-item">
+                        <img src="img/clients/client-liantongyun.png" alt="https://www.cucloud.cn/">
+                    </li>
+                    
+                    <li class="image-item">
+                        <img src="img/clients/client-huya.png" alt="https://www.huya.com/">
+                    </li>
+                    
+                    <li class="image-item">
+                        <img src="img/clients/client-pinduoduo.png" alt="https://www.pinduoduo.com/">
+                    </li>
+                    
+                </ul>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+
+
+
+        <footer id="footer">
+    <div class="container">
+
+        
+        <div class="col-md-4 col-sm-6">
+            <h4>关于我们</h4>
+
+            <p>一群开源技术爱好者，基础技术研究者。</p>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+        <div class="col-md-4 col-sm-6">
+
+            
+
+        </div>
+        
+
+        
+        <div class="col-md-4 col-sm-6">
+
+          <h4>联系</h4>
+
+            <p class="text-uppercase"><strong>HUATUO 开源技术社区, 欢迎技术交流</strong>
+        <br>中国北京市海淀区西二旗软件园。
+        <br>
+      </p>
+      
+
+	    <a href="/about" class="btn btn-small btn-template-main">跳到联系页面</a>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026 HUATUO 开源技术社区</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+    
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+
+<script src="/js/front.js"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

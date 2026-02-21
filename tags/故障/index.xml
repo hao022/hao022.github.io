@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>故障 on HUATUO 开源技术</title>
+    <link>https://huatuo.tech/tags/%E6%95%85%E9%9A%9C/</link>
+    <description>Recent content in 故障 on HUATUO 开源技术</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 21 Feb 2026 06:31:59 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/tags/%E6%95%85%E9%9A%9C/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>P99Conf：eBPF 构建更快的数据库系统</title>
+      <link>https://huatuo.tech/blog/2026-02-21-how-ebpf-could-make-faster-database-systems/</link>
+      <pubDate>Fri, 20 Feb 2026 21:09:43 -0500</pubDate>
+      <guid>https://huatuo.tech/blog/2026-02-21-how-ebpf-could-make-faster-database-systems/</guid>
+      <description>本篇介绍了数据库在现在操作系统上遇到的痛点，以及 eBPF 如何解决优化这些系统性能瓶颈，BPF-DB 给出了全新的思路。</description>
+    </item>
+    <item>
+      <title>eBPF 正成为现代 AI 基础设施的重要部分</title>
+      <link>https://huatuo.tech/blog/2026-02-01-ebpf-research-shows-kernel-tech-powering-modern-ai/</link>
+      <pubDate>Sun, 01 Feb 2026 09:14:45 -0500</pubDate>
+      <guid>https://huatuo.tech/blog/2026-02-01-ebpf-research-shows-kernel-tech-powering-modern-ai/</guid>
+      <description>本篇介绍了 eBPF 基金会发布的一份研究报告，该报告清晰地揭示了一个正在发生的重大转变，eBPF 正赋能 AI 基础设施。</description>
+    </item>
+    <item>
+      <title>避坑！504 超时错误的元凶竟然是它</title>
+      <link>https://huatuo.tech/blog/2026-01-28-how-to-analyze-the-504-timeout-error/</link>
+      <pubDate>Wed, 28 Jan 2026 08:19:46 -0500</pubDate>
+      <guid>https://huatuo.tech/blog/2026-01-28-how-to-analyze-the-504-timeout-error/</guid>
+      <description>本篇重点分析了核心链路服务出现 504 错误的根因，其中 HUATUO 发挥了关键作用，无论丢包还是网卡硬件故障。</description>
+    </item>
+    <item>
+      <title>HUATUO (华佗)被 eBPF 基金会列为新兴项目</title>
+      <link>https://huatuo.tech/events/2026-01-22-huatuo-and-ebpf-foundation-work-together/</link>
+      <pubDate>Thu, 22 Jan 2026 05:52:37 -0500</pubDate>
+      <guid>https://huatuo.tech/events/2026-01-22-huatuo-and-ebpf-foundation-work-together/</guid>
+      <description>HUATUO (华佗) 被 eBPF 基金会列为新兴项目，标志着行业对该项目社区实力与生态价值的认可。eBPF 已经被广泛应用于可观测性领域。</description>
+    </item>
+    <item>
+      <title>避坑！AMD 服务器指令集引发的故障分析</title>
+      <link>https://huatuo.tech/blog/2026-01-20-fault-analysis-caused-by-amd-server-instruction/</link>
+      <pubDate>Tue, 20 Jan 2026 04:17:34 -0500</pubDate>
+      <guid>https://huatuo.tech/blog/2026-01-20-fault-analysis-caused-by-amd-server-instruction/</guid>
+      <description>本篇重点分析了 AMD 服务器因指令集问题导致的业务容器 CPU 掉底，业务指标抖动问题。涉及 HUATUO 火焰图，libstdc++ 库等</description>
+    </item>
+    <item>
+      <title>避坑！AMD 服务器诡异的耗时毛刺问题</title>
+      <link>https://huatuo.tech/blog/2026-01-13-anlysis-the-amd-server-latency-issue/</link>
+      <pubDate>Tue, 13 Jan 2026 06:11:44 -0500</pubDate>
+      <guid>https://huatuo.tech/blog/2026-01-13-anlysis-the-amd-server-latency-issue/</guid>
+      <description>本篇分析解决 AMD 服务器诡异的毛刺问题，涉及 HUATUO 关键指标，内核选核策略，CPU 架构，内核调度，调度域等核心技术。</description>
+    </item>
+    <item>
+      <title>新特性！支持 Linux 内核 IO 全栈观测</title>
+      <link>https://huatuo.tech/blog/2026-01-07-the-new-feature-full-stack-observation-of-linux-kernel-io/</link>
+      <pubDate>Tue, 06 Jan 2026 22:48:20 -0500</pubDate>
+      <guid>https://huatuo.tech/blog/2026-01-07-the-new-feature-full-stack-observation-of-linux-kernel-io/</guid>
+      <description>面对生产环境用户的 IO 痛点，HUATUO 社区提出 iotracing 解决方案，涉及基础用法，高级用法，以及搭载 Autotracing 等。</description>
+    </item>
+    <item>
+      <title>延迟降低30%! redis 延迟性能问题分析</title>
+      <link>https://huatuo.tech/blog/2026-01-06-analysis-of-redis-latency-performance-optimization/</link>
+      <pubDate>Mon, 05 Jan 2026 22:34:17 -0500</pubDate>
+      <guid>https://huatuo.tech/blog/2026-01-06-analysis-of-redis-latency-performance-optimization/</guid>
+      <description>本篇重点分析了 redis 服务长期运行后会出现性能下降问题，通过查看 HUATUO 在内存上的详细指标，进而推测出系统所处于的状态，并进而定位到性能的瓶颈所在，最后根据我们对内核的理解给出了解决方案。</description>
+    </item>
+    <item>
+      <title>云报告洞察，实例规格、性能、成本选择</title>
+      <link>https://huatuo.tech/blog/2026-01-03-cloud-report-insights-instance-specifications-performance-and-cost/</link>
+      <pubDate>Sat, 03 Jan 2026 00:31:48 -0500</pubDate>
+      <guid>https://huatuo.tech/blog/2026-01-03-cloud-report-insights-instance-specifications-performance-and-cost/</guid>
+      <description>本篇博客重点分析了主流云厂商对虚拟机实例规格的分类（通用型，计算型，存储型，内存型等），实例大小对性能的影响(小规格实例的vCPU性能占据明显优势)，内存计算比例选择背后的思考，以及最后的成本选择。</description>
+    </item>
+    <item>
+      <title>2025 国产服务器操作系统发展报告概要</title>
+      <link>https://huatuo.tech/blog/2025-12-31-2025-report-on-chinese-operating-systems/</link>
+      <pubDate>Tue, 30 Dec 2025 23:32:42 -0500</pubDate>
+      <guid>https://huatuo.tech/blog/2025-12-31-2025-report-on-chinese-operating-systems/</guid>
+      <description>本篇博客重点分析了中国智能计算产业联盟发布的《2025 国产服务器操作系统发展报告》，包括国产操作系统发展现状、发展趋势、面临问题、发展建议。通过硬件协同，资源管理，并行计算等支撑大规模计算，成为 AI 算力底座。</description>
+    </item>
+    <item>
+      <title>如何高效定位服务器概率性应用毛刺问题</title>
+      <link>https://huatuo.tech/blog/2025-12-29-how-to-effectively-resolve-application-failure-issues/</link>
+      <pubDate>Mon, 29 Dec 2025 06:15:17 -0500</pubDate>
+      <guid>https://huatuo.tech/blog/2025-12-29-how-to-effectively-resolve-application-failure-issues/</guid>
+      <description>本篇博客详细梳理了，近期公司某机房的一些机器出现偶发概率性的服务毛刺问题，并最终给出了解决方案，效果立竿见影。在整个定位过程中 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; 发挥了关键作用，体现了其在故障定位中的强大价值。</description>
+    </item>
+    <item>
+      <title>滴滴出行荣获腾讯操作系统生态OC, 杰出贡献单位</title>
+      <link>https://huatuo.tech/events/2025-12-20-huatuo-and-tencent-outstanding-contribution/</link>
+      <pubDate>Fri, 19 Dec 2025 21:43:17 -0500</pubDate>
+      <guid>https://huatuo.tech/events/2025-12-20-huatuo-and-tencent-outstanding-contribution/</guid>
+      <description>近日，2025 OpenCloudOS 操作系统生态大会在北京成功举办。会上，滴滴出行荣获年度“杰出贡献单位”奖，体现腾讯操作系统社区对滴滴出行所做贡献的高度认可，更彰显了HUATUO（华佗）社区在推动操作系统可观测生态繁荣方面所做的深刻实践</description>
+    </item>
+    <item>
+      <title> 这些年全面崩溃的互联网大厂系统故障，经验总结</title>
+      <link>https://huatuo.tech/blog/2025-12-16-summary-of-faults-over-the-years/</link>
+      <pubDate>Mon, 15 Dec 2025 23:18:31 -0500</pubDate>
+      <guid>https://huatuo.tech/blog/2025-12-16-summary-of-faults-over-the-years/</guid>
+      <description>本篇博客梳理了历年的全球IT基础设施故障案例，并尝试从中总结一系列经验，指导日常的生产实践。故障难以避免，重要的是如何快速的感知，止损，隔离，恢复。在稳定性保障体系中 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; 能够发挥强大的价值。</description>
+    </item>
+  </channel>
+</rss>

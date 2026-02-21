@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Authors on HUATUO 开源技术</title>
+    <link>https://huatuo.tech/authors/</link>
+    <description>Recent content in Authors on HUATUO 开源技术</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 21 Feb 2026 06:31:59 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/authors/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>官方小编</title>
+      <link>https://huatuo.tech/authors/%E5%AE%98%E6%96%B9%E5%B0%8F%E7%BC%96/</link>
+      <pubDate>Fri, 20 Feb 2026 21:09:43 -0500</pubDate>
+      <guid>https://huatuo.tech/authors/%E5%AE%98%E6%96%B9%E5%B0%8F%E7%BC%96/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>胡洪</title>
+      <link>https://huatuo.tech/authors/%E8%83%A1%E6%B4%AA/</link>
+      <pubDate>Wed, 28 Jan 2026 08:19:46 -0500</pubDate>
+      <guid>https://huatuo.tech/authors/%E8%83%A1%E6%B4%AA/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>王洪磊</title>
+      <link>https://huatuo.tech/authors/%E7%8E%8B%E6%B4%AA%E7%A3%8A/</link>
+      <pubDate>Tue, 20 Jan 2026 04:17:34 -0500</pubDate>
+      <guid>https://huatuo.tech/authors/%E7%8E%8B%E6%B4%AA%E7%A3%8A/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>戴坤海</title>
+      <link>https://huatuo.tech/authors/%E6%88%B4%E5%9D%A4%E6%B5%B7/</link>
+      <pubDate>Tue, 06 Jan 2026 22:48:20 -0500</pubDate>
+      <guid>https://huatuo.tech/authors/%E6%88%B4%E5%9D%A4%E6%B5%B7/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>李浩</title>
+      <link>https://huatuo.tech/authors/%E6%9D%8E%E6%B5%A9/</link>
+      <pubDate>Mon, 29 Dec 2025 06:15:17 -0500</pubDate>
+      <guid>https://huatuo.tech/authors/%E6%9D%8E%E6%B5%A9/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Teresa</title>
+      <link>https://huatuo.tech/authors/teresa/</link>
+      <pubDate>Tue, 30 Sep 2025 04:33:21 -0400</pubDate>
+      <guid>https://huatuo.tech/authors/teresa/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>夜莺监控</title>
+      <link>https://huatuo.tech/authors/%E5%A4%9C%E8%8E%BA%E7%9B%91%E6%8E%A7/</link>
+      <pubDate>Wed, 27 Aug 2025 01:08:32 -0400</pubDate>
+      <guid>https://huatuo.tech/authors/%E5%A4%9C%E8%8E%BA%E7%9B%91%E6%8E%A7/</guid>
+      <description></description>
+    </item>
+  </channel>
+</rss>

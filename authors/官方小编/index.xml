@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>官方小编 on HUATUO 开源技术</title>
+    <link>https://huatuo.tech/authors/%E5%AE%98%E6%96%B9%E5%B0%8F%E7%BC%96/</link>
+    <description>Recent content in 官方小编 on HUATUO 开源技术</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 21 Feb 2026 06:31:59 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/authors/%E5%AE%98%E6%96%B9%E5%B0%8F%E7%BC%96/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>P99Conf：eBPF 构建更快的数据库系统</title>
+      <link>https://huatuo.tech/blog/2026-02-21-how-ebpf-could-make-faster-database-systems/</link>
+      <pubDate>Fri, 20 Feb 2026 21:09:43 -0500</pubDate>
+      <guid>https://huatuo.tech/blog/2026-02-21-how-ebpf-could-make-faster-database-systems/</guid>
+      <description>本篇介绍了数据库在现在操作系统上遇到的痛点，以及 eBPF 如何解决优化这些系统性能瓶颈，BPF-DB 给出了全新的思路。</description>
+    </item>
+    <item>
+      <title>eBPF 正成为现代 AI 基础设施的重要部分</title>
+      <link>https://huatuo.tech/blog/2026-02-01-ebpf-research-shows-kernel-tech-powering-modern-ai/</link>
+      <pubDate>Sun, 01 Feb 2026 09:14:45 -0500</pubDate>
+      <guid>https://huatuo.tech/blog/2026-02-01-ebpf-research-shows-kernel-tech-powering-modern-ai/</guid>
+      <description>本篇介绍了 eBPF 基金会发布的一份研究报告，该报告清晰地揭示了一个正在发生的重大转变，eBPF 正赋能 AI 基础设施。</description>
+    </item>
+    <item>
+      <title>HUATUO (华佗)被 eBPF 基金会列为新兴项目</title>
+      <link>https://huatuo.tech/events/2026-01-22-huatuo-and-ebpf-foundation-work-together/</link>
+      <pubDate>Thu, 22 Jan 2026 05:52:37 -0500</pubDate>
+      <guid>https://huatuo.tech/events/2026-01-22-huatuo-and-ebpf-foundation-work-together/</guid>
+      <description>HUATUO (华佗) 被 eBPF 基金会列为新兴项目，标志着行业对该项目社区实力与生态价值的认可。eBPF 已经被广泛应用于可观测性领域。</description>
+    </item>
+    <item>
+      <title>滴滴出行荣获腾讯操作系统生态OC, 杰出贡献单位</title>
+      <link>https://huatuo.tech/events/2025-12-20-huatuo-and-tencent-outstanding-contribution/</link>
+      <pubDate>Fri, 19 Dec 2025 21:43:17 -0500</pubDate>
+      <guid>https://huatuo.tech/events/2025-12-20-huatuo-and-tencent-outstanding-contribution/</guid>
+      <description>近日，2025 OpenCloudOS 操作系统生态大会在北京成功举办。会上，滴滴出行荣获年度“杰出贡献单位”奖，体现腾讯操作系统社区对滴滴出行所做贡献的高度认可，更彰显了HUATUO（华佗）社区在推动操作系统可观测生态繁荣方面所做的深刻实践</description>
+    </item>
+    <item>
+      <title> 这些年全面崩溃的互联网大厂系统故障，经验总结</title>
+      <link>https://huatuo.tech/blog/2025-12-16-summary-of-faults-over-the-years/</link>
+      <pubDate>Mon, 15 Dec 2025 23:18:31 -0500</pubDate>
+      <guid>https://huatuo.tech/blog/2025-12-16-summary-of-faults-over-the-years/</guid>
+      <description>本篇博客梳理了历年的全球IT基础设施故障案例，并尝试从中总结一系列经验，指导日常的生产实践。故障难以避免，重要的是如何快速的感知，止损，隔离，恢复。在稳定性保障体系中 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; 能够发挥强大的价值。</description>
+    </item>
+    <item>
+      <title>2025 OC 操作系统生态大会，解锁 OS&#43; 多元行业落地场景实践方案</title>
+      <link>https://huatuo.tech/blog/2025-11-14-2025-opencloud-submitting/</link>
+      <pubDate>Fri, 14 Nov 2025 06:54:44 -0500</pubDate>
+      <guid>https://huatuo.tech/blog/2025-11-14-2025-opencloud-submitting/</guid>
+      <description>&lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO 开源技术社区&lt;/a&gt; 将与&lt;strong&gt;腾讯、安谋科技、沐曦、绿盟、堡塔、达梦、嘉为&lt;/strong&gt;等伙伴，分享一系列经过大规模实践检验的解决方案。这里有最真实的挑战、最实用的经验&amp;hellip;</description>
+    </item>
+    <item>
+      <title>腾讯操作系统 OC 和 HUATUO (华佗) 深度集成</title>
+      <link>https://huatuo.tech/events/2025-11-11-opencloudos-and-huatuo-together/</link>
+      <pubDate>Mon, 10 Nov 2025 19:12:53 -0500</pubDate>
+      <guid>https://huatuo.tech/events/2025-11-11-opencloudos-and-huatuo-together/</guid>
+      <description>滴滴 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO（华佗）&lt;/a&gt; 和腾讯操作系统 OC 深度集成，进一步提升 OC 操作系统在云原生环境下内核级深度观测的能力，为云上用户提升内核问题排查效率，保障业务持续性.</description>
+    </item>
+    <item>
+      <title>荣获《OSCAR 尖峰开源项目及开源社区》称号</title>
+      <link>https://huatuo.tech/events/2025-10-28-huatuo-oscar-event/</link>
+      <pubDate>Sun, 26 Oct 2025 10:19:02 -0400</pubDate>
+      <guid>https://huatuo.tech/events/2025-10-28-huatuo-oscar-event/</guid>
+      <description>&lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO（华佗）&lt;/a&gt; 凭借其在技术创新、社区建设等方面的卓越表现，荣获中国信息通信研究院、中国通信标准化协会颁发的《OSCAR 尖峰开源项目及开源社区》 奖项 &amp;hellip;</description>
+    </item>
+  </channel>
+</rss>

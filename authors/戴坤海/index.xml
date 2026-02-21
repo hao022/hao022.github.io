@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>戴坤海 on HUATUO 开源技术</title>
+    <link>https://huatuo.tech/authors/%E6%88%B4%E5%9D%A4%E6%B5%B7/</link>
+    <description>Recent content in 戴坤海 on HUATUO 开源技术</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 21 Feb 2026 06:31:59 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/authors/%E6%88%B4%E5%9D%A4%E6%B5%B7/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>新特性！支持 Linux 内核 IO 全栈观测</title>
+      <link>https://huatuo.tech/blog/2026-01-07-the-new-feature-full-stack-observation-of-linux-kernel-io/</link>
+      <pubDate>Tue, 06 Jan 2026 22:48:20 -0500</pubDate>
+      <guid>https://huatuo.tech/blog/2026-01-07-the-new-feature-full-stack-observation-of-linux-kernel-io/</guid>
+      <description>面对生产环境用户的 IO 痛点，HUATUO 社区提出 iotracing 解决方案，涉及基础用法，高级用法，以及搭载 Autotracing 等。</description>
+    </item>
+  </channel>
+</rss>

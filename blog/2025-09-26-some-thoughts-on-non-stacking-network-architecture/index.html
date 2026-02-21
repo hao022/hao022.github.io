@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>思考篇：关于双上联去堆叠网络架构的一点总结</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, networking">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='//fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300italic,500,700,800' rel='stylesheet' type='text/css'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1771655524" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="HUATUO 开源技术">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en_us">
+<meta property="og:site_name" content="HUATUO 开源技术">
+<meta property="og:title" content="思考篇：关于双上联去堆叠网络架构的一点总结">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/blog/2025-09-26-some-thoughts-on-non-stacking-network-architecture/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2025-09-26-cover.jpg">
+<meta property="og:image:type" content="image/jpg">
+
+
+
+  <meta property="og:image:width" content="900">
+  <meta property="og:image:height" content="599">
+
+
+<meta property="og:updated_time" content="2026-02-21T06:31:59Z">
+
+  
+  
+  
+  <meta property="article:tag" content="HUATUO">
+  <meta property="article:tag" content="networking">
+  <meta property="article:tag" content="可观测性">
+  <meta property="article:tag" content="BPF">
+  
+  
+  <meta property="article:published_time" content="2025-09-26T03:20:47-0400">
+  <meta property="article:modified_time" content="2026-02-21T06:31:59Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="思考篇：关于双上联去堆叠网络架构的一点总结">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2025-09-26-cover.jpg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+    
+  </head>
+
+  <body>
+
+    <div id="all">
+
+        
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm mouseover" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/logo.png" alt="思考篇：关于双上联去堆叠网络架构的一点总结 logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/logo-small.png" alt="思考篇：关于双上联去堆叠网络架构的一点总结 logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">思考篇：关于双上联去堆叠网络架构的一点总结 - 跳到主页</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">切换导航</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/quickstart/">快速开始</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">文档 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="/docs/zh/latest/">latest</a></li>
+                            
+                            <li><a href="/docs/zh/v2.1.0/">v2.1.0</a></li>
+                            
+                            <li><a href="/docs/zh/v2.0.0/">v2.0.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/download">下载</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    
+                    
+                        <a href="/blog/">博客</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/milestone/">动态</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/about/">关于</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="https://github.com/ccfos/huatuo">
+                            <img src="https://img.shields.io/badge/dynamic/json?label=Stars&amp;query=%24.stargazers_count&amp;url=https%3A%2F%2Fapi.github.com%2Frepos%2Fccfos%2Fhuatuo&amp;style=social&amp;logo=github&amp;formatter=none" height="100%">
+                        </a>
+                    
+                  </li>
+                  
+                  
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        <div id="heading-breadcrumbs">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>思考篇：关于双上联去堆叠网络架构的一点总结</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+        <div id="content">
+            <div class="container">
+
+                <div class="row">
+
+                    
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                          <p class="text-muted text-uppercase mb-small text-right">
+                            
+                                
+                                最后更新: 2026-02-21,
+			                    作者: <a href="/authors/hao022">hao022</a>
+                            
+                          </p>
+                        
+
+                        <div id="post-content">
+                          <h3 id="背景">背景</h3>
+<p>传统网卡单上联架构中，网卡、光纤或交换机出现异常或升级时，均可能导致网络中断。而采用双上联架构时，服务器上的两个端口分别连接至不同的交换机，并通过绑定技术形成一个逻辑端口对外提供服务。当任一上联链路或接入层交换机发生故障时，流量可自动切换至另一端口，从而保障训练任务不中断。该设计有效避免了单上联架构中的单点故障风险，提升了系统互联的鲁棒性。此外，双上联架构也为交换机的热升级提供了条件，便于网络运维和功能迭代。</p>
+<h3 id="堆叠技术">堆叠技术</h3>
+<p>堆叠技术通过物理线缆将两台交换机连接，在逻辑上虚拟为一台设备进行数据转发。该技术可扩展端口数量、提升带宽，并简化网络结构。然而，堆叠也存在一定弊端，例如软件升级可能导致业务中断，堆叠线缆故障可能引发交换机分裂。需注意，服务器与交换机之间可采用单根或多根（绑定）网线连接。
+<img src="/img/blog/2025-09-26-%E5%A0%86%E5%8F%A0%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84%E5%9B%BE.png" alt=""></p>
+<h3 id="去堆叠技术">去堆叠技术</h3>
+<ol>
+<li>
+<p>去堆叠架构取消了两台交换机之间的物理连接，以降低故障风险。服务器通过两条链路分别连接两台独立交换机，并采用 LACP 链路聚合。此时，交换机需配置相同的系统 ID 和不同的端口 ID，以“欺骗”服务器建立聚合链路。
+<img src="/img/blog/2025-09-26-%E5%8E%BB%E5%A0%86%E5%8F%A0%E7%BD%91%E7%BB%9C%E6%9E%B6%E6%9E%84%E5%9B%BE.png" alt="">
+此外，需要在 Linux 内核侧支持 ARP/ND 广播，这样两台交换机能够接收到 ARP/ND 报文，实现会话同步。Linux 内核已经支持该特性：</p>
+<p><a href="https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git/commit/?id=ce7a381697cb3958ffe0b45e5028ac69444e928">net: bonding: add broadcast_neighbor option for 802.3ad</a></p>
+<p><a href="https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git/commit/?id=3d98ee52659c3f1d3913ae5b97f7743c5247752c">net: bonding: add broadcast_neighbor netlink option</a></p>
+<p><a href="https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git/commit/?id=2f9afffc399d450c68a4dbebd7865b8e631a3cff">net: bonding: send peer notify when failure recovery</a></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>net: bonding: add broadcast_neighbor option <span style="color:#66d9ef">for</span> 802.3ad
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Stacking technology is a type of technology used to expand ports on
+</span></span><span style="display:flex;"><span>Ethernet switches. It is widely used as a common access method in
+</span></span><span style="display:flex;"><span>large-scale Internet data center architectures. Years of practice
+</span></span><span style="display:flex;"><span>have proved that stacking technology has advantages and disadvantages
+</span></span><span style="display:flex;"><span>in high-reliability network architecture scenarios. For instance,
+</span></span><span style="display:flex;"><span>in stacking networking arch, conventional switch system upgrades
+</span></span><span style="display:flex;"><span>require multiple stacked devices to restart at the same time.
+</span></span><span style="display:flex;"><span>Therefore, it is inevitable that the business will be interrupted
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> a <span style="color:#66d9ef">while</span>. It is <span style="color:#66d9ef">for</span> this reason that <span style="color:#e6db74">&#34;no-stacking&#34;</span> in data centers
+</span></span><span style="display:flex;"><span>has become a trend. Additionally, when the stacking link connecting
+</span></span><span style="display:flex;"><span>the switches fails or is abnormal, the stack will split. Although it is
+</span></span><span style="display:flex;"><span>not common, it still happens in actual operation. The problem is that
+</span></span><span style="display:flex;"><span>after the split, it is equivalent to two switches with the same
+</span></span><span style="display:flex;"><span>configuration appearing in the network, causing network configuration
+</span></span><span style="display:flex;"><span>conflicts and ultimately interrupting the services carried by the
+</span></span><span style="display:flex;"><span>stacking system.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>To improve network stability, <span style="color:#e6db74">&#34;non-stacking&#34;</span> solutions have been
+</span></span><span style="display:flex;"><span>increasingly adopted, particularly by public cloud providers and
+</span></span><span style="display:flex;"><span>tech companies like Alibaba, Tencent, and Didi. <span style="color:#e6db74">&#34;non-stacking&#34;</span> is
+</span></span><span style="display:flex;"><span>a method of mimicing switch stacking that convinces a LACP peer,
+</span></span><span style="display:flex;"><span>bonding in this <span style="color:#66d9ef">case</span>, connected to a set of <span style="color:#e6db74">&#34;non-stacked&#34;</span> switches
+</span></span><span style="display:flex;"><span>that all of its ports are connected to a single switch
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>i.e., LACP aggregator<span style="color:#f92672">)</span>, as <span style="color:#66d9ef">if</span> those switches were stacked. This
+</span></span><span style="display:flex;"><span>enables the LACP peer<span style="color:#960050;background-color:#1e0010">&#39;</span>s ports to aggregate together, and requires
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>a<span style="color:#f92672">)</span> special switch configuration, described in the linked article,
+</span></span><span style="display:flex;"><span>and <span style="color:#f92672">(</span>b<span style="color:#f92672">)</span> modifications to the bonding 802.3ad <span style="color:#f92672">(</span>LACP<span style="color:#f92672">)</span> mode to send
+</span></span><span style="display:flex;"><span>all ARP/ND packets across all ports of the active aggregator.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Note that, with multiple aggregators, the current broadcast mode
+</span></span><span style="display:flex;"><span>logic will send only packets to the selected aggregator<span style="color:#f92672">(</span>s<span style="color:#f92672">)</span>.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span> +-----------+   +-----------+
+</span></span><span style="display:flex;"><span> |  switch1  |   |  switch2  |
+</span></span><span style="display:flex;"><span> +-----------+   +-----------+
+</span></span><span style="display:flex;"><span>         ^           ^
+</span></span><span style="display:flex;"><span>         |           |
+</span></span><span style="display:flex;"><span>      +-----------------+
+</span></span><span style="display:flex;"><span>      |   bond4 lacp    |
+</span></span><span style="display:flex;"><span>      +-----------------+
+</span></span><span style="display:flex;"><span>         |           |
+</span></span><span style="display:flex;"><span>         | NIC1      | NIC2
+</span></span><span style="display:flex;"><span>      +-----------------+
+</span></span><span style="display:flex;"><span>      |     server      |
+</span></span><span style="display:flex;"><span>      +-----------------+
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- https://www.ruijie.com/fr-fr/support/tech-gallery/de-stack-data-center-network-architecture/
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Cc: Jay Vosburgh &lt;jv@jvosburgh.net&gt;
+</span></span><span style="display:flex;"><span>Cc: <span style="color:#e6db74">&#34;David S. Miller&#34;</span> &lt;davem@davemloft.net&gt;
+</span></span><span style="display:flex;"><span>Cc: Eric Dumazet &lt;edumazet@google.com&gt;
+</span></span><span style="display:flex;"><span>Cc: Jakub Kicinski &lt;kuba@kernel.org&gt;
+</span></span><span style="display:flex;"><span>Cc: Paolo Abeni &lt;pabeni@redhat.com&gt;
+</span></span><span style="display:flex;"><span>Cc: Simon Horman &lt;horms@kernel.org&gt;
+</span></span><span style="display:flex;"><span>Cc: Jonathan Corbet &lt;corbet@lwn.net&gt;
+</span></span><span style="display:flex;"><span>Cc: Andrew Lunn &lt;andrew+netdev@lunn.ch&gt;
+</span></span><span style="display:flex;"><span>Cc: Steven Rostedt &lt;rostedt@goodmis.org&gt;
+</span></span><span style="display:flex;"><span>Cc: Masami Hiramatsu &lt;mhiramat@kernel.org&gt;
+</span></span><span style="display:flex;"><span>Cc: Mathieu Desnoyers &lt;mathieu.desnoyers@efficios.com&gt;
+</span></span><span style="display:flex;"><span>Cc: Nikolay Aleksandrov &lt;razor@blackwall.org&gt;
+</span></span><span style="display:flex;"><span>Signed-off-by: Tonghao Zhang &lt;tonghao@bamaicloud.com&gt;
+</span></span><span style="display:flex;"><span>Signed-off-by: Zengbing Tu &lt;tuzengbing@didiglobal.com&gt;
+</span></span><span style="display:flex;"><span>Link: https://patch.msgid.link/84d0a044514157bb856a10b6d03a1028c4883561.1751031306.git.tonghao@bamaicloud.com
+</span></span><span style="display:flex;"><span>Signed-off-by: Paolo Abeni &lt;pabeni@redhat.com&gt;
+</span></span></code></pre></div></li>
+<li>
+<p>为解决可能的流量黑洞问题（如交换机下联一条物理链路故障后，服务器是感知不到该事件的仍向故障交换机发送数据导致丢包），需将所有流量导向三层路由。即使同一接入层（TOR）内的服务器间通信，也需经过三层路由转发，避免二层流量直连造成的黑洞。
+<img src="/img/blog/2025-09-26-%E6%B5%81%E9%87%8F%E6%95%85%E9%9A%9C%E7%A4%BA%E6%84%8F%E5%9B%BE.png" alt=""></p>
+</li>
+<li>
+<p>为实现三层路由，需启用 ARP/ND 代理功能，并为两台交换机配置相同的网关 MAC 地址。同时，为避免组播干扰，需关闭交换机的组播功能。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>interface Vlanif3
+</span></span><span style="display:flex;"><span> description K8S-Access
+</span></span><span style="display:flex;"><span> ip address 10.0.8.1 255.255.248.0
+</span></span><span style="display:flex;"><span> arp timeout <span style="color:#ae81ff">90</span>
+</span></span><span style="display:flex;"><span> arp proxy anyway enable
+</span></span><span style="display:flex;"><span> mac-address 0000-8989-0001
+</span></span><span style="display:flex;"><span> arp delete trigger link-down enable
+</span></span><span style="display:flex;"><span> arp direct-route enable
+</span></span><span style="display:flex;"><span> arp direct-route delay <span style="color:#ae81ff">120</span>
+</span></span><span style="display:flex;"><span> arp direct-route preference <span style="color:#ae81ff">1</span>
+</span></span></code></pre></div></li>
+<li>
+<p>交换机将学习到的服务器 ARP/ND 信息转换为主机路由，并通告给上层交换机，从而确保回程流量可正确送达。</p>
+</li>
+<li>
+<p>为保障高可用性，需启用上联接口监控：若交换机的所有上联接口均断开，则自动关闭下行接口；当上联接口恢复时，下行接口延迟启用。服务器侧，当 slave 链路断开后，绑定模块会立即将其移出发送队列；链路恢复后，需等待 LACP 协商成功，该链路才会重新启用。
+<img src="/img/blog/2025-09-26-%E6%95%85%E9%9A%9C%E5%9C%BA%E6%99%AF1.png" alt="">
+<img src="/img/blog/2025-09-26-%E6%95%85%E9%9A%9C%E5%9C%BA%E6%99%AF2.png" alt=""></p>
+</li>
+<li>
+<p>如何监控故障。HUATUO 项目提供了 LACP/NETDEV-HW 监控，这样能够提前感知故障的发生。在实际的生产环境，我们确实检测到了很多因 AOC 模块不可用导致 LACP 协议异常，因网络硬件丢包导致的网络不可用。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># git clone https://github.com/ccfos/huatuo.git </span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># ls -l huatuo/bpf/</span>
+</span></span><span style="display:flex;"><span>total <span style="color:#ae81ff">84</span>
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">1677</span> Aug <span style="color:#ae81ff">11</span> 01:44 cgroup_css_events.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">1450</span> Aug <span style="color:#ae81ff">31</span> 22:24 cgroup_css_gather.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">4539</span> Aug <span style="color:#ae81ff">11</span> 01:44 dropwatch.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#ae81ff">1</span> root root  <span style="color:#ae81ff">801</span> Aug <span style="color:#ae81ff">29</span> 10:16 hungtask.c
+</span></span><span style="display:flex;"><span>drwxr-xr-x <span style="color:#ae81ff">2</span> root root <span style="color:#ae81ff">4096</span> Aug <span style="color:#ae81ff">29</span> 10:16 include
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#ae81ff">1</span> root root  <span style="color:#ae81ff">648</span> Aug <span style="color:#ae81ff">11</span> 01:44 lacp.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">2155</span> Aug <span style="color:#ae81ff">11</span> 01:44 memory_free_compact.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">1424</span> Aug <span style="color:#ae81ff">11</span> 01:44 memory_reclaim.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">1421</span> Aug <span style="color:#ae81ff">11</span> 01:44 memory_reclaim_events.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">1044</span> Sep  <span style="color:#ae81ff">6</span> 03:09 netdev_hw.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">4219</span> Aug <span style="color:#ae81ff">11</span> 01:44 netrecvlat.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">1553</span> Sep  <span style="color:#ae81ff">5</span> 09:26 oom.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">1491</span> Aug <span style="color:#ae81ff">18</span> 07:06 perf.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">8683</span> Aug <span style="color:#ae81ff">11</span> 01:44 runqlat_tracing.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">1879</span> Sep <span style="color:#ae81ff">26</span> 04:32 softirq.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">3429</span> Aug <span style="color:#ae81ff">11</span> 01:44 softirq_tracing.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#ae81ff">1</span> root root <span style="color:#ae81ff">1117</span> Aug <span style="color:#ae81ff">29</span> 10:16 softlockup.c
+</span></span></code></pre></div></li>
+</ol>
+<h3 id="其他">其他</h3>
+<ol>
+<li><a href="https://abouthpnetworking.com/2014/12/13/comware-link-aggregation-lacp-edge-port/">lacp edge-port</a> 非常有意思的一个功能，在无法使用或者初始化配置前，对双上联网络的一种降级，能够保障网络的可用性。</li>
+<li>Mirror On Drop (MOD) 日常运维，如果无法确认哪里出现丢包（服务器 tcpdump 已经发送，但是交换机无接收），可以尝试在交换机侧配置 <a href="https://www.h3c.com/en/d_202304/1819749_294551_0.htm">MOD</a>。</li>
+</ol>
+<hr>
+<p><strong>篇尾：</strong></p>
+<ul>
+<li>关注微信公众号【HUATUO 开源技术】留言，或扫码添加工作人员微信，邀请您加入用户群（请备注姓名+单位）：<img src="/img/contact-weixin.png" alt="微信"></li>
+<li>代码仓库：<a href="https://github.com/ccfos/huatuo">https://github.com/ccfos/huatuo</a></li>
+<li>官方网站：<a href="https://github.com/ccfos/huatuo">https://huatuo.tech/</a></li>
+</ul>
+
+                        </div>
+
+                        
+                        
+                        
+                        <div id="comments"><script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+</div>
+                        
+
+                    </div>
+                    
+
+                    
+
+                    
+
+                    <div class="col-md-3">
+
+                        
+
+                        
+
+<div class="panel panel-default sidebar-menu">
+
+    <div class="panel-heading">
+      <h3 class="panel-title">搜索</h3>
+    </div>
+
+    <div class="panel-body">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" role="search">
+            <div class="input-group">
+                <input type="search" name="q" class="form-control" placeholder="搜索" />
+                <input type="hidden" name="sitesearch" value="https://huatuo.tech/" />
+                <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">标签</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ccf"><i class="fas fa-tags"></i> ccf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/containers"><i class="fas fa-tags"></i> containers</a>
+            </li>
+            
+            <li >
+                <a href="/tags/cpuidle"><i class="fas fa-tags"></i> cpuidle</a>
+            </li>
+            
+            <li >
+                <a href="/tags/hao022"><i class="fas fa-tags"></i> hao022</a>
+            </li>
+            
+            <li >
+                <a href="/tags/huatuo"><i class="fas fa-tags"></i> huatuo</a>
+            </li>
+            
+            <li >
+                <a href="/tags/k8s"><i class="fas fa-tags"></i> k8s</a>
+            </li>
+            
+            <li >
+                <a href="/tags/linux-%e5%86%85%e6%a0%b8"><i class="fas fa-tags"></i> linux 内核</a>
+            </li>
+            
+            <li >
+                <a href="/tags/loadavg"><i class="fas fa-tags"></i> loadavg</a>
+            </li>
+            
+            <li >
+                <a href="/tags/netrecvlat"><i class="fas fa-tags"></i> netrecvlat</a>
+            </li>
+            
+            <li >
+                <a href="/tags/networking"><i class="fas fa-tags"></i> networking</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7"><i class="fas fa-tags"></i> 可观测性</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%90%88%e4%bd%9c"><i class="fas fa-tags"></i> 合作</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%a4%9c%e8%8e%ba%e7%9b%91%e6%8e%a7"><i class="fas fa-tags"></i> 夜莺监控</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%bc%80%e6%ba%90"><i class="fas fa-tags"></i> 开源</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%81%ab%e7%84%b0%e5%9b%be"><i class="fas fa-tags"></i> 火焰图</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%bd%91%e7%bb%9c%e4%bc%98%e5%8c%96"><i class="fas fa-tags"></i> 网络优化</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e8%8d%a3%e8%aa%89"><i class="fas fa-tags"></i> 荣誉</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+
+                        
+
+                    </div>
+                    
+
+                    
+
+                </div>
+                
+
+            </div>
+            
+        </div>
+        
+
+        <footer id="footer">
+    <div class="container">
+
+        
+        <div class="col-md-4 col-sm-6">
+            <h4>关于我们</h4>
+
+            <p>一群开源技术爱好者，基础技术研究者。</p>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+        <div class="col-md-4 col-sm-6">
+
+            
+
+        </div>
+        
+
+        
+        <div class="col-md-4 col-sm-6">
+
+          <h4>联系</h4>
+
+            <p class="text-uppercase"><strong>HUATUO 开源技术社区, 欢迎技术交流</strong>
+        <br>中国北京市海淀区西二旗软件园。
+        <br>
+      </p>
+      
+
+	    <a href="/about" class="btn btn-small btn-template-main">跳到联系页面</a>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026 HUATUO 开源技术社区</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+    
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+
+<script src="/js/front.js"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

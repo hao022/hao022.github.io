@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>这些年全面崩溃的互联网大厂系统故障，经验总结</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, 故障">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='//fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300italic,500,700,800' rel='stylesheet' type='text/css'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1771655524" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="HUATUO 开源技术">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en_us">
+<meta property="og:site_name" content="HUATUO 开源技术">
+<meta property="og:title" content="这些年全面崩溃的互联网大厂系统故障，经验总结">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/blog/2025-12-16-summary-of-faults-over-the-years/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2025-12-16-huatuo-cover.jpg">
+<meta property="og:image:type" content="image/jpg">
+
+
+
+  <meta property="og:image:width" content="900">
+  <meta property="og:image:height" content="600">
+
+
+<meta property="og:updated_time" content="2026-02-21T06:31:59Z">
+
+  
+  
+  
+  <meta property="article:tag" content="HUATUO">
+  <meta property="article:tag" content="BPF">
+  <meta property="article:tag" content="故障">
+  
+  
+  <meta property="article:published_time" content="2025-12-15T23:18:31-0500">
+  <meta property="article:modified_time" content="2026-02-21T06:31:59Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="这些年全面崩溃的互联网大厂系统故障，经验总结">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2025-12-16-huatuo-cover.jpg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+    
+  </head>
+
+  <body>
+
+    <div id="all">
+
+        
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm mouseover" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/logo.png" alt=" 这些年全面崩溃的互联网大厂系统故障，经验总结 logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/logo-small.png" alt=" 这些年全面崩溃的互联网大厂系统故障，经验总结 logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only"> 这些年全面崩溃的互联网大厂系统故障，经验总结 - 跳到主页</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">切换导航</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/quickstart/">快速开始</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">文档 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="/docs/zh/latest/">latest</a></li>
+                            
+                            <li><a href="/docs/zh/v2.1.0/">v2.1.0</a></li>
+                            
+                            <li><a href="/docs/zh/v2.0.0/">v2.0.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/download">下载</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    
+                    
+                        <a href="/blog/">博客</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/milestone/">动态</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="/about/">关于</a>
+                    
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    
+                    
+                        <a href="https://github.com/ccfos/huatuo">
+                            <img src="https://img.shields.io/badge/dynamic/json?label=Stars&amp;query=%24.stargazers_count&amp;url=https%3A%2F%2Fapi.github.com%2Frepos%2Fccfos%2Fhuatuo&amp;style=social&amp;logo=github&amp;formatter=none" height="100%">
+                        </a>
+                    
+                  </li>
+                  
+                  
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        <div id="heading-breadcrumbs">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1> 这些年全面崩溃的互联网大厂系统故障，经验总结</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+        <div id="content">
+            <div class="container">
+
+                <div class="row">
+
+                    
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                          <p class="text-muted text-uppercase mb-small text-right">
+                            
+                                
+                                最后更新: 2026-02-21,
+			                    作者: <a href="/authors/%E5%AE%98%E6%96%B9%E5%B0%8F%E7%BC%96">官方小编</a>
+                            
+                          </p>
+                        
+
+                        <div id="post-content">
+                          <p>近几年，随着移动互联网，企业数字化转型等浪潮发展，IT 基础设施资源呈现规模化，集中化特点。全球云市场前三名占据超过60%的份额，这种格局源于成本效益和规模经济，但也意味着任何一家云厂商的软件错误或配置失误均能波及数百万企业和用户。此外，提供互联网服务的科技公司，一次故障对社会影响同样不能小觑。在全球化，企业出海背景下，IT 基础设施的稳定性愈发重要。</p>
+<h3 id="全球性故障案例">全球性故障案例</h3>
+<table>
+  <thead>
+      <tr>
+          <th>故障名称</th>
+          <th>原因</th>
+          <th>影响</th>
+          <th>改进措施</th>
+          <th>网页链接</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>2025-12-05 Cloudflare 解析逻辑故障</td>
+          <td>为修复React 漏洞进行主体解析逻辑变更引发 Lua 异常</td>
+          <td>25分钟中断，影响28% HTTP 流量，导致HTTP 500错误</td>
+          <td>增强 rollout 验证，fail-open 处理</td>
+          <td><a href="https://blog.cloudflare.com/zh-cn/5-december-2025-outage/">参考链接</a></td>
+      </tr>
+      <tr>
+          <td>2025-11-18 Cloudflare 数据库权限故障</td>
+          <td>ClickHouse 数据库权限变更导致文件超大</td>
+          <td>中断超6小时。全球网站大面积故障，影响 X、OpenAI、Spotify、Shopify、Canva、Zoom 等。</td>
+          <td>配置文件验证强化</td>
+          <td><a href="https://blog.cloudflare.com/18-november-2025-outage/">参考链接</a></td>
+      </tr>
+      <tr>
+          <td>2025-10-20 AWS DynamoDB DNS 故障</td>
+          <td>DynamoDB DNS 管理竞争条件</td>
+          <td>中断超15小时。AWS 142 项服务受影响，例如 DynamoDB、EC2、Lambda 等。全球超1000家企业受影响，例如 Snapchat、Venmo、Canva、Fortnite、Roblox、Reddit、Disney+等。</td>
+          <td>多阶段恢复。避免循环依赖。避免中心化单点故障。</td>
+          <td><a href="https://zhuanlan.zhihu.com/p/81644436114">参考链接</a></td>
+      </tr>
+      <tr>
+          <td>2025-06-12 Google Cloud</td>
+          <td>异常配置导致的全球性服务宕机。</td>
+          <td>中断超6小时。故障最初影响了 Google Cloud Platform 多个产品，Gmail、Google Search、Google Drive 等核心服务。影响企业 Spotify、Discord、OpenAI、Twitch、GitHub等。</td>
+          <td>无效数据预防。重启熔断。全局传播故障隔离。</td>
+          <td><a href="https://status.cloud.google.com/incidents/ow5i3PPK96RduMcb1SsW">参考链接</a></td>
+      </tr>
+      <tr>
+          <td>2024-04-08 腾讯云 API 故障</td>
+          <td>API 升级接口不兼容导致的配置数据错误，并扩展全网。</td>
+          <td>所有地区控制平面中断，影响COS等核心服务</td>
+          <td>前向兼容性，渐进式 灰度，增强系统韧性。</td>
+          <td><a href="https://mp.weixin.qq.com/s/2e2ovuwDrmwlu-vW0cKqcA">参考链接</a></td>
+      </tr>
+      <tr>
+          <td>2023-11-27 滴滴机房故障</td>
+          <td>K8S 版本升级导致机房容器重建。</td>
+          <td>中断超12小时，影响滴滴核心出行业务。</td>
+          <td>上线规范化管理。</td>
+          <td><a href="https://www.51cto.com/article/775543.html">参考链接</a></td>
+      </tr>
+      <tr>
+          <td>2023-10-04 Cloudflare DNSSEC 故障</td>
+          <td>DNSSEC 签名过期</td>
+          <td>4小时中断，影响1.1.1.1 DNS解析器、WARP、Zero Trust</td>
+          <td>测试自动化，失效安全机制</td>
+          <td><a href="https://blog.cloudflare.com/1-1-1-1-lookup-failures-on-october-4th-2023/">参考链接</a></td>
+      </tr>
+      <tr>
+          <td>2022-12-20 阿里云 香港故障</td>
+          <td>制冷机组故障</td>
+          <td>24小时中断，影响服务 ECS、云数据库、存储产品、云网络产品（全球加速、NAT网关、VPN网关等）等云产品使用。300+企业，损失数亿美元。</td>
+          <td>服务架构冗余设计。</td>
+          <td><a href="https://www.aliyun.com/noticelist/articleid/1061819219.html">参考链接</a></td>
+      </tr>
+      <tr>
+          <td>2022-08 Google 数据中心火灾</td>
+          <td>电气事件引发火灾</td>
+          <td>影响地图和搜索服务，Council Bluffs数据中心，三名员工受伤</td>
+          <td>电气系统隔离，火灾抑制自动化</td>
+          <td><a href="https://status.cloud.google.com/incidents/202208">参考链接</a></td>
+      </tr>
+      <tr>
+          <td>2022-07 Google 数据中心热相关故障</td>
+          <td>极端高温导致冷却系统失败</td>
+          <td>伦敦中断，影响Google和Oracle数据中心，网站下线</td>
+          <td>冷却系统冗余，热阈值监控</td>
+          <td><a href="https://status.cloud.google.com/incidents/202207">参考链接</a></td>
+      </tr>
+  </tbody>
+</table>
+<h3 id="我们学到了什么">我们学到了什么</h3>
+<p>架构模式将大规模分布式系统（云计算、容器编排）分为控制面和数据面。控制面主要负责系统的管理和决策，例如配置、调度、监控、策略和状态管理等。数据面则负责执行实际的负载任务。从历年的故障可以看出往往是控制面的变更导致了数据面的规模性故障。最直观的经验如下：</p>
+<ol>
+<li>至少70%的故障由变更引起。《<a href="https://sre.google/sre-book/introduction/">SRE Workbook: Google&rsquo;s Infrastructure</a>》</li>
+<li>控制面变更，尤其无灰度策略的快速全局传播的配置变更，会导致不可控的全局性故障。</li>
+</ol>
+<p>总结哪些经验：</p>
+<ol>
+<li>变更原则：所有线上变更都需要提供灰度、回滚方案。所有变更要在沙箱环境验证并引入自动熔断机制。</li>
+<li>监控告警：要针对灰度功能配置告警策略及时感知故障。</li>
+<li>快速止损：故障发生时，要先止损（回滚/降级/限流/扩容），再排查潜在风险，给出短期方案（SOP，故障自愈等），最后根据根因给出长期解决方案。</li>
+<li>紧急访问：分布式系统控制平面要在高负载状态下提供优先访问机制，确保高优资源先恢复。</li>
+<li>快速恢复：故障必然会引起大量的重试请求。面对请求洪峰，除了限流措施，要引入缓存/冷备资源，确保峰值负载下扩容（想想那些在恢复过程中被打爆的组件）。</li>
+<li>故障注入与演练：定期模拟故障，注入错误配置、过载或依赖失效。</li>
+<li>风险梳理与防腐化：随着系统迭代，预案/监控易熵增，定期排查潜在风险，验证预案有效性。</li>
+<li>复盘机制：每起故障必复盘，分析根因、影响、预防。稳定性周会/月会，拉齐认知。</li>
+</ol>
+<h3 id="我们应该怎么做">我们应该怎么做</h3>
+<ol>
+<li>业务：虽然云厂商承诺了很多SLA，但多云，多区域用云依然是最优选择。</li>
+<li>研发：要构建稳健的系统：https://mp.weixin.qq.com/s/wAuGjIYNl0c3sY57yq0GBw</li>
+<li>SRE：监控，灰度，响应，止损，恢复。故障可以减少但无法避免，快速发现，快速隔离，快速恢复才是必杀技。</li>
+<li>用 HUATUO（华佗）发现，解决潜在的可能性系统风险：https://github.com/ccfos/huatuo</li>
+</ol>
+<p><img src="/img/blog/2025-12-16-full-view.png" alt=""></p>
+<hr>
+<p><strong>篇尾：</strong></p>
+<ul>
+<li>关注微信公众号【HUATUO 开源技术】留言，或扫码添加工作人员微信，邀请您加入用户群（请备注姓名+单位）：<img src="/img/contact-weixin.png" alt="微信"></li>
+<li>代码仓库：<a href="https://github.com/ccfos/huatuo">https://github.com/ccfos/huatuo</a></li>
+<li>官方网站：<a href="https://github.com/ccfos/huatuo">https://huatuo.tech/</a></li>
+</ul>
+
+                        </div>
+
+                        
+                        
+                        
+                        <div id="comments"><script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+</div>
+                        
+
+                    </div>
+                    
+
+                    
+
+                    
+
+                    <div class="col-md-3">
+
+                        
+
+                        
+
+<div class="panel panel-default sidebar-menu">
+
+    <div class="panel-heading">
+      <h3 class="panel-title">搜索</h3>
+    </div>
+
+    <div class="panel-body">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" role="search">
+            <div class="input-group">
+                <input type="search" name="q" class="form-control" placeholder="搜索" />
+                <input type="hidden" name="sitesearch" value="https://huatuo.tech/" />
+                <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">标签</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ccf"><i class="fas fa-tags"></i> ccf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/containers"><i class="fas fa-tags"></i> containers</a>
+            </li>
+            
+            <li >
+                <a href="/tags/cpuidle"><i class="fas fa-tags"></i> cpuidle</a>
+            </li>
+            
+            <li >
+                <a href="/tags/hao022"><i class="fas fa-tags"></i> hao022</a>
+            </li>
+            
+            <li >
+                <a href="/tags/huatuo"><i class="fas fa-tags"></i> huatuo</a>
+            </li>
+            
+            <li >
+                <a href="/tags/k8s"><i class="fas fa-tags"></i> k8s</a>
+            </li>
+            
+            <li >
+                <a href="/tags/linux-%e5%86%85%e6%a0%b8"><i class="fas fa-tags"></i> linux 内核</a>
+            </li>
+            
+            <li >
+                <a href="/tags/loadavg"><i class="fas fa-tags"></i> loadavg</a>
+            </li>
+            
+            <li >
+                <a href="/tags/netrecvlat"><i class="fas fa-tags"></i> netrecvlat</a>
+            </li>
+            
+            <li >
+                <a href="/tags/networking"><i class="fas fa-tags"></i> networking</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7"><i class="fas fa-tags"></i> 可观测性</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%90%88%e4%bd%9c"><i class="fas fa-tags"></i> 合作</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%a4%9c%e8%8e%ba%e7%9b%91%e6%8e%a7"><i class="fas fa-tags"></i> 夜莺监控</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%bc%80%e6%ba%90"><i class="fas fa-tags"></i> 开源</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%81%ab%e7%84%b0%e5%9b%be"><i class="fas fa-tags"></i> 火焰图</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%bd%91%e7%bb%9c%e4%bc%98%e5%8c%96"><i class="fas fa-tags"></i> 网络优化</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e8%8d%a3%e8%aa%89"><i class="fas fa-tags"></i> 荣誉</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+
+                        
+
+                    </div>
+                    
+
+                    
+
+                </div>
+                
+
+            </div>
+            
+        </div>
+        
+
+        <footer id="footer">
+    <div class="container">
+
+        
+        <div class="col-md-4 col-sm-6">
+            <h4>关于我们</h4>
+
+            <p>一群开源技术爱好者，基础技术研究者。</p>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+        <div class="col-md-4 col-sm-6">
+
+            
+
+        </div>
+        
+
+        
+        <div class="col-md-4 col-sm-6">
+
+          <h4>联系</h4>
+
+            <p class="text-uppercase"><strong>HUATUO 开源技术社区, 欢迎技术交流</strong>
+        <br>中国北京市海淀区西二旗软件园。
+        <br>
+      </p>
+      
+
+	    <a href="/about" class="btn btn-small btn-template-main">跳到联系页面</a>
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026 HUATUO 开源技术社区</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+    
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+
+<script src="/js/front.js"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

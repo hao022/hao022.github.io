@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>夜莺监控 on HUATUO 开源技术</title>
+    <link>https://huatuo.tech/tags/%E5%A4%9C%E8%8E%BA%E7%9B%91%E6%8E%A7/</link>
+    <description>Recent content in 夜莺监控 on HUATUO 开源技术</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 21 Feb 2026 06:31:59 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/tags/%E5%A4%9C%E8%8E%BA%E7%9B%91%E6%8E%A7/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>合作篇：打通操作系统可观测性最后一公里</title>
+      <link>https://huatuo.tech/blog/2025-08-27-huatuo-and-nightingale-work-together/</link>
+      <pubDate>Wed, 27 Aug 2025 01:08:32 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2025-08-27-huatuo-and-nightingale-work-together/</guid>
+      <description>即刻部署 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; + &lt;a href=&#34;https://n9e.github.io/zh/&#34;&gt;夜莺监控&lt;/a&gt; 工具组合，快速构建覆盖应用，中间件，数据库，操作系统内核的一体化可观测体系。HUATUO 开箱即用，从各维度全面观测内核，填补了操作系统可观测性领域的空白。</description>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Teresa on HUATUO 开源技术</title>
+    <link>https://huatuo.tech/authors/teresa/</link>
+    <description>Recent content in Teresa on HUATUO 开源技术</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 21 Feb 2026 06:31:59 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/authors/teresa/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>应用篇：如何使用 HUATUO 解决网卡硬件丢包</title>
+      <link>https://huatuo.tech/blog/2025-09-30-how-to-use-huatuo-to-solve-packets-loss/</link>
+      <pubDate>Tue, 30 Sep 2025 04:33:21 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2025-09-30-how-to-use-huatuo-to-solve-packets-loss/</guid>
+      <description>本文探讨了检测网卡硬件丢包遇到的问题，例如 ethtool 为什么不能应用于常态的硬件丢包检测，并最终给出了 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; 网卡硬件丢包检测解决方案，并提供了一个实际生产环境故障案例 &amp;hellip;</description>
+    </item>
+  </channel>
+</rss>
