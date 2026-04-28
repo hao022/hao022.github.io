@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>博客 on HUATUO 开源社区</title>
+    <link>https://huatuo.tech/zh/blog/</link>
+    <description>Recent content in 博客 on HUATUO 开源社区</description>
+    <generator>Hugo</generator>
+    <language>zh</language>
+    <atom:link href="https://huatuo.tech/zh/blog/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>RDMA 关键技术研究：Doorbell, UAR</title>
+      <link>https://huatuo.tech/zh/blog/2026-04-14-rdma-key-technology-research-doorbell-uar-user-access-region/</link>
+      <pubDate>Tue, 14 Apr 2026 06:36:13 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-04-14-rdma-key-technology-research-doorbell-uar-user-access-region/</guid>
+      <description>该文重点分析 UAR, User Access Region 的内存布局，分配时机，映射方式，用户态和内核态代码实现等。</description>
+    </item>
+    <item>
+      <title>RDMA 关键技术研究：Memory Window</title>
+      <link>https://huatuo.tech/zh/blog/2026-04-09-rdma-key-technology-research-memory-window/</link>
+      <pubDate>Thu, 09 Apr 2026 08:27:32 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-04-09-rdma-key-technology-research-memory-window/</guid>
+      <description>该文主要分析 Memory window 作用，用户态和内核态代码实现方式，硬件原理，和一些思考。</description>
+    </item>
+    <item>
+      <title>RDMA 关键技术研究：Queue Pairs</title>
+      <link>https://huatuo.tech/zh/blog/2026-04-08-rdma-key-technology-research-queue-pairs/</link>
+      <pubDate>Wed, 08 Apr 2026 09:19:43 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-04-08-rdma-key-technology-research-queue-pairs/</guid>
+      <description>该文主要分析 QPs, SQ, RQ 作用，用户态接口，内核实现方式，硬件原理，一些思考。</description>
+    </item>
+    <item>
+      <title>RDMA 关键技术研究：MR Memory Region</title>
+      <link>https://huatuo.tech/zh/blog/2026-04-07-rdma-key-technology-research-memory-region/</link>
+      <pubDate>Tue, 07 Apr 2026 10:34:48 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-04-07-rdma-key-technology-research-memory-region/</guid>
+      <description>该文主要分析 Memory Region 作用，内核实现原理，锁页避免内存交换的原因，硬件原理。</description>
+    </item>
+    <item>
+      <title>Linux 内核 RAS 原理剖析与实践案例</title>
+      <link>https://huatuo.tech/zh/blog/2026-03-26-the-linux-kernel-ras-practical/</link>
+      <pubDate>Thu, 26 Mar 2026 03:39:25 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-03-26-the-linux-kernel-ras-practical/</guid>
+      <description>本篇介绍 Linux 内核 RAS, MCE, AER 等硬件故障检查原理。HUATUO 华佗项目依赖该检测机制实现了通用硬件故障监控。</description>
+    </item>
+    <item>
+      <title>新特性！支持 AI 计算硬件故障检测</title>
+      <link>https://huatuo.tech/zh/blog/2026-03-09-support-hardware-fault-detection-for-ai-computing/</link>
+      <pubDate>Sun, 08 Mar 2026 09:56:26 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-03-09-support-hardware-fault-detection-for-ai-computing/</guid>
+      <description>本篇介绍了 HUATUO 项目的新特性，支持 AI 计算场景下硬件故障检测能力，包括故障指标，实际案例，原理分析等。</description>
+    </item>
+  </channel>
+</rss>

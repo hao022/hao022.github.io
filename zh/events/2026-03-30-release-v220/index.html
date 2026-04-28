@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>官宣！HUATUO 华佗 v2.2.0 正式发布</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, 动态">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='//fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300italic,500,700,800' rel='stylesheet' type='text/css'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1777418433" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="HUATUO 开源社区">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="zh">
+<meta property="og:site_name" content="HUATUO 开源社区">
+<meta property="og:title" content="官宣！HUATUO 华佗 v2.2.0 正式发布">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://huatuo.tech/zh/events/2026-03-30-release-v220/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/events/2026-03-30-release-cover.jpg">
+<meta property="og:image:type" content="image/jpg">
+
+
+
+  <meta property="og:image:width" content="1104">
+  <meta property="og:image:height" content="736">
+
+
+<meta property="og:updated_time" content="2026-04-28T23:20:29Z">
+
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="官宣！HUATUO 华佗 v2.2.0 正式发布">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/events/2026-03-30-release-cover.jpg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+    
+  </head>
+
+  <body>
+
+    <div id="all">
+
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+            ⭐️ If you like this project, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>! ⭐️
+        </p>
+      
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm mouseover" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/zh/">
+                    
+                      <img src="/img/logo.png" alt="官宣！HUATUO 华佗 v2.2.0 正式发布 logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/logo-small.png" alt="官宣！HUATUO 华佗 v2.2.0 正式发布 logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">官宣！HUATUO 华佗 v2.2.0 正式发布 - 跳到主页</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">切换导航</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">文档 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="https://docs.huatuo.tech/en/latest/">Latest</a></li>
+                            
+                            <li><a href="https://docs.huatuo.tech/en/v2.2.0/">V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">下载 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="https://hub.docker.com/r/huatuo/huatuo-bamai/tags">Dockerhub</a></li>
+                            
+                            <li><a href="https://github.com/ccfos/huatuo/releases">Release</a></li>
+                            
+                            <li><a href="https://github.com/ccfos/huatuo">Github</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/blog/">博客</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/milestone/">动态</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/about/">关于</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                      中文 <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                      
+                        
+                          <li>
+                            
+                            <a href="/en/">
+                              English
+                            </a>
+                          </li>
+                        
+                      
+                        
+                      
+                    </ul>
+                </li>
+                
+                
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        <div id="heading-breadcrumbs">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>官宣！HUATUO 华佗 v2.2.0 正式发布</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+        <div id="content">
+            <div class="container">
+
+                <div class="row">
+
+                    
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                          <p class="text-muted text-uppercase mb-small text-right">
+                            
+                                
+                                最后更新: 2026-04-28,
+			                    作者: <a href="/zh/authors/hao022">HAO022</a>
+                            
+                          </p>
+                        
+
+                        <div id="post-content">
+                          <p>经过一段时间的开发测试，HUATUO 华佗 v2.2.0 今日正式发版！</p>
+<p>本次版本以“更强能力、更广场景、更易使用”为目标，重点优化了核心功能、扩展了部署兼容性，并对代码架构进行了大规模重构与精简，为大规模生产环境提供更稳定、更强的支撑。</p>
+<h3 id="主要功能特性">主要功能特性</h3>
+<ul>
+<li><strong>智能故障诊断能力升级</strong>：新增 AI 计算与通用计算场景下的硬件故障检测，支持 RDMA PFC 拥塞检测、物理链路状态实时监控等能力，帮助用户快速定位底层问题。</li>
+<li><strong>多云与混合云部署支持</strong>：新增对阿里云 ACK、谷歌云（GKE）、AWS 等主流云平台的原生适配，满足更多企业的混合云与公有云部署需求。</li>
+<li><strong>MetaX 沐曦股份深度贡献</strong>：感谢 MetaX 沐曦股份向社区贡献的 GPU 硬件故障检测能力，进一步增强了华佗在异构计算环境下的诊断实力。</li>
+<li><strong>Kubernetes 适配能力增强</strong>：支持更多 cgroup driver 类型，并新增自动化检测机制，提升在容器化环境中的易用性和兼容性。</li>
+<li><strong>ioTracing 工具正式开源</strong>：全新开源的 iotracing 工具支持命令行快速运行与自动化追踪，可有效应对 IO 突发性能问题，为存储诊断提供强大助力。</li>
+<li><strong>配置全面标准化</strong>：所有配置选项实现规范化管理，大幅提升部署与运维的便利性。</li>
+<li><strong>测试全面升级</strong>：新增大量单元测试、集成测试与端到端测试，显著提升项目整体稳定性和可靠性。</li>
+</ul>
+<p>具体变化如下：https://huatuo.tech/docs/zh/v2.2.0/changelog/</p>
+<p><img src="/img/events/2026-03-30-release-changelog.png" alt=""></p>
+<h3 id="文档全面升级">文档全面升级</h3>
+<p>针对此前使用门槛较高的问题，v2.2.0 版本对文档体系进行了系统性重构与大幅扩充，特别加强了指标、事件、自动化追踪以及硬件故障相关模块的说明，帮助用户更快上手并充分发挥华佗的价值。</p>
+<p><img src="/img/events/2026-03-30-release-docs.png" alt=""></p>
+<h4 id="配置全面优化">配置全面优化</h4>
+<p>新增详细配置参数说明与最佳实践，极大降低了部署与调优难度。
+<img src="/img/events/2026-03-30-release-config.png" alt=""></p>
+<h4 id="指标文档">指标文档</h4>
+<p>对所有监控指标进行清晰分类与专业解读，帮助用户精准理解每个指标的含义与实际意义。 → 详见：https://huatuo.tech/docs/zh/v2.2.0/key-feature/metrics/</p>
+<p><img src="/img/events/2026-03-30-release-metrics.png" alt=""></p>
+<h4 id="事件文档">事件文档</h4>
+<p>HUATUO 华佗依托 eBPF 技术，实时捕获 Linux 内核中的各类异常事件，涵盖系统、应用及硬件多个维度，为问题定位提供第一手精准信息。 → 详见：https://huatuo.tech/docs/zh/v2.2.0/key-feature/events/</p>
+<p><img src="/img/events/2026-03-30-release-events.png" alt=""></p>
+<h4 id="自动追踪autotracing文档">自动追踪（AutoTracing）文档</h4>
+<p>新增自动追踪功能详细说明，包括支持的追踪类型、核心功能特点及使用建议。</p>
+<p><strong>自动追踪（AutoTracing）</strong> 是华佗内核监控系统的智能诊断利器。当系统出现特定性能异常或资源突变时，AutoTracing 可自动触发，实时采集火焰图、进程上下文、调用栈、资源状态等丰富现场数据，帮助运维与开发人员在无需手动干预的情况下，快速定位并分析问题。</p>
+<p>该功能基于 eBPF 技术实现，具有极低开销与高实时性特点，适用于物理机与容器环境的各类异常诊断场景。</p>
+<hr>
+<p><strong>篇尾：</strong></p>
+<ul>
+<li>HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的操作系统深度观测项目。</li>
+<li>关注微信公众号，或扫码加微信，邀请你加入用户群（请备注姓名+单位）：</li>
+</ul>
+<p><img src="/img/contact-weixin.png" alt="微信"></p>
+<ul>
+<li>仓库1：<a href="https://github.com/ccfos/huatuo">https://github.com/ccfos/huatuo</a></li>
+<li>仓库2：<a href="https://gitlink.org.cn/ccfos/huatuo">https://gitlink.org.cn/ccfos/huatuo</a></li>
+<li>官网：<a href="https://github.com/ccfos/huatuo">https://huatuo.tech/</a></li>
+</ul>
+
+                        </div>
+
+                        
+                        
+                        
+                        <div id="comments"><script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+</div>
+                        
+
+                    </div>
+                    
+
+                    
+
+                    
+
+                    <div class="col-md-3">
+
+                        
+
+                        
+
+<div class="panel panel-default sidebar-menu">
+
+    <div class="panel-heading">
+      <h3 class="panel-title">搜索</h3>
+    </div>
+
+    <div class="panel-body">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" role="search">
+            <div class="input-group">
+                <input type="search" name="q" class="form-control" placeholder="搜索" />
+                <input type="hidden" name="sitesearch" value="https://huatuo.tech/" />
+                <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">标签</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/zh/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/huatuo"><i class="fas fa-tags"></i> huatuo</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/rdma"><i class="fas fa-tags"></i> rdma</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e5%8a%a8%e6%80%81"><i class="fas fa-tags"></i> 动态</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+
+                        
+
+                    </div>
+                    
+
+                    
+
+                </div>
+                
+
+            </div>
+            
+        </div>
+        
+
+        <footer id="footer">
+    <div class="container">
+
+        
+        <div class="col-md-4 col-sm-6">
+            <h4>关于我们</h4>
+
+            基础软件技术研究者，Linux 内核开发者。
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+        <div class="col-md-4 col-sm-6">
+
+            
+
+        </div>
+        
+
+        
+            
+            
+            <div class="col-md-4 col-sm-6">
+                <h4>联系</h4>
+                <p class="text-uppercase"><strong>HUATUO 开源社区, 欢迎技术交流</strong>
+        <br>中国北京市海淀区西二旗软件园。
+        <br>
+      </p>
+      
+                <a href="/about" class="btn btn-small btn-template-main">跳到联系页面</a>
+                <hr class="hidden-md hidden-lg hidden-sm">
+            </div>
+            
+        
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026 HUATUO 开源社区。</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+    
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+
+<script src="/js/front.js"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

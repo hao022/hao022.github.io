@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>避坑！使用 ethtool 导致的线上故障</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, 故障">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='//fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300italic,500,700,800' rel='stylesheet' type='text/css'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1777418433" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="Linux Kernel, Cloud-native and AI Infra Observability.">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en">
+<meta property="og:site_name" content="Linux Kernel, Cloud-native and AI Infra Observability.">
+<meta property="og:title" content="避坑！使用 ethtool 导致的线上故障">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/blog/2026-02-25-system-failure-caused-by-ethtool/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2026-02-25-huatuo-cover.jpg">
+<meta property="og:image:type" content="image/jpg">
+
+
+
+  <meta property="og:image:width" content="1311">
+  <meta property="og:image:height" content="874">
+
+
+<meta property="og:updated_time" content="2026-04-28T23:20:29Z">
+
+  
+  
+  
+  <meta property="article:tag" content="HUATUO">
+  <meta property="article:tag" content="BPF">
+  <meta property="article:tag" content="故障">
+  
+  
+  <meta property="article:published_time" content="2026-02-25T09:01:50-0500">
+  <meta property="article:modified_time" content="2026-04-28T23:20:29Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="避坑！使用 ethtool 导致的线上故障">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2026-02-25-huatuo-cover.jpg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+    
+  </head>
+
+  <body>
+
+    <div id="all">
+
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+            ⭐️ If you like this project, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>! ⭐️
+        </p>
+      
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm mouseover" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/logo.png" alt="避坑！使用 ethtool 导致的线上故障 logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/logo-small.png" alt="避坑！使用 ethtool 导致的线上故障 logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">避坑！使用 ethtool 导致的线上故障 - go to homepage</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">Toggle Navigation</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Docs <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="https://docs.huatuo.tech/en/latest/">Latest</a></li>
+                            
+                            <li><a href="https://docs.huatuo.tech/en/v2.2.0/">V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Download <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="https://hub.docker.com/r/huatuo/huatuo-bamai/tags">Dockerhub</a></li>
+                            
+                            <li><a href="https://github.com/ccfos/huatuo/releases">Release</a></li>
+                            
+                            <li><a href="https://github.com/ccfos/huatuo">Github</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    <a href="/blog/">Blog</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/milestone/">News</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/about/">About</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                      English <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                      
+                        
+                      
+                        
+                          <li>
+                            
+                            <a href="/zh/">
+                              中文
+                            </a>
+                          </li>
+                        
+                      
+                    </ul>
+                </li>
+                
+                
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        <div id="heading-breadcrumbs">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>避坑！使用 ethtool 导致的线上故障</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+        <div id="content">
+            <div class="container">
+
+                <div class="row">
+
+                    
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                          <p class="text-muted text-uppercase mb-small text-right">
+                            
+                                
+                                LastUpdate: 2026-04-28,
+			                    Author: <a href="/authors/hao022">HAO022</a>
+                            
+                          </p>
+                        
+
+                        <div id="post-content">
+                          <p>最近向 Linux 内核社区提交了一个小补丁，目的是希望通过更加通用的方式，定位因网卡驱动，硬件导致的问题（这类问题 dropwatch 不起作用）。内核社区的朋友问到，为什么不采用 ethtool -S。因此才有本篇，分享下因使用 ethtool 导致的线上故障。</p>
+<h3 id="问题描述">问题描述</h3>
+<p>大概在 2024.07.11 11:10，线上某两个服务集群，近乎一半的容器出现 rpc 延迟过高，甚至达到 80ms 延迟。</p>
+<p>集群 A：11:10 出现大量延迟
+<img src="/img/blog/2026-02-25-cluster-a.png" alt=""></p>
+<p>集群 B：延迟如下
+<img src="/img/blog/2026-02-25-cluster-b.png" alt=""></p>
+<p>将有问题的容器漂移到没有问题容器所在宿主机，问题解决，业务指标恢复正常，坐实宿主机问题。
+<img src="/img/blog/2026-02-25-cluster-metrics01.png" alt=""></p>
+<p>同时，这个问题和特定的事件强相关。通过上线公告发现，11:00 上线一监控组件，因此通过关闭该组件的指标采集，受影响的业务得到了灰度。
+<img src="/img/blog/2026-02-25-cluster-metrics03.png" alt="">
+<img src="/img/blog/2026-02-25-cluster-metrics04.png" alt=""></p>
+<h3 id="问题分析">问题分析</h3>
+<h4 id="初因分析">初因分析</h4>
+<p>和业务沟通后发现，新的组件通过 ethtool 获取网卡的监控指标。但并非开启该组件采集的宿主机都有问题，统计后发现：有问题宿主机的网卡驱动为：mlx5_core、ixgbe，无问题的宿主机的网卡驱动为：bnxt_en。
+<img src="/img/blog/2026-02-25-cluster-metrics05.png" alt=""></p>
+<h4 id="线下复现">线下复现</h4>
+<p>围绕 ethtool 内核模块中可能的耗时来源进行耗时统计，以 mlx5e_stats_update() 函数为例，组件通过频繁的查询硬件信息时，会出现接近 100ms 的耗时。而直接通过 ethtool 工具(例如: ethtool -S eth0) 的方式直接查询硬件信息，则不会出现这种情况，耗时稳定在 2ms。将组件中的所有功能都关闭只保留 ethtool 指标后，耗时也稳定在了 2ms 左右。
+<img src="/img/blog/2026-02-25-cluster-reproduction01.jpeg" alt=""></p>
+<p>这说明该问题和组件负载也有关联。因此最终通过限制 cgroup 资源，且只有 ethtool 指标的情况下，复现了该问题。如果进程一直被 throttle，内核的某个函数执行耗时增高，那么该函数极大可能执行了 cond_resched 放弃了 CPU。
+<img src="/img/blog/2026-02-25-cluster-reproduction02.png" alt=""></p>
+<p>内核 throttle 只可能发生在 cond_resched()，抓取的部分可能 throttle 的栈信息。
+栈1
+<img src="/img/blog/2026-02-25-cluster-stack01.jpeg" alt=""></p>
+<p>栈2
+<img src="/img/blog/2026-02-25-cluster-stack02.jpeg" alt=""></p>
+<p>栈3
+<img src="/img/blog/2026-02-25-cluster-stack03.jpeg" alt=""></p>
+<p>栈4
+<img src="/img/blog/2026-02-25-cluster-stack04.jpeg" alt=""></p>
+<p>mellanox 驱动执行 cmd_exec()，正常情况下的耗时为 100us，但在高负载情况下执行时长达到 80~100ms（cmd_exec 被 mellanox 驱动用于和硬件交互，获取，配置网卡信息）。
+cmd_exec 通过 cond_resched 让出了 CPU，但此时它还持有 rtnl_lock 锁。
+很多应用程序会高频的通过netlink获取路由等信息，这和 rtnl_lock 锁存在竞争关系。</p>
+<h4 id="线上验证">线上验证</h4>
+<p>验证分为几个阶段，时间线分别在图中标识。
+<img src="/img/blog/2026-02-25-online.png" alt=""></p>
+<ul>
+<li>阶段1：频繁调用 ethtool 接口，构造出的业务毛刺</li>
+<li>阶段2：在阶段1的基础上，减小 cgroup cpu 资源，业务毛刺明显增加。</li>
+<li>阶段3：在阶段1的基础上，增大 cgroup cpu 资源，不产生任何 throttle，业务毛刺消失。</li>
+<li>阶段4：在阶段1的基础上，降低采集压力，减少 throttle，业务毛刺存在，但不明显。</li>
+</ul>
+<h3 id="问题总结">问题总结</h3>
+<p>夜深了，为什么还没有睡，如果本篇文章对你有价值，那么不妨在 github 帮我点点 ⭐️</p>
+<p>此外，<a href="https://mp.weixin.qq.com/s/Q8m0ATmqGZ1MyLpVs_I_ZQ">如何使用 HUATUO 解决网卡硬件丢包问题</a></p>
+<hr>
+<p><strong>篇尾：</strong></p>
+<ul>
+<li>HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的操作系统深度观测项目。</li>
+<li>关注微信公众号，或扫码加微信，邀请你加入用户群（请备注姓名+单位）：</li>
+</ul>
+<p><img src="/img/contact-weixin.png" alt="微信"></p>
+<ul>
+<li>仓库1：<a href="https://github.com/ccfos/huatuo">https://github.com/ccfos/huatuo</a></li>
+<li>仓库2：<a href="https://gitlink.org.cn/ccfos/huatuo">https://gitlink.org.cn/ccfos/huatuo</a></li>
+<li>官网：<a href="https://github.com/ccfos/huatuo">https://huatuo.tech/</a></li>
+</ul>
+
+                        </div>
+
+                        
+                        
+                        
+                        <div id="comments"><script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+</div>
+                        
+
+                    </div>
+                    
+
+                    
+
+                    
+
+                    <div class="col-md-3">
+
+                        
+
+                        
+
+<div class="panel panel-default sidebar-menu">
+
+    <div class="panel-heading">
+      <h3 class="panel-title">Search</h3>
+    </div>
+
+    <div class="panel-body">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" role="search">
+            <div class="input-group">
+                <input type="search" name="q" class="form-control" placeholder="Search" />
+                <input type="hidden" name="sitesearch" value="https://huatuo.tech/" />
+                <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">Tags</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/bpf-foundation"><i class="fas fa-tags"></i> bpf foundation</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ccf"><i class="fas fa-tags"></i> ccf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/containers"><i class="fas fa-tags"></i> containers</a>
+            </li>
+            
+            <li >
+                <a href="/tags/cpuidle"><i class="fas fa-tags"></i> cpuidle</a>
+            </li>
+            
+            <li >
+                <a href="/tags/hao022"><i class="fas fa-tags"></i> hao022</a>
+            </li>
+            
+            <li >
+                <a href="/tags/huatuo"><i class="fas fa-tags"></i> huatuo</a>
+            </li>
+            
+            <li >
+                <a href="/tags/k8s"><i class="fas fa-tags"></i> k8s</a>
+            </li>
+            
+            <li >
+                <a href="/tags/linux-%e5%86%85%e6%a0%b8"><i class="fas fa-tags"></i> linux 内核</a>
+            </li>
+            
+            <li >
+                <a href="/tags/loadavg"><i class="fas fa-tags"></i> loadavg</a>
+            </li>
+            
+            <li >
+                <a href="/tags/netrecvlat"><i class="fas fa-tags"></i> netrecvlat</a>
+            </li>
+            
+            <li >
+                <a href="/tags/networking"><i class="fas fa-tags"></i> networking</a>
+            </li>
+            
+            <li >
+                <a href="/tags/rdma"><i class="fas fa-tags"></i> rdma</a>
+            </li>
+            
+            <li >
+                <a href="/tags/rlease"><i class="fas fa-tags"></i> rlease</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7"><i class="fas fa-tags"></i> 可观测性</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%90%88%e4%bd%9c"><i class="fas fa-tags"></i> 合作</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%a4%9c%e8%8e%ba%e7%9b%91%e6%8e%a7"><i class="fas fa-tags"></i> 夜莺监控</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%bc%80%e6%ba%90"><i class="fas fa-tags"></i> 开源</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%81%ab%e7%84%b0%e5%9b%be"><i class="fas fa-tags"></i> 火焰图</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%bd%91%e7%bb%9c%e4%bc%98%e5%8c%96"><i class="fas fa-tags"></i> 网络优化</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e8%8d%a3%e8%aa%89"><i class="fas fa-tags"></i> 荣誉</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+
+                        
+
+                    </div>
+                    
+
+                    
+
+                </div>
+                
+
+            </div>
+            
+        </div>
+        
+
+        <footer id="footer">
+    <div class="container">
+
+        
+        <div class="col-md-4 col-sm-6">
+            <h4>About us</h4>
+
+            Linux kernel developers, and observability developers.
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+        <div class="col-md-4 col-sm-6">
+
+            
+
+        </div>
+        
+
+        
+            
+            
+        
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026, HUATUO Open Source Community.</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+    
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+
+<script src="/js/front.js"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

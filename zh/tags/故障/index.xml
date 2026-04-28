@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>故障 on HUATUO 开源社区</title>
+    <link>https://huatuo.tech/zh/tags/%E6%95%85%E9%9A%9C/</link>
+    <description>Recent content in 故障 on HUATUO 开源社区</description>
+    <generator>Hugo</generator>
+    <language>zh</language>
+    <lastBuildDate>Tue, 28 Apr 2026 23:20:29 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/zh/tags/%E6%95%85%E9%9A%9C/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Linux 内核 RAS 原理剖析与实践案例</title>
+      <link>https://huatuo.tech/zh/blog/2026-03-26-the-linux-kernel-ras-practical/</link>
+      <pubDate>Thu, 26 Mar 2026 03:39:25 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-03-26-the-linux-kernel-ras-practical/</guid>
+      <description>本篇介绍 Linux 内核 RAS, MCE, AER 等硬件故障检查原理。HUATUO 华佗项目依赖该检测机制实现了通用硬件故障监控。</description>
+    </item>
+    <item>
+      <title>新特性！支持 AI 计算硬件故障检测</title>
+      <link>https://huatuo.tech/zh/blog/2026-03-09-support-hardware-fault-detection-for-ai-computing/</link>
+      <pubDate>Sun, 08 Mar 2026 09:56:26 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-03-09-support-hardware-fault-detection-for-ai-computing/</guid>
+      <description>本篇介绍了 HUATUO 项目的新特性，支持 AI 计算场景下硬件故障检测能力，包括故障指标，实际案例，原理分析等。</description>
+    </item>
+    <item>
+      <title>HUATUO (华佗)被 eBPF 基金会列为新兴项目</title>
+      <link>https://huatuo.tech/zh/events/2026-01-22-huatuo-and-ebpf-foundation-work-together/</link>
+      <pubDate>Thu, 22 Jan 2026 05:52:37 -0500</pubDate>
+      <guid>https://huatuo.tech/zh/events/2026-01-22-huatuo-and-ebpf-foundation-work-together/</guid>
+      <description>HUATUO (华佗) 被 eBPF 基金会列为新兴项目，标志着行业对该项目社区实力与生态价值的认可。eBPF 已经被广泛应用于可观测性领域。</description>
+    </item>
+    <item>
+      <title>滴滴出行荣获腾讯操作系统生态OC, 杰出贡献单位</title>
+      <link>https://huatuo.tech/zh/events/2025-12-20-huatuo-and-tencent-outstanding-contribution/</link>
+      <pubDate>Fri, 19 Dec 2025 21:43:17 -0500</pubDate>
+      <guid>https://huatuo.tech/zh/events/2025-12-20-huatuo-and-tencent-outstanding-contribution/</guid>
+      <description>近日，2025 OpenCloudOS 操作系统生态大会在北京成功举办。会上，滴滴出行荣获年度“杰出贡献单位”奖，体现腾讯操作系统社区对滴滴出行所做贡献的高度认可，更彰显了HUATUO（华佗）社区在推动操作系统可观测生态繁荣方面所做的深刻实践</description>
+    </item>
+  </channel>
+</rss>

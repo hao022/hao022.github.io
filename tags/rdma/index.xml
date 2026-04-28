@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>RDMA on Linux Kernel, Cloud-native and AI Infra Observability.</title>
+    <link>https://huatuo.tech/tags/rdma/</link>
+    <description>Recent content in RDMA on Linux Kernel, Cloud-native and AI Infra Observability.</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Tue, 28 Apr 2026 23:20:29 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/tags/rdma/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>RDMA: Doorbell, UAR</title>
+      <link>https://huatuo.tech/blog/2026-04-14-rdma-key-technology-research-doorbell-uar-user-access-region/</link>
+      <pubDate>Tue, 14 Apr 2026 06:36:13 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2026-04-14-rdma-key-technology-research-doorbell-uar-user-access-region/</guid>
+      <description>The UAR memory layout, allocation, mapping, and the user-mode and kernel-mode implementations.</description>
+    </item>
+    <item>
+      <title>RDMA: Memory Window</title>
+      <link>https://huatuo.tech/blog/2026-04-09-rdma-key-technology-research-memory-window/</link>
+      <pubDate>Thu, 09 Apr 2026 08:27:32 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2026-04-09-rdma-key-technology-research-memory-window/</guid>
+      <description>Analyzing Memory Window user-space, kernel, and underlying hardware implementation, design considerations.</description>
+    </item>
+    <item>
+      <title>RDMA: Queue Pairs</title>
+      <link>https://huatuo.tech/blog/2026-04-08-rdma-key-technology-research-queue-pairs/</link>
+      <pubDate>Wed, 08 Apr 2026 09:19:43 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2026-04-08-rdma-key-technology-research-queue-pairs/</guid>
+      <description>Analyzing Queue Pairs user-space, kernel, and underlying hardware implementation, design considerations.</description>
+    </item>
+    <item>
+      <title>RDMA: Memory Region</title>
+      <link>https://huatuo.tech/blog/2026-04-07-rdma-key-technology-research-memory-region/</link>
+      <pubDate>Tue, 07 Apr 2026 10:34:48 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2026-04-07-rdma-key-technology-research-memory-region/</guid>
+      <description>Analyzing Memory Region user-space, kernel, and underlying hardware implementation, design considerations.</description>
+    </item>
+  </channel>
+</rss>

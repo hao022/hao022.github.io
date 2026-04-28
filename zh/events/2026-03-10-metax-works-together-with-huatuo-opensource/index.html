@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>再升级！沐曦科技 GPU 接入华佗开源生态！</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='//fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300italic,500,700,800' rel='stylesheet' type='text/css'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1777418433" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="HUATUO 开源社区">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="zh">
+<meta property="og:site_name" content="HUATUO 开源社区">
+<meta property="og:title" content="再升级！沐曦科技 GPU 接入华佗开源生态！">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://huatuo.tech/zh/events/2026-03-10-metax-works-together-with-huatuo-opensource/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/events/2026-03-10-metax-cover.jpg">
+<meta property="og:image:type" content="image/jpg">
+
+
+
+  <meta property="og:image:width" content="300">
+  <meta property="og:image:height" content="200">
+
+
+<meta property="og:updated_time" content="2026-04-28T23:20:29Z">
+
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="再升级！沐曦科技 GPU 接入华佗开源生态！">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/events/2026-03-10-metax-cover.jpg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+    
+  </head>
+
+  <body>
+
+    <div id="all">
+
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+            ⭐️ If you like this project, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>! ⭐️
+        </p>
+      
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm mouseover" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/zh/">
+                    
+                      <img src="/img/logo.png" alt="再升级！沐曦科技 GPU 接入华佗开源生态！ logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/logo-small.png" alt="再升级！沐曦科技 GPU 接入华佗开源生态！ logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">再升级！沐曦科技 GPU 接入华佗开源生态！ - 跳到主页</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">切换导航</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">文档 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="https://docs.huatuo.tech/en/latest/">Latest</a></li>
+                            
+                            <li><a href="https://docs.huatuo.tech/en/v2.2.0/">V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">下载 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="https://hub.docker.com/r/huatuo/huatuo-bamai/tags">Dockerhub</a></li>
+                            
+                            <li><a href="https://github.com/ccfos/huatuo/releases">Release</a></li>
+                            
+                            <li><a href="https://github.com/ccfos/huatuo">Github</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/blog/">博客</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/milestone/">动态</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/about/">关于</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                      中文 <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                      
+                        
+                          <li>
+                            
+                            <a href="/en/">
+                              English
+                            </a>
+                          </li>
+                        
+                      
+                        
+                      
+                    </ul>
+                </li>
+                
+                
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        <div id="heading-breadcrumbs">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>再升级！沐曦科技 GPU 接入华佗开源生态！</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+        <div id="content">
+            <div class="container">
+
+                <div class="row">
+
+                    
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                          <p class="text-muted text-uppercase mb-small text-right">
+                            
+                                
+                                最后更新: 2026-04-28,
+			                    作者: <a href="/zh/authors/%E6%B2%90%E6%9B%A6%E7%A7%91%E6%8A%80">沐曦科技</a>
+                            
+                          </p>
+                        
+
+                        <div id="post-content">
+                          <p><img src="/img/events/2026-03-10-metax-and-huatuo.png" alt=""></p>
+<h3 id="沐曦股份开源生态介绍">沐曦股份开源生态介绍</h3>
+<p>沐曦股份坚持“自主创新与开放兼容”双轨战略，以自研MXMACA软件栈为核心，构建硬件与应用的桥梁，并承载开源核心使命。该栈于2025年2月正式开源，致力于打造开放的GPU编程接口标准，大幅降低开发门槛，有效破解跨平台兼容难题，驱动AI算力生态协同创新。</p>
+<p>技术落地方面，沐曦深度融入全球开源社区：成为vLLM官方支持的中国GPU厂商，与红帽联合推出MXAIE优化方案，实现对龙蜥、OpenCloudOS、麒麟、RHEL等主流OS的适配，并深度参与vLLM、PaddlePaddle、OpenXLA、BigDL等上游项目，确保主流框架和大模型的“Day 0”级支持。截至2025年底，已发布30余个开源项目，MXMACA用户超25万，支持超4500个模型“即插即用”。通过技术赛事、高校推广及算力服务平台建设，沐曦正加速构建覆盖开发者、产业与科研的开放生态，目标是铸就AI时代的“Android式”开放共赢算力基础。</p>
+<h3 id="huatuo-华佗">HUATUO 华佗</h3>
+<p>HUATUO（华佗）是由滴滴开源并依托 CCF （中国计算机学会）孵化的操作系统深度观测项目，专注为云原生通用计算，AI 计算，云服务，基础服务等提供操作系统内核级深度观测能力，<a href="https://mp.weixin.qq.com/s/aFKdCiXIHKFKBFdSf58buQ">《滴滴操作系统可观测 HUATUO 项目正式入驻 CCF》</a>。</p>
+<p><img src="/img/events/2026-03-10-metax-huatuo-ccf.png" alt=""></p>
+<h3 id="适配介绍">适配介绍</h3>
+<p><img src="/img/events/huatuo-fullstack-with-component.png" alt=""></p>
+<p>HUATUO 通过调用 MetaX libmxsml 获取实时的 GPU 数据，在开启了 MetaX GPU 监控后，可以在华佗中查询到 GPU 相关的数据，如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>1. GPU 基础信息：如 GPU 型号、GPU 标识、驱动版本等
+</span></span><span style="display:flex;"><span>2. GPU 状态：如 GPU 功耗、温度、利用率、时钟频率等
+</span></span><span style="display:flex;"><span>3. GPU 通信：如 PCIe 速度、带宽，MetaXLink 速度、带宽等
+</span></span></code></pre></div><p>这些数据可以帮助我们更加清晰地定位生产环境中的各种问题。有关指标的详细说明，请见后续的&quot;指标介绍&quot;章节。如果想要启用 MetaX GPU 的监控，需要将以下内容挂载到容器中的对应位置：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>1. /opt/maca:/opt/maca
+</span></span><span style="display:flex;"><span>2. /opt/mxdriver:/opt/mxdriver
+</span></span><span style="display:flex;"><span>3. /dev/dri:/dev/dri
+</span></span></code></pre></div><p>Docker 容器的启动命令为：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>docker run --privileged --cgroupns<span style="color:#f92672">=</span>host --network<span style="color:#f92672">=</span>host <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>        -v /sys:/sys <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>        -v /proc:/proc <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>        -v /run:/run <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>        -v /opt/maca:/opt/maca <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>        -v /opt/mxdriver:/opt/mxdriver <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>        -v /dev/dri:/dev/dri <span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>        huatuo/huatuo-bamai:latest
+</span></span></code></pre></div><p>如果是在 K8s 中使用，则创建相应的 PV 与 PVC 即可。在容器启动完毕后，访问其服务地址的 <code>/metrics</code> endpoint，如果输出中包含带有 metax 字样的指标，则成功采集了 GPU 数据。</p>
+<h3 id="指标介绍">指标介绍</h3>
+<table>
+  <thead>
+      <tr>
+          <th>指标名称</th>
+          <th>指标类型</th>
+          <th>描述</th>
+          <th>单位</th>
+          <th>标签</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>metax_gpu_sdk_info</td>
+          <td>Gauge</td>
+          <td>GPU SDK 信息</td>
+          <td></td>
+          <td><code>version</code>=<code>&lt;sdk-version&gt;</code></td>
+      </tr>
+      <tr>
+          <td>metax_gpu_driver_info</td>
+          <td>Gauge</td>
+          <td>GPU 驱动信息</td>
+          <td></td>
+          <td><code>version</code>=<code>&lt;driver-version&gt;</code></td>
+      </tr>
+      <tr>
+          <td>metax_gpu_info</td>
+          <td>Gauge</td>
+          <td>GPU 信息</td>
+          <td></td>
+          <td><code>gpu</code>=<code>&lt;gpu-index&gt;</code><br><code>model</code>=<code>&lt;gpu-model&gt;</code><br><code>uuid</code>=<code>&lt;gpu-uuid&gt;</code><br><code>bios_version</code>=<code>&lt;bios-version&gt;</code><br><code>bdf</code>=<code>&lt;bdf&gt;</code><br><code>mode</code>=<code>&lt;native|pf|vf&gt;</code><br><code>die_count</code>=<code>&lt;die-count&gt;</code></td>
+      </tr>
+      <tr>
+          <td>metax_gpu_board_power_watts</td>
+          <td>Gauge</td>
+          <td>GPU 板卡功耗</td>
+          <td>watts</td>
+          <td><code>gpu</code>=<code>&lt;gpu-index&gt;</code></td>
+      </tr>
+      <tr>
+          <td>metax_gpu_pcie_link_speed_gt_per_second</td>
+          <td>Gauge</td>
+          <td>GPU PCIe 当前链路速度</td>
+          <td>GT/s</td>
+          <td><code>gpu</code>=<code>&lt;gpu-index&gt;</code></td>
+      </tr>
+      <tr>
+          <td>metax_gpu_pcie_link_width_lanes</td>
+          <td>Gauge</td>
+          <td>GPU PCIe 当前链路宽度</td>
+          <td>lanes</td>
+          <td><code>gpu</code>=<code>&lt;gpu-index&gt;</code></td>
+      </tr>
+      <tr>
+          <td>metax_gpu_pcie_receive_bytes_per_second</td>
+          <td>Gauge</td>
+          <td>GPU PCIe 接收吞吐量</td>
+          <td>bytes/s</td>
+          <td><code>gpu</code>=<code>&lt;gpu-index&gt;</code></td>
+      </tr>
+      <tr>
+          <td>metax_gpu_pcie_transmit_bytes_per_second</td>
+          <td>Gauge</td>
+          <td>GPU PCIe 发送吞吐量</td>
+          <td>bytes/s</td>
+          <td><code>gpu</code>=<code>&lt;gpu-index&gt;</code></td>
+      </tr>
+      <tr>
+          <td>metax_gpu_metaxlink_link_speed_gt_per_second</td>
+          <td>Gauge</td>
+          <td>GPU MetaXLink 当前链路速度</td>
+          <td>GT/s</td>
+          <td><code>gpu</code>=<code>&lt;gpu-index&gt;</code><br><code>metaxlink</code>=<code>&lt;metaxlink-index&gt;</code></td>
+      </tr>
+      <tr>
+          <td>metax_gpu_metaxlink_link_width_lanes</td>
+          <td>Gauge</td>
+          <td>GPU MetaXLink 当前链路宽度</td>
+          <td>lanes</td>
+          <td><code>gpu</code>=<code>&lt;gpu-index&gt;</code><br><code>metaxlink</code>=<code>&lt;metaxlink-index&gt;</code></td>
+      </tr>
+      <tr>
+          <td>metax_gpu_metaxlink_receive_bytes_per_second</td>
+          <td>Gauge</td>
+          <td>GPU MetaXLink 接收吞吐量</td>
+          <td>bytes/s</td>
+          <td><code>gpu</code>=<code>&lt;gpu-index&gt;</code><br><code>metaxlink</code>=<code>&lt;metaxlink-index&gt;</code></td>
+      </tr>
+      <tr>
+          <td>metax_gpu_metaxlink_transmit_bytes_per_second</td>
+          <td>Gauge</td>
+          <td>GPU MetaXLink 发送吞吐量</td>
+          <td>bytes/s</td>
+          <td><code>gpu</code>=<code>&lt;gpu-index&gt;</code><br><code>metaxlink</code>=<code>&lt;metaxlink-index&gt;</code></td>
+      </tr>
+      <tr>
+          <td>metax_gpu_metaxlink_receive_bytes_total</td>
+          <td>Counter</td>
+          <td>GPU MetaXLink 累计接收数据量</td>
+          <td>bytes</td>
+          <td><code>gpu</code>=<code>&lt;gpu-index&gt;</code><br><code>metaxlink</code>=<code>&lt;metaxlink-index&gt;</code></td>
+      </tr>
+      <tr>
+          <td>metax_gpu_metaxlink_transmit_bytes_total</td>
+          <td>Counter</td>
+          <td>GPU MetaXLink 累计发送数据量</td>
+          <td>bytes</td>
+          <td><code>gpu</code>=<code>&lt;gpu-index&gt;</code><br><code>metaxlink</code>=<code>&lt;metaxlink-index&gt;</code></td>
+      </tr>
+      <tr>
+          <td>metax_gpu_metaxlink_aer_errors_total</td>
+          <td>Counter</td>
+          <td>GPU MetaXLink AER 错误计数</td>
+          <td></td>
+          <td><code>gpu</code>=<code>&lt;gpu-index&gt;</code><br><code>metaxlink</code>=<code>&lt;metaxlink-index&gt;</code><br><code>error_type</code>=<code>&lt;ce|ue&gt;</code></td>
+      </tr>
+      <tr>
+          <td>metax_gpu_status</td>
+          <td>Gauge</td>
+          <td>GPU 状态，0 表示正常，其他值表示异常，请查阅文档了解各值对应的异常情况</td>
+          <td></td>
+          <td><code>gpu</code>=<code>&lt;gpu-index&gt;</code><br><code>die</code>=<code>&lt;die-index&gt;</code></td>
+      </tr>
+      <tr>
+          <td>metax_gpu_temperature_celsius</td>
+          <td>Gauge</td>
+          <td>GPU 温度</td>
+          <td>celsius</td>
+          <td><code>gpu</code>=<code>&lt;gpu-index&gt;</code><br><code>die</code>=<code>&lt;die-index&gt;</code></td>
+      </tr>
+      <tr>
+          <td>metax_gpu_utilization_percent</td>
+          <td>Gauge</td>
+          <td>GPU 利用率</td>
+          <td>percent (0-100)</td>
+          <td><code>gpu</code>=<code>&lt;gpu-index&gt;</code><br><code>die</code>=<code>&lt;die-index&gt;</code><br><code>ip</code>=<code>&lt;ip-type&gt;</code></td>
+      </tr>
+      <tr>
+          <td>metax_gpu_memory_total_bytes</td>
+          <td>Gauge</td>
+          <td>显存总量</td>
+          <td>bytes</td>
+          <td><code>gpu</code>=<code>&lt;gpu-index&gt;</code><br><code>die</code>=<code>&lt;die-index&gt;</code></td>
+      </tr>
+      <tr>
+          <td>metax_gpu_memory_used_bytes</td>
+          <td>Gauge</td>
+          <td>已用显存</td>
+          <td>bytes</td>
+          <td><code>gpu</code>=<code>&lt;gpu-index&gt;</code><br><code>die</code>=<code>&lt;die-index&gt;</code></td>
+      </tr>
+      <tr>
+          <td>metax_gpu_clock_mhz</td>
+          <td>Gauge</td>
+          <td>GPU 时钟频率</td>
+          <td>MHz</td>
+          <td><code>gpu</code>=<code>&lt;gpu-index&gt;</code><br><code>die</code>=<code>&lt;die-index&gt;</code><br><code>ip</code>=<code>&lt;ip-type&gt;</code></td>
+      </tr>
+      <tr>
+          <td>metax_gpu_clocks_throttling</td>
+          <td>Gauge</td>
+          <td>GPU 时钟降频原因</td>
+          <td></td>
+          <td><code>gpu</code>=<code>&lt;gpu-index&gt;</code><br><code>die</code>=<code>&lt;die-index&gt;</code><br><code>reason</code>=<code>&lt;throttle-reason&gt;</code></td>
+      </tr>
+      <tr>
+          <td>metax_gpu_dpm_performance_level</td>
+          <td>Gauge</td>
+          <td>GPU DPM 性能级别</td>
+          <td></td>
+          <td><code>gpu</code>=<code>&lt;gpu-index&gt;</code><br><code>die</code>=<code>&lt;die-index&gt;</code><br><code>ip</code>=<code>&lt;ip-type&gt;</code></td>
+      </tr>
+      <tr>
+          <td>metax_gpu_ecc_memory_errors_total</td>
+          <td>Counter</td>
+          <td>GPU ECC 内存错误计数</td>
+          <td></td>
+          <td><code>gpu</code>=<code>&lt;gpu-index&gt;</code><br><code>die</code>=<code>&lt;die-index&gt;</code><br><code>memory_type</code>=<code>&lt;sram|dram&gt;</code><br><code>error_type</code>=<code>&lt;ce|ue&gt;</code></td>
+      </tr>
+      <tr>
+          <td>metax_gpu_ecc_memory_retired_pages_total</td>
+          <td>Counter</td>
+          <td>GPU ECC 内存已淘汰页面计数</td>
+          <td></td>
+          <td><code>gpu</code>=<code>&lt;gpu-index&gt;</code><br><code>die</code>=<code>&lt;die-index&gt;</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>说明</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>1. GPU index：GPU 的索引，根据 GPU 模式的不同有所区分：
+</span></span><span style="display:flex;"><span>    - Native 模式和 VF 模式的 GPU 索引从 0 开始。
+</span></span><span style="display:flex;"><span>    - PF 模式的 GPU 索引从 100 开始。
+</span></span><span style="display:flex;"><span>2. CE：Correctable Errors, 可纠正错误
+</span></span><span style="display:flex;"><span>3. UE：Uncorrectable Errors, 不可纠正错误
+</span></span><span style="display:flex;"><span>4. MetaXLink：MetaXLink 是用于 GPU 间通信的专有互联技术。每块 GPU 可拥有多条 MetaXLink 连接，索引从 1 开始。
+</span></span></code></pre></div><h3 id="结语">结语</h3>
+<p>开源，正成为连接技术创新与产业升级的关键纽带。在政策引领、产业协同与生态共建的合力推动下，开源创新高地正加速构筑。面向未来，沐曦股份将持续以开源为桥梁，与产业各方同心共策、聚力共建、携手共赢，夯实AI时代的算力底座与软件基础设施，为中国数字经济的高质量发展注入澎湃动能。</p>
+<p>Pull request: <a href="https://github.com/ccfos/huatuo/pull/133">https://github.com/ccfos/huatuo/pull/133</a></p>
+<hr>
+<p><strong>篇尾：</strong></p>
+<ul>
+<li>HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的操作系统深度观测项目。</li>
+<li>关注微信公众号，或扫码加微信，邀请你加入用户群（请备注姓名+单位）：</li>
+</ul>
+<p><img src="/img/contact-weixin.png" alt="微信"></p>
+<ul>
+<li>仓库1：<a href="https://github.com/ccfos/huatuo">https://github.com/ccfos/huatuo</a></li>
+<li>仓库2：<a href="https://gitlink.org.cn/ccfos/huatuo">https://gitlink.org.cn/ccfos/huatuo</a></li>
+<li>官网：<a href="https://github.com/ccfos/huatuo">https://huatuo.tech/</a></li>
+</ul>
+
+                        </div>
+
+                        
+                        
+                        
+                        <div id="comments"><script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+</div>
+                        
+
+                    </div>
+                    
+
+                    
+
+                    
+
+                    <div class="col-md-3">
+
+                        
+
+                        
+
+<div class="panel panel-default sidebar-menu">
+
+    <div class="panel-heading">
+      <h3 class="panel-title">搜索</h3>
+    </div>
+
+    <div class="panel-body">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" role="search">
+            <div class="input-group">
+                <input type="search" name="q" class="form-control" placeholder="搜索" />
+                <input type="hidden" name="sitesearch" value="https://huatuo.tech/" />
+                <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">标签</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/zh/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/huatuo"><i class="fas fa-tags"></i> huatuo</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/rdma"><i class="fas fa-tags"></i> rdma</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e5%8a%a8%e6%80%81"><i class="fas fa-tags"></i> 动态</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+
+                        
+
+                    </div>
+                    
+
+                    
+
+                </div>
+                
+
+            </div>
+            
+        </div>
+        
+
+        <footer id="footer">
+    <div class="container">
+
+        
+        <div class="col-md-4 col-sm-6">
+            <h4>关于我们</h4>
+
+            基础软件技术研究者，Linux 内核开发者。
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+        <div class="col-md-4 col-sm-6">
+
+            
+
+        </div>
+        
+
+        
+            
+            
+            <div class="col-md-4 col-sm-6">
+                <h4>联系</h4>
+                <p class="text-uppercase"><strong>HUATUO 开源社区, 欢迎技术交流</strong>
+        <br>中国北京市海淀区西二旗软件园。
+        <br>
+      </p>
+      
+                <a href="/about" class="btn btn-small btn-template-main">跳到联系页面</a>
+                <hr class="hidden-md hidden-lg hidden-sm">
+            </div>
+            
+        
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026 HUATUO 开源社区。</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+    
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+
+<script src="/js/front.js"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

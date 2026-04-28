@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Rlease on Linux Kernel, Cloud-native and AI Infra Observability.</title>
+    <link>https://huatuo.tech/tags/rlease/</link>
+    <description>Recent content in Rlease on Linux Kernel, Cloud-native and AI Infra Observability.</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Tue, 28 Apr 2026 23:20:29 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/tags/rlease/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>V2.2.0 Released</title>
+      <link>https://huatuo.tech/events/2026-03-30-release-v220/</link>
+      <pubDate>Mon, 30 Mar 2026 08:25:49 -0400</pubDate>
+      <guid>https://huatuo.tech/events/2026-03-30-release-v220/</guid>
+      <description>&lt;p&gt;Following a period of development and testing, the v2.2.0 release is now available. This provides a more stable and robust foundation for large-scale production environments.&lt;/p&gt;&#xA;&lt;h3 id=&#34;key-features&#34;&gt;Key Features&lt;/h3&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&lt;strong&gt;Hardware&lt;/strong&gt;: Hardware fault detection has been added for AI and general-purpose computing scenarios. This includes support for RDMA PFC congestion detection.&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;Multi-Cloud&lt;/strong&gt;: Native adapters have been implemented for major cloud platforms, including Alibaba Cloud, Google Cloud, and AWS.&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;MetaX&lt;/strong&gt;: GPU hardware fault detection capabilities were contributed to the community by MetaX,&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;Kubernetes&lt;/strong&gt;: Support for additional cgroup driver types has been added, along with an automated detection mechanism.&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;IOtracing&lt;/strong&gt;: The &lt;code&gt;iotracing&lt;/code&gt; tool has been open-sourced. It supports rapid execution and automated tracing from the command line, addressing intermittent I/O performance issues.&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;Configuration&lt;/strong&gt;: All configuration options have been standardized. This significantly reduces the complexity.&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;Testing&lt;/strong&gt;: The test suite has been expanded to unit, integration, and end-to-end tests.&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;documentation&#34;&gt;Documentation&lt;/h3&gt;&#xA;&lt;p&gt;The documentation structure for version 2.2.0 has been revised and expanded. These improvements are intended to accelerate the onboarding process and enable users to more fully leverage HUATUO.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

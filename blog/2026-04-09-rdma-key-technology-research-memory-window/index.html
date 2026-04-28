@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>RDMA: Memory Window</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, RDMA">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='//fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300italic,500,700,800' rel='stylesheet' type='text/css'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1777418433" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="Linux Kernel, Cloud-native and AI Infra Observability.">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en">
+<meta property="og:site_name" content="Linux Kernel, Cloud-native and AI Infra Observability.">
+<meta property="og:title" content="RDMA: Memory Window">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/blog/2026-04-09-rdma-key-technology-research-memory-window/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2026-04-09-rdma-cover.jpg">
+<meta property="og:image:type" content="image/jpg">
+
+
+
+  <meta property="og:image:width" content="300">
+  <meta property="og:image:height" content="200">
+
+
+<meta property="og:updated_time" content="2026-04-28T23:20:29Z">
+
+  
+  
+  
+  <meta property="article:tag" content="RDMA">
+  
+  
+  <meta property="article:published_time" content="2026-04-09T08:27:32-0400">
+  <meta property="article:modified_time" content="2026-04-28T23:20:29Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="RDMA: Memory Window">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2026-04-09-rdma-cover.jpg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+    
+  </head>
+
+  <body>
+
+    <div id="all">
+
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+            ⭐️ If you like this project, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>! ⭐️
+        </p>
+      
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm mouseover" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/logo.png" alt="RDMA: Memory Window logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/logo-small.png" alt="RDMA: Memory Window logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">RDMA: Memory Window - go to homepage</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">Toggle Navigation</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Docs <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="https://docs.huatuo.tech/en/latest/">Latest</a></li>
+                            
+                            <li><a href="https://docs.huatuo.tech/en/v2.2.0/">V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Download <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="https://hub.docker.com/r/huatuo/huatuo-bamai/tags">Dockerhub</a></li>
+                            
+                            <li><a href="https://github.com/ccfos/huatuo/releases">Release</a></li>
+                            
+                            <li><a href="https://github.com/ccfos/huatuo">Github</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    <a href="/blog/">Blog</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/milestone/">News</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/about/">About</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                      English <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                      
+                        
+                      
+                        
+                          <li>
+                            
+                            <a href="/zh/">
+                              中文
+                            </a>
+                          </li>
+                        
+                      
+                    </ul>
+                </li>
+                
+                
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        <div id="heading-breadcrumbs">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>RDMA: Memory Window</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+        <div id="content">
+            <div class="container">
+
+                <div class="row">
+
+                    
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                          <p class="text-muted text-uppercase mb-small text-right">
+                            
+                                
+                                LastUpdate: 2026-04-28,
+			                    Author: <a href="/authors/hao022">HAO022</a>
+                            
+                          </p>
+                        
+
+                        <div id="post-content">
+                          <p>This blog post is part of a series of foundational technical research articles on AI Infrastructure.</p>
+<h3 id="concept">Concept</h3>
+<p><strong>Basic Concept</strong>: A Memory Window (MW) is a type of RDMA resource requested by the user that enables a remote node to access a local memory region. (For this reason, an MW possesses only an <code>R_KEY</code> and has no <code>L_KEY</code>.) Each MW is bound to an already registered Memory Region (MR). Compared to an MR, an MW provides more flexible control over remote access permissions. An MW can be roughly understood as a subset of an MR. A single MR can have multiple MWs carved out of it, and each MW can have its own permission set configured. The relationship is illustrated in the following network diagram:</p>
+<p><img src="/img/blog/2025-04-14-mw-01.png" alt=""></p>
+<p><strong>MR/MW Permission Relationship</strong>: When binding a Memory Window, a Consumer can request any combination of remote access rights for the Window. However, if the associated Region does not have local write access enabled and the Consumer requests remote write or remote atomic access for the Window, the Channel Interface must return an error either at bind time or access time.</p>
+<p><strong>Use Cases</strong>:</p>
+<ol>
+<li>To grant and revoke remote access rights to a registered region dynamically, thereby reducing performance penalties.</li>
+<li>To grant different remote access rights within the same registered memory region to different remote agents.</li>
+</ol>
+<h3 id="implementation">Implementation</h3>
+<p><strong>User-space Implementation</strong>:
+libibverbs API:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>struct ibv_mw *ibv_alloc_mw<span style="color:#f92672">(</span>struct ibv_pd *pd, enum ibv_mw_type type<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>struct ibv_mw <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        uint32_t                rkey;
+</span></span><span style="display:flex;"><span>        enum ibv_mw_type        type;
+</span></span><span style="display:flex;"><span>    	...
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>;
+</span></span></code></pre></div><p><strong>Parameters and Return Values</strong>:</p>
+<ul>
+<li><code>ibv_mw_type</code>: For <code>IBV_MW_TYPE_1</code>, the MW can only be bound to an MR via the <code>ibv_bind_mw</code> method. For <code>IBV_MW_TYPE_2</code>, binding occurs via <code>ibv_post_send</code>.</li>
+<li><code>rkey</code>: The Remote Key generated by the HCA. The kernel driver implementation is straightforward: it assembles the parameters and dispatches the command to the hardware.</li>
+</ul>
+<p><strong>Kernel Implementation</strong>:
+<code>mlx5_ib_alloc_mw</code> constructs the MKey Context and submits it to the HCA.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>1. MKey Context construction:
+</span></span><span style="display:flex;"><span>   - <span style="color:#e6db74">`</span>mkc.free<span style="color:#e6db74">`</span>
+</span></span><span style="display:flex;"><span>   - <span style="color:#e6db74">`</span>mkc.pd<span style="color:#e6db74">`</span>
+</span></span><span style="display:flex;"><span>   - <span style="color:#e6db74">`</span>mkc.umr_en<span style="color:#e6db74">`</span>
+</span></span><span style="display:flex;"><span>   - <span style="color:#e6db74">`</span>mkc.en_rinval<span style="color:#e6db74">`</span>
+</span></span><span style="display:flex;"><span>2. <span style="color:#e6db74">`</span>mlx5_ib_create_mkey<span style="color:#e6db74">`</span> submits the request and returns the <span style="color:#e6db74">`</span>rkey<span style="color:#e6db74">`</span>.
+</span></span></code></pre></div><p><strong>Memory Window Binding, 1</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>// Bind a memory window to a region
+</span></span><span style="display:flex;"><span>int ibv_bind_mw<span style="color:#f92672">(</span>struct ibv_qp *qp, struct ibv_mw *mw, struct ibv_mw_bind *mw_bind<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>struct ibv_mw_bind <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    	uint64_t                     wr_id;           /* User defined WR ID */
+</span></span><span style="display:flex;"><span>    	unsigned int                 send_flags;      /* Use ibv_send_flags */
+</span></span><span style="display:flex;"><span>    	struct ibv_mw_bind_info      bind_info;       /* MW bind information */
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>struct ibv_mw_bind_info <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>		struct ibv_mr                *mr;             /* The MR to bind the MW to */
+</span></span><span style="display:flex;"><span>		uint64_t                     addr;            /* The address the MW should start at */
+</span></span><span style="display:flex;"><span>		uint64_t                     length;          /* The length <span style="color:#f92672">(</span>in bytes<span style="color:#f92672">)</span> the MW should span */
+</span></span><span style="display:flex;"><span>		unsigned int                 mw_access_flags; /* Access flags to the MW. Use ibv_access_flags */
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>;
+</span></span></code></pre></div><p><code>mw_access_flags</code>:</p>
+<ul>
+<li><code>IBV_ACCESS_REMOTE_WRITE</code></li>
+<li><code>IBV_ACCESS_REMOTE_READ</code></li>
+<li><code>IBV_ACCESS_REMOTE_ATOMIC</code></li>
+<li><code>IBV_ACCESS_ZERO_BASED</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>int mlx5_bind_mw<span style="color:#f92672">(</span>struct ibv_qp *qp, struct ibv_mw *mw, struct ibv_mw_bind *mw_bind<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>		...
+</span></span><span style="display:flex;"><span>        // Initialize WR
+</span></span><span style="display:flex;"><span>        struct ibv_send_wr wr;
+</span></span><span style="display:flex;"><span>        wr.opcode <span style="color:#f92672">=</span> IBV_WR_BIND_MW;
+</span></span><span style="display:flex;"><span>        wr.send_flags <span style="color:#f92672">=</span> mw_bind-&gt;send_flags;
+</span></span><span style="display:flex;"><span>        wr.bind_mw.bind_info <span style="color:#f92672">=</span> mw_bind-&gt;bind_info;
+</span></span><span style="display:flex;"><span>        wr.bind_mw.mw <span style="color:#f92672">=</span> mw;
+</span></span><span style="display:flex;"><span>        wr.bind_mw.rkey <span style="color:#f92672">=</span> mw-&gt;rkey;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>		// Submit bind memory window request via post-send
+</span></span><span style="display:flex;"><span>        _mlx5_post_send<span style="color:#f92672">(</span>qp, &amp;wr, ...<span style="color:#f92672">)</span>;
+</span></span><span style="display:flex;"><span>        ...
+</span></span></code></pre></div><p><strong>Memory Window Binding, 2</strong>: A more flexible approach involves assembling the WQE manually and submitting the request via <code>ibv_post_send</code>.</p>
+<p><img src="/img/blog/2025-04-14-mw-02.png" alt=""></p>
+<h3 id="observations">Observations</h3>
+<ul>
+<li><strong>Must the MW <code>addr</code> fall within the MR&rsquo;s range?</strong> In RDMA programming, a registered Memory Window (MW) must be bound within an already registered Memory Region (MR). It cannot exist independently, nor can it extend beyond the boundaries of the MR. The MR is the fundamental unit for memory registration and address translation (Virtual Address → Physical Address). The RDMA NIC hardware relies on the MR to validate and access memory. The MW itself performs no memory registration; its function is solely to refine access control and scope restrictions on top of the MR. This mechanism is primarily used for the dynamic granting and revocation of remote access permissions. Furthermore, frequent MR operations incur significant performance overhead, whereas MW operations are relatively lightweight.</li>
+</ul>
+<hr>
+<p><a href="https://github.com/ccfos/huatuo">HUATUO</a> is an operating system observability project open-sourced by DiDi and incubated under the China Computer Federation (CCF).</p>
+<p><img src="/img/contact-weixin.png" alt="微信"></p>
+
+                        </div>
+
+                        
+                        
+                        
+                        <div id="comments"><script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+</div>
+                        
+
+                    </div>
+                    
+
+                    
+
+                    
+
+                    <div class="col-md-3">
+
+                        
+
+                        
+
+<div class="panel panel-default sidebar-menu">
+
+    <div class="panel-heading">
+      <h3 class="panel-title">Search</h3>
+    </div>
+
+    <div class="panel-body">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" role="search">
+            <div class="input-group">
+                <input type="search" name="q" class="form-control" placeholder="Search" />
+                <input type="hidden" name="sitesearch" value="https://huatuo.tech/" />
+                <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">Tags</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/bpf-foundation"><i class="fas fa-tags"></i> bpf foundation</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ccf"><i class="fas fa-tags"></i> ccf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/containers"><i class="fas fa-tags"></i> containers</a>
+            </li>
+            
+            <li >
+                <a href="/tags/cpuidle"><i class="fas fa-tags"></i> cpuidle</a>
+            </li>
+            
+            <li >
+                <a href="/tags/hao022"><i class="fas fa-tags"></i> hao022</a>
+            </li>
+            
+            <li >
+                <a href="/tags/huatuo"><i class="fas fa-tags"></i> huatuo</a>
+            </li>
+            
+            <li >
+                <a href="/tags/k8s"><i class="fas fa-tags"></i> k8s</a>
+            </li>
+            
+            <li >
+                <a href="/tags/linux-%e5%86%85%e6%a0%b8"><i class="fas fa-tags"></i> linux 内核</a>
+            </li>
+            
+            <li >
+                <a href="/tags/loadavg"><i class="fas fa-tags"></i> loadavg</a>
+            </li>
+            
+            <li >
+                <a href="/tags/netrecvlat"><i class="fas fa-tags"></i> netrecvlat</a>
+            </li>
+            
+            <li >
+                <a href="/tags/networking"><i class="fas fa-tags"></i> networking</a>
+            </li>
+            
+            <li >
+                <a href="/tags/rdma"><i class="fas fa-tags"></i> rdma</a>
+            </li>
+            
+            <li >
+                <a href="/tags/rlease"><i class="fas fa-tags"></i> rlease</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7"><i class="fas fa-tags"></i> 可观测性</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%90%88%e4%bd%9c"><i class="fas fa-tags"></i> 合作</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%a4%9c%e8%8e%ba%e7%9b%91%e6%8e%a7"><i class="fas fa-tags"></i> 夜莺监控</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%bc%80%e6%ba%90"><i class="fas fa-tags"></i> 开源</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%81%ab%e7%84%b0%e5%9b%be"><i class="fas fa-tags"></i> 火焰图</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%bd%91%e7%bb%9c%e4%bc%98%e5%8c%96"><i class="fas fa-tags"></i> 网络优化</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e8%8d%a3%e8%aa%89"><i class="fas fa-tags"></i> 荣誉</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+
+                        
+
+                    </div>
+                    
+
+                    
+
+                </div>
+                
+
+            </div>
+            
+        </div>
+        
+
+        <footer id="footer">
+    <div class="container">
+
+        
+        <div class="col-md-4 col-sm-6">
+            <h4>About us</h4>
+
+            Linux kernel developers, and observability developers.
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+        <div class="col-md-4 col-sm-6">
+
+            
+
+        </div>
+        
+
+        
+            
+            
+        
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026, HUATUO Open Source Community.</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+    
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+
+<script src="/js/front.js"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>RDMA 关键技术研究：Doorbell, UAR</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, RDMA">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='//fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300italic,500,700,800' rel='stylesheet' type='text/css'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1777418433" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="HUATUO 开源社区">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="zh">
+<meta property="og:site_name" content="HUATUO 开源社区">
+<meta property="og:title" content="RDMA 关键技术研究：Doorbell, UAR">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/zh/blog/2026-04-14-rdma-key-technology-research-doorbell-uar-user-access-region/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2026-04-09-rdma-cover.jpg">
+<meta property="og:image:type" content="image/jpg">
+
+
+
+  <meta property="og:image:width" content="300">
+  <meta property="og:image:height" content="200">
+
+
+<meta property="og:updated_time" content="2026-04-28T23:20:29Z">
+
+  
+  
+  
+  <meta property="article:tag" content="RDMA">
+  
+  
+  <meta property="article:published_time" content="2026-04-14T06:36:13-0400">
+  <meta property="article:modified_time" content="2026-04-28T23:20:29Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="RDMA 关键技术研究：Doorbell, UAR">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2026-04-09-rdma-cover.jpg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+    
+  </head>
+
+  <body>
+
+    <div id="all">
+
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+            ⭐️ If you like this project, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>! ⭐️
+        </p>
+      
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm mouseover" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/zh/">
+                    
+                      <img src="/img/logo.png" alt="RDMA 关键技术研究：Doorbell, UAR logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/logo-small.png" alt="RDMA 关键技术研究：Doorbell, UAR logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">RDMA 关键技术研究：Doorbell, UAR - 跳到主页</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">切换导航</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">文档 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="https://docs.huatuo.tech/en/latest/">Latest</a></li>
+                            
+                            <li><a href="https://docs.huatuo.tech/en/v2.2.0/">V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">下载 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="https://hub.docker.com/r/huatuo/huatuo-bamai/tags">Dockerhub</a></li>
+                            
+                            <li><a href="https://github.com/ccfos/huatuo/releases">Release</a></li>
+                            
+                            <li><a href="https://github.com/ccfos/huatuo">Github</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    <a href="/zh/blog/">博客</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/milestone/">动态</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/about/">关于</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                      中文 <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                      
+                        
+                          <li>
+                            
+                            <a href="/en/">
+                              English
+                            </a>
+                          </li>
+                        
+                      
+                        
+                      
+                    </ul>
+                </li>
+                
+                
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        <div id="heading-breadcrumbs">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>RDMA 关键技术研究：Doorbell, UAR</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+        <div id="content">
+            <div class="container">
+
+                <div class="row">
+
+                    
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                          <p class="text-muted text-uppercase mb-small text-right">
+                            
+                                
+                                最后更新: 2026-04-28,
+			                    作者: <a href="/zh/authors/hao022">HAO022</a>
+                            
+                          </p>
+                        
+
+                        <div id="post-content">
+                          <h3 id="uar-user-access-region">UAR, User Access Region</h3>
+<p><strong>UAR, User Access Region</strong></p>
+<p>PCI 地址空间的一部分，内部包含设备内存、寄存器（用户可通过寄存器控制设备）。UAR 以 PCI BAR 的方式暴露其内存空间地址并以 IO-mapped 的方式映射到内核空间，UAR 通常占用一个系统页内存。驱动层为不同进程映射不同的 UAR 以便实现资源隔离，此外 CPU 可以直接访问映射后的内存，减少内核态用户态的上下文切换，降低延迟。UAR 非常典型的用途是门铃寄存器，用户态进程可以直接写门铃寄存器触发硬件操作。UAR 在网卡通信，存储服务，GPU计算等场景均有应用。mellanox 网卡 UAR Page format 布局主要组成:</p>
+<ul>
+<li>Completion WQ DoorBells: 存储在 CQ 寄存器</li>
+<li>Event WQ DoorBells: 存储在 EQ 寄存器</li>
+<li>Send DoorBells: 存储在 Blue Flame 寄存器</li>
+</ul>
+<p><strong>UAR 内存布局</strong></p>
+<p><img src="/img/blog/2025-04-18-db-01.png" alt="">
+<img src="/img/blog/2025-04-18-db-02.jpeg" alt=""></p>
+<p><strong>Blue Flame Reg</strong></p>
+<p>Mellanox 为了快速访问硬件资源而实现的一项技术，用户可以直接向设备写入 WQEs，因此设备无需再从主机拷贝内存，进而降低延迟。具体实现上，BlueFlame 由一组大小一致的寄存器组成，每寄存器 512B，寄存器又分成两个大小一致的 Blue Flame Buffer 缓存。</p>
+<p><strong>Doorbell Record</strong></p>
+<p>位于系统物理内存，并在创建 RQ/SQ 时将 Doorbell Record 内存地址赋值到硬件。DoorBell Record 主要存储 SQ sq_wqebb_counter 以及 RQ、SRQ wqe_counter，这些标记表示向硬件队列提交的 WQEs 数目。
+<img src="/img/blog/2025-04-18-db-record-format.jpeg" alt=""></p>
+<p><strong>向工作队列提交请求的过程</strong></p>
+<ol>
+<li>Write WQE to the <strong>WQE buffer</strong> sequentially to previously-posted WQE (on WQEBB granularity).</li>
+<li>Update <strong>Doorbell Record</strong> associated with that queue by writing their sq_wqebb_counter or wqe_counter for send and RQ respectively</li>
+<li>For send request ring DoorBell by writing to the <strong>Doorbell Register</strong> field in the UAR associated with that queue. For performance-critical send WQEs DoorBell can be rang by using the BlueFlame mechanism.</li>
+</ol>
+<p>注意 1. 对于发送请求而言执行第三步是为了确保WQE被执行。在第二步的时候 HW 已经执行了 WQE，对于已经执行的 WQE 再次敲门铃并无伤害，硬件会忽略该事件。2. 软件可以在第一步批量的提交 WQEs，在第二步更新的参数包含所有的 WQEs。</p>
+<h3 id="doorbell-record-资源映射">Doorbell Record 资源映射</h3>
+<p>资源的分配流程：ibv_create_qp … mlx5_create_qp … mlx5_alloc_dbrec … 内核 create_user_qp:</p>
+<ul>
+<li>分配 Doorbell Record 内存</li>
+<li>将该内存的虚拟地址传送给内核驱动</li>
+<li>驱动对这块内存进行物理分配，锁页，dma 映射等</li>
+<li>最后赋值到 QPC，创建硬件资源 QP</li>
+</ul>
+<p>用户态代码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span>providers<span style="color:#f92672">/</span>mlx5<span style="color:#f92672">/</span>verbs.c
+</span></span><span style="display:flex;"><span>mlx5_create_qp
+</span></span><span style="display:flex;"><span>        qp<span style="color:#f92672">-&gt;</span>db <span style="color:#f92672">=</span> mlx5_alloc_dbrec <span style="color:#960050;background-color:#1e0010">返回一段虚拟内存，这块内存未来用于发送和接收的</span> Doorbell Record<span style="color:#960050;background-color:#1e0010">。</span>
+</span></span><span style="display:flex;"><span>        qp<span style="color:#f92672">-&gt;</span>db[MLX5_RCV_DBR] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>        qp<span style="color:#f92672">-&gt;</span>db[MLX5_SND_DBR] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        cmd.db_addr  <span style="color:#f92672">=</span> (<span style="color:#66d9ef">uintptr_t</span>) qp<span style="color:#f92672">-&gt;</span>db; <span style="color:#960050;background-color:#1e0010">传送给内核。</span>
+</span></span><span style="display:flex;"><span>        ...
+</span></span></code></pre></div><p>内核驱动代码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span>mlx5_ib_create_qp create_user_qp
+</span></span><span style="display:flex;"><span>        mlx5_ib_db_map_user <span style="color:#960050;background-color:#1e0010">分配物理内存，锁页，映射。</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">MLX5_SET64</span>(qpc, qpc, dbr_addr, qp<span style="color:#f92672">-&gt;</span>db.dma); <span style="color:#960050;background-color:#1e0010">将该内存</span> dma <span style="color:#960050;background-color:#1e0010">地址赋值至硬件。</span>
+</span></span><span style="display:flex;"><span>        ...
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">mlx5_ib_db_map_user</span>(<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> virt ...)
+</span></span><span style="display:flex;"><span>        page <span style="color:#f92672">=</span> <span style="color:#a6e22e">kmalloc</span>();
+</span></span><span style="display:flex;"><span>        page<span style="color:#f92672">-&gt;</span>user_virt <span style="color:#f92672">=</span> (virt <span style="color:#f92672">&amp;</span> PAGE_MASK);
+</span></span><span style="display:flex;"><span>        page<span style="color:#f92672">-&gt;</span>umem <span style="color:#f92672">=</span> <span style="color:#a6e22e">ib_umem_get</span>();
+</span></span><span style="display:flex;"><span>        db<span style="color:#f92672">-&gt;</span>dma <span style="color:#f92672">=</span> <span style="color:#a6e22e">sg_dma_address</span>();
+</span></span><span style="display:flex;"><span>        ...
+</span></span></code></pre></div><h3 id="doorbell-register-资源映射">Doorbell Register 资源映射</h3>
+<p>将 BFREG 寄存器映射到用户态，主要涉及 ibv_open_device、ibv_create_qp 操作:</p>
+<ul>
+<li>ibv_open_device … mlx5_alloc_context … 内核 mlx5_ib_alloc_ucontext:
+<ul>
+<li>分配设备上下文</li>
+<li>硬件分配 UAR</li>
+<li>用户映射 UAR</li>
+</ul>
+</li>
+<li>ibv_create_qp … mlx5_create_qp … 内核 create_user_qp:
+<ul>
+<li>UAR ID 关联 QP</li>
+<li>返回可用 UAR 索引</li>
+</ul>
+</li>
+</ul>
+<h4 id="1-ibv_open_device-uar-映射">1. ibv_open_device UAR 映射</h4>
+<ul>
+<li>
+<p>ibv_open_device 用户态代码(1)：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span>ibv_open_device mlx5_alloc_context
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 请求的寄存器数量，默认 16，可通过环境变量 MLX5_TOTAL_UUARS 配置。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        req.total_num_bfregs <span style="color:#f92672">=</span> context<span style="color:#f92672">-&gt;</span>tot_uuars;
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 请求的低延迟寄存器数量，默认 4，可通过环境变量 MLX5_NUM_LOW_LAT_UUARS 配置。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        req.num_low_latency_bfregs <span style="color:#f92672">=</span> context<span style="color:#f92672">-&gt;</span>low_lat_uuars;
+</span></span><span style="display:flex;"><span>        req.lib_caps <span style="color:#f92672">|=</span> (MLX5_LIB_CAP_4K_UAR <span style="color:#f92672">|</span> MLX5_LIB_CAP_DYN_UAR);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 调用至内核 mlx5_ib_alloc_ucontext 返回设备属性
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#a6e22e">mlx5_cmd_get_context</span>(req, resp ... ) ...
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 根据返回的设备属性，初始化设备上下文，以及 UAR 映射等。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        mlx5_set_context
+</span></span></code></pre></div></li>
+<li>
+<p>alloc_ucontext 内核态代码(1)：IB 设备通过 ib_device_ops.alloc_ucontext 分配内核态设备上下文，并将这些信息存储在结构体 ibucontext 或私有结构体 mlx5_ib_ucontext。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span>mlx5_ib_ucontext <span style="color:#960050;background-color:#1e0010">结构体成员</span> mlx5_bfreg_info <span style="color:#960050;background-color:#1e0010">维护着</span> UAR <span style="color:#960050;background-color:#1e0010">信息，</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> mlx5_ib_ucontext {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">struct</span> ib_ucontext ibucontext;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">struct</span> mlx5_bfreg_info bfregi;
+</span></span><span style="display:flex;"><span>        ...
+</span></span><span style="display:flex;"><span>};
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> mlx5_bfreg_info {
+</span></span><span style="display:flex;"><span>        u32 <span style="color:#f92672">*</span>sys_pages; <span style="color:#75715e">// UAR ID
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">int</span> num_low_latency_bfregs;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>count;
+</span></span><span style="display:flex;"><span>        u32 num_sys_pages;
+</span></span><span style="display:flex;"><span>        u32 num_static_sys_pages;
+</span></span><span style="display:flex;"><span>        u32 total_num_bfregs;
+</span></span><span style="display:flex;"><span>        u32 num_dyn_bfregs;
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><p>网卡硬件可能在不同的平台使用，平台支持的页大小可以根据内核编译选项CONFIG_PAGE_SHIFT配置，通常为4K。另外需要明白，每 UAR 包含 BFREG 的总数为 NUM_BFREGS_PER_UAR 4，其中 MLX5_NUM_NON_FP_BFREGS_PER_UAR 2 用于慢速路径 No Fast Path。内核实现上 mlx5_ib_alloc_ucontext calc_total_bfregs 根据请求和硬件配置信息，初始化 mlx5_bfreg_info，最后调用 mlx5_ib_alloc_ucontext allocate_uars 分配硬件 UAR。Mellanox 创建硬件 UAR 资源命令参数和返回值如下图。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span>calc_total_bfregs
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 一个 UAR 对应一个系统页(4K)。每 UAR 包含 NUM_BFREGS_PER_UAR(4) BFREG，其中两个用于非快速路径 MLX5_NUM_NON_FP_BFREGS_PER_UAR。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// total_num_bfregs 16 静态寄存器(用户态申请的寄存器数目)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// 而每 UAR 支持 MLX5_NUM_NON_FP_BFREGS_PER_UAR(2) 慢速路径寄存器，因此需要 8 UAR，也就是 8 系统页。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        bfregi<span style="color:#f92672">-&gt;</span>num_static_sys_pages <span style="color:#f92672">=</span> <span style="color:#ae81ff">8</span>;
+</span></span><span style="display:flex;"><span>        bfregi<span style="color:#f92672">-&gt;</span>num_dyn_bfregs <span style="color:#f92672">=</span> <span style="color:#ae81ff">1024</span>; <span style="color:#75715e">// 动态寄存器，默认 1024
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        bfregi<span style="color:#f92672">-&gt;</span>total_num_bfregs <span style="color:#f92672">=</span> req<span style="color:#f92672">-&gt;</span>total_num_bfregs <span style="color:#f92672">+</span> bfregi<span style="color:#f92672">-&gt;</span>num_dyn_bfregs; <span style="color:#75715e">// 动态+静态寄存器 1040
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        bfregi<span style="color:#f92672">-&gt;</span>num_sys_pages <span style="color:#f92672">=</span> req<span style="color:#f92672">-&gt;</span>total_num_bfregs <span style="color:#f92672">/</span> <span style="color:#ae81ff">2</span>; <span style="color:#75715e">// 需要总系统页数量 8
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        bfregi<span style="color:#f92672">-&gt;</span>sys_pages <span style="color:#f92672">=</span> <span style="color:#a6e22e">kcalloc</span>(bfregi<span style="color:#f92672">-&gt;</span>num_sys_pages, ....);
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span>allocate_uars <span style="color:#960050;background-color:#1e0010">分配</span> num_static_sys_pages <span style="color:#960050;background-color:#1e0010">硬件</span>UAR资源
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> bfregi<span style="color:#f92672">-&gt;</span>num_static_sys_pages; i<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// sys_pages 存储 UAR ID，该信息由硬件返回。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#a6e22e">mlx5_cmd_alloc_uar</span>(dev<span style="color:#f92672">-&gt;</span>mdev, <span style="color:#f92672">&amp;</span>bfregi<span style="color:#f92672">-&gt;</span>sys_pages[i]);
+</span></span><span style="display:flex;"><span>        }
+</span></span></code></pre></div><p><img src="/img/blog/2025-04-18-db-uar-alloc-input-format.jpeg" alt="">
+<img src="/img/blog/2025-04-18-db-uar-alloc-output-format.jpeg" alt=""></p>
+</li>
+<li>
+<p>ibv_open_device 用户态代码(2)：用户态程序根据内核返回的信息完成 UAR 资源映射：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span>(gdb) p <span style="color:#f92672">*</span>resp
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">4</span> <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>        bf_reg_size <span style="color:#f92672">=</span> <span style="color:#ae81ff">512</span>,		<span style="color:#75715e">// BF 寄存器内存大小
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        tot_bfregs <span style="color:#f92672">=</span> <span style="color:#ae81ff">16</span>,		<span style="color:#75715e">// BF 静态寄存器数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        num_dyn_bfregs <span style="color:#f92672">=</span> <span style="color:#ae81ff">1024</span>,		<span style="color:#75715e">// BF 动态寄存器数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        num_uars_per_page <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>,		<span style="color:#75715e">// UAR 每系统页包含的数量
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        log_uar_size <span style="color:#f92672">=</span> <span style="color:#ae81ff">12</span>,		<span style="color:#75715e">// UAR 内存等于 4K
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        qp_tab_size <span style="color:#f92672">=</span> <span style="color:#ae81ff">262144</span>,
+</span></span><span style="display:flex;"><span>        cache_line_size <span style="color:#f92672">=</span> <span style="color:#ae81ff">64</span>,
+</span></span><span style="display:flex;"><span>        max_sq_desc_sz <span style="color:#f92672">=</span> <span style="color:#ae81ff">1024</span>,
+</span></span><span style="display:flex;"><span>        max_rq_desc_sz <span style="color:#f92672">=</span> <span style="color:#ae81ff">512</span>,
+</span></span><span style="display:flex;"><span>        max_send_wqebb <span style="color:#f92672">=</span> <span style="color:#ae81ff">32768</span>,
+</span></span><span style="display:flex;"><span>        max_recv_wr <span style="color:#f92672">=</span> <span style="color:#ae81ff">32768</span>,
+</span></span><span style="display:flex;"><span>        max_srq_recv_wr <span style="color:#f92672">=</span> <span style="color:#ae81ff">32768</span>,
+</span></span><span style="display:flex;"><span>        num_ports <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>,
+</span></span><span style="display:flex;"><span>        flow_action_flags <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>,
+</span></span><span style="display:flex;"><span>        comp_mask <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>,
+</span></span><span style="display:flex;"><span>        response_length <span style="color:#f92672">=</span> <span style="color:#ae81ff">72</span>,
+</span></span><span style="display:flex;"><span>        cqe_version <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#e6db74">&#39;\001&#39;</span>,
+</span></span><span style="display:flex;"><span>        cmds_supp_uhw <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span> <span style="color:#e6db74">&#39;\003&#39;</span>,
+</span></span><span style="display:flex;"><span>        eth_min_inline <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span> <span style="color:#e6db74">&#39;\002&#39;</span>,
+</span></span><span style="display:flex;"><span>        clock_info_versions <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#e6db74">&#39;\001&#39;</span>,
+</span></span><span style="display:flex;"><span>        hca_core_clock_offset <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>,
+</span></span><span style="display:flex;"><span>        dump_fill_mkey <span style="color:#f92672">=</span> <span style="color:#ae81ff">1792</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>ibv_open_device ... mlx5_alloc_context ... mlx5_set_context
+</span></span><span style="display:flex;"><span>        ...
+</span></span><span style="display:flex;"><span>        gross_uuars <span style="color:#f92672">=</span> context<span style="color:#f92672">-&gt;</span>tot_uuars <span style="color:#f92672">/</span> MLX5_NUM_NON_FP_BFREGS_PER_UAR <span style="color:#f92672">*</span> NUM_BFREGS_PER_UAR; <span style="color:#960050;background-color:#1e0010">总共</span> <span style="color:#ae81ff">32</span> BFREG <span style="color:#960050;background-color:#1e0010">寄存器</span>
+</span></span><span style="display:flex;"><span>        context<span style="color:#f92672">-&gt;</span>bfs <span style="color:#f92672">=</span> <span style="color:#a6e22e">calloc</span>(gross_uuars, <span style="color:#66d9ef">sizeof</span>(<span style="color:#f92672">*</span>context<span style="color:#f92672">-&gt;</span>bfs));
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        num_sys_page_map <span style="color:#f92672">=</span> context<span style="color:#f92672">-&gt;</span>tot_uuars <span style="color:#f92672">/</span> (context<span style="color:#f92672">-&gt;</span>num_uars_per_page <span style="color:#f92672">*</span> MLX5_NUM_NON_FP_BFREGS_PER_UAR);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 8 UAR 内存映射
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">for</span> (i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> num_sys_page_map; <span style="color:#f92672">++</span>i) {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// context-&gt;uar 映射
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#a6e22e">mlx5_mmap</span>(<span style="color:#f92672">&amp;</span>context<span style="color:#f92672">-&gt;</span>uar[i], i, cmd_fd, ... MLX5_UAR_TYPE_REGULAR);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 将 context-&gt;uar[].reg 平铺赋值到数组 context-&gt;bfs[].reg
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    ...
+</span></span></code></pre></div></li>
+<li>
+<p>mlx5_mmap 内核态代码(2):
+mmap 将硬件资源（如寄存器、内存区域）暴露为用户空间可访问的地址，允许用户态程序绕过内核，直接操作这些硬件资源。这种方式避免上下文切换和数据复制，减少延迟，提高吞吐量。在 Mellanox 实现中 mmap 实现了 UAR 资源的映射。UAR 映射的过程：获取用户态传递过来的index索引，根据该索引获取PCIe 地址，最后 remap 设备地址和 vma 用户态地址。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span>ib_device_ops.mmap <span style="color:#f92672">=</span> mlx5_ib_mmap
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">mlx5_ib_mmap</span>(<span style="color:#66d9ef">struct</span> ib_ucontext <span style="color:#f92672">*</span>ibcontext, <span style="color:#66d9ef">struct</span> vm_area_struct <span style="color:#f92672">*</span>vma)
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// offset 包含了操作类型和UAR INDEX
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        command <span style="color:#f92672">=</span> <span style="color:#a6e22e">get_command</span>(vma<span style="color:#f92672">-&gt;</span>vm_pgoff);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">case</span> MLX5_IB_MMAP_REGULAR_PAGE:
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 1. 根据 vm_pgoff 获取命令操作
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// 2. 根据 vm_pgoff 获取 UAR 索引，进而得到设备物理地址
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// 3. 将物理地址和vma 虚拟地址进行 remap 映射
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#a6e22e">uar_mmap</span>(dev, command, vma, context);
+</span></span><span style="display:flex;"><span>        ...
+</span></span></code></pre></div></li>
+<li>
+<p>最终映射关系图
+<img src="/img/blog/2025-04-18-db-reg-ioremap.png" alt=""></p>
+</li>
+</ul>
+<h4 id="2-ibv_create_qp-uar-qp-关联">2. ibv_create_qp UAR QP 关联</h4>
+<p>mlx5_create_qp 主要完成 QP 和特定的 UAR 关联。</p>
+<p>用户态代码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span>mlx5_create_qp
+</span></span><span style="display:flex;"><span>        ibv_cmd_create_qp_ex <span style="color:#960050;background-color:#1e0010">创建</span> QP<span style="color:#960050;background-color:#1e0010">。</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 1. 创建的新 QP 并不是关联所有 UAR 资源而是根据返回的 bfreg_index 确定使用的 UAR。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// 2. qp-&gt;bf = &amp;ctx-&gt;bfs[uuar_index]; 将该寄存器赋值到 qp，其实 ibv_open_device 后支持16个寄存器。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#a6e22e">map_uuar</span>(context, qp, resp_drv<span style="color:#f92672">-&gt;</span>bfreg_index, bf);
+</span></span></code></pre></div><p>内核代码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-C" data-lang="C"><span style="display:flex;"><span>create_user_qp
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 1. 从已经分配的 context-&gt;bfregi 选择可用的 bfreg
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        bfregn <span style="color:#f92672">=</span> <span style="color:#a6e22e">alloc_bfreg</span>(dev, <span style="color:#f92672">&amp;</span>context<span style="color:#f92672">-&gt;</span>bfregi);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 2. 根据 bfreg 获取 sys_page, 存储 UAR ID
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        uar_index <span style="color:#f92672">=</span> <span style="color:#a6e22e">bfregn_to_uar_index</span>(dev, <span style="color:#f92672">&amp;</span>context<span style="color:#f92672">-&gt;</span>bfregi, bfregn, false);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 3. QP 关联 UAR ID
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#a6e22e">MLX5_SET</span>(qpc, qpc, uar_page, uar_index);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 4. 返回关联的索引
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        resp<span style="color:#f92672">-&gt;</span>bfreg_index <span style="color:#f92672">=</span> ...;
+</span></span></code></pre></div><h3 id="最后总图">最后总图</h3>
+<p><img src="/img/blog/2025-04-18-ctrl-memory-db-record-reg-ioremap.png" alt=""></p>
+<h3 id="思考">思考</h3>
+<ul>
+<li>在 ibv_open_device 执行过程 Mellanox 实际分配映射了 8 UAR, 16 寄存器, 如果在同一个 ibv_context 调用 ibv_create_qp 超出16次，则会出现复用 BFREG 的情况。</li>
+</ul>
+<hr>
+<p><strong>篇尾：</strong></p>
+<ul>
+<li>HUATUO 华佗是由滴滴开源并依托 CCF 孵化的操作系统深度观测项目。</li>
+<li>关注微信公众号，或扫码加微信，邀请你加入用户群（请备注姓名+单位）：</li>
+</ul>
+<p><img src="/img/contact-weixin.png" alt="微信"></p>
+<ul>
+<li>仓库1：<a href="https://github.com/ccfos/huatuo">https://github.com/ccfos/huatuo</a></li>
+<li>仓库2：<a href="https://gitlink.org.cn/ccfos/huatuo">https://gitlink.org.cn/ccfos/huatuo</a></li>
+<li>官网：<a href="https://github.com/ccfos/huatuo">https://huatuo.tech/</a></li>
+</ul>
+
+                        </div>
+
+                        
+                        
+                        
+                        <div id="comments"><script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+</div>
+                        
+
+                    </div>
+                    
+
+                    
+
+                    
+
+                    <div class="col-md-3">
+
+                        
+
+                        
+
+<div class="panel panel-default sidebar-menu">
+
+    <div class="panel-heading">
+      <h3 class="panel-title">搜索</h3>
+    </div>
+
+    <div class="panel-body">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" role="search">
+            <div class="input-group">
+                <input type="search" name="q" class="form-control" placeholder="搜索" />
+                <input type="hidden" name="sitesearch" value="https://huatuo.tech/" />
+                <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">标签</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/zh/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/huatuo"><i class="fas fa-tags"></i> huatuo</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/rdma"><i class="fas fa-tags"></i> rdma</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e5%8a%a8%e6%80%81"><i class="fas fa-tags"></i> 动态</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+
+                        
+
+                    </div>
+                    
+
+                    
+
+                </div>
+                
+
+            </div>
+            
+        </div>
+        
+
+        <footer id="footer">
+    <div class="container">
+
+        
+        <div class="col-md-4 col-sm-6">
+            <h4>关于我们</h4>
+
+            基础软件技术研究者，Linux 内核开发者。
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+        <div class="col-md-4 col-sm-6">
+
+            
+
+        </div>
+        
+
+        
+            
+            
+            <div class="col-md-4 col-sm-6">
+                <h4>联系</h4>
+                <p class="text-uppercase"><strong>HUATUO 开源社区, 欢迎技术交流</strong>
+        <br>中国北京市海淀区西二旗软件园。
+        <br>
+      </p>
+      
+                <a href="/about" class="btn btn-small btn-template-main">跳到联系页面</a>
+                <hr class="hidden-md hidden-lg hidden-sm">
+            </div>
+            
+        
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026 HUATUO 开源社区。</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+    
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+
+<script src="/js/front.js"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

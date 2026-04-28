@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>RDMA on HUATUO 开源社区</title>
+    <link>https://huatuo.tech/zh/tags/rdma/</link>
+    <description>Recent content in RDMA on HUATUO 开源社区</description>
+    <generator>Hugo</generator>
+    <language>zh</language>
+    <lastBuildDate>Tue, 28 Apr 2026 23:20:29 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/zh/tags/rdma/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>RDMA 关键技术研究：Doorbell, UAR</title>
+      <link>https://huatuo.tech/zh/blog/2026-04-14-rdma-key-technology-research-doorbell-uar-user-access-region/</link>
+      <pubDate>Tue, 14 Apr 2026 06:36:13 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-04-14-rdma-key-technology-research-doorbell-uar-user-access-region/</guid>
+      <description>该文重点分析 UAR, User Access Region 的内存布局，分配时机，映射方式，用户态和内核态代码实现等。</description>
+    </item>
+    <item>
+      <title>RDMA 关键技术研究：Memory Window</title>
+      <link>https://huatuo.tech/zh/blog/2026-04-09-rdma-key-technology-research-memory-window/</link>
+      <pubDate>Thu, 09 Apr 2026 08:27:32 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-04-09-rdma-key-technology-research-memory-window/</guid>
+      <description>该文主要分析 Memory window 作用，用户态和内核态代码实现方式，硬件原理，和一些思考。</description>
+    </item>
+    <item>
+      <title>RDMA 关键技术研究：Queue Pairs</title>
+      <link>https://huatuo.tech/zh/blog/2026-04-08-rdma-key-technology-research-queue-pairs/</link>
+      <pubDate>Wed, 08 Apr 2026 09:19:43 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-04-08-rdma-key-technology-research-queue-pairs/</guid>
+      <description>该文主要分析 QPs, SQ, RQ 作用，用户态接口，内核实现方式，硬件原理，一些思考。</description>
+    </item>
+    <item>
+      <title>RDMA 关键技术研究：MR Memory Region</title>
+      <link>https://huatuo.tech/zh/blog/2026-04-07-rdma-key-technology-research-memory-region/</link>
+      <pubDate>Tue, 07 Apr 2026 10:34:48 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-04-07-rdma-key-technology-research-memory-region/</guid>
+      <description>该文主要分析 Memory Region 作用，内核实现原理，锁页避免内存交换的原因，硬件原理。</description>
+    </item>
+  </channel>
+</rss>
