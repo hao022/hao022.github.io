@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Blkio on Linux Kernel, Cloud-native and AI Infra Observability.</title>
+    <link>https://huatuo.tech/tags/blkio/</link>
+    <description>Recent content in Blkio on Linux Kernel, Cloud-native and AI Infra Observability.</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Wed, 06 May 2026 15:56:14 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/tags/blkio/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>New Feature: eBPF-Based Block Device I/O Latency Metrics</title>
+      <link>https://huatuo.tech/blog/2026-05-06-container-level-block-device-io-delay-based-on-ebpf/</link>
+      <pubDate>Tue, 05 May 2026 23:17:00 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2026-05-06-container-level-block-device-io-delay-based-on-ebpf/</guid>
+      <description>Linux cgroup-level, hardware-level.</description>
+    </item>
+  </channel>
+</rss>

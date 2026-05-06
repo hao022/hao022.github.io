@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>BPF Foundation on Linux Kernel, Cloud-native and AI Infra Observability.</title>
+    <link>https://huatuo.tech/tags/bpf-foundation/</link>
+    <description>Recent content in BPF Foundation on Linux Kernel, Cloud-native and AI Infra Observability.</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Wed, 06 May 2026 15:56:14 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/tags/bpf-foundation/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>eBPF Emerging Project</title>
+      <link>https://huatuo.tech/events/2026-01-22-huatuo-and-ebpf-foundation-work-together/</link>
+      <pubDate>Thu, 22 Jan 2026 05:52:37 -0500</pubDate>
+      <guid>https://huatuo.tech/events/2026-01-22-huatuo-and-ebpf-foundation-work-together/</guid>
+      <description>HUATUO (华佗) 被 eBPF 基金会列为新兴项目，标志着行业对该项目社区实力与生态价值的认可。eBPF 已经被广泛应用于可观测性领域。</description>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>王洪磊 on HUATUO 开源社区</title>
+    <link>https://huatuo.tech/zh/authors/%E7%8E%8B%E6%B4%AA%E7%A3%8A/</link>
+    <description>Recent content in 王洪磊 on HUATUO 开源社区</description>
+    <generator>Hugo</generator>
+    <language>zh</language>
+    <lastBuildDate>Wed, 06 May 2026 15:56:14 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/zh/authors/%E7%8E%8B%E6%B4%AA%E7%A3%8A/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Linux 内核 RAS 原理剖析与实践案例</title>
+      <link>https://huatuo.tech/zh/blog/2026-03-26-the-linux-kernel-ras-practical/</link>
+      <pubDate>Thu, 26 Mar 2026 03:39:25 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-03-26-the-linux-kernel-ras-practical/</guid>
+      <description>本篇介绍 Linux 内核 RAS, MCE, AER 等硬件故障检查原理。HUATUO 华佗项目依赖该检测机制实现了通用硬件故障监控。</description>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>官方小编 on HUATUO 开源社区</title>
+    <link>https://huatuo.tech/zh/authors/%E5%AE%98%E6%96%B9%E5%B0%8F%E7%BC%96/</link>
+    <description>Recent content in 官方小编 on HUATUO 开源社区</description>
+    <generator>Hugo</generator>
+    <language>zh</language>
+    <lastBuildDate>Wed, 06 May 2026 15:56:14 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/zh/authors/%E5%AE%98%E6%96%B9%E5%B0%8F%E7%BC%96/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>HUATUO 华佗被 eBPF 基金会列为新兴项目</title>
+      <link>https://huatuo.tech/zh/events/2026-01-22-huatuo-and-ebpf-foundation-work-together/</link>
+      <pubDate>Thu, 22 Jan 2026 05:52:37 -0500</pubDate>
+      <guid>https://huatuo.tech/zh/events/2026-01-22-huatuo-and-ebpf-foundation-work-together/</guid>
+      <description>HUATUO (华佗) 被 eBPF 基金会列为新兴项目，标志着行业对该项目社区实力与生态价值的认可。eBPF 已经被广泛应用于可观测性领域。</description>
+    </item>
+    <item>
+      <title>滴滴出行荣获腾讯操作系统生态OC, 杰出贡献单位</title>
+      <link>https://huatuo.tech/zh/events/2025-12-20-huatuo-and-tencent-outstanding-contribution/</link>
+      <pubDate>Fri, 19 Dec 2025 21:43:17 -0500</pubDate>
+      <guid>https://huatuo.tech/zh/events/2025-12-20-huatuo-and-tencent-outstanding-contribution/</guid>
+      <description>近日，2025 OpenCloudOS 操作系统生态大会在北京成功举办。会上，滴滴出行荣获年度“杰出贡献单位”奖，体现腾讯操作系统社区对滴滴出行所做贡献的高度认可，更彰显了HUATUO（华佗）社区在推动操作系统可观测生态繁荣方面所做的深刻实践</description>
+    </item>
+  </channel>
+</rss>

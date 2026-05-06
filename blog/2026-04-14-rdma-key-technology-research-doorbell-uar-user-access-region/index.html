@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>RDMA: Doorbell, UAR</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, RDMA">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='//fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300italic,500,700,800' rel='stylesheet' type='text/css'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1778082979" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="Linux Kernel, Cloud-native and AI Infra Observability.">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en">
+<meta property="og:site_name" content="Linux Kernel, Cloud-native and AI Infra Observability.">
+<meta property="og:title" content="RDMA: Doorbell, UAR">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/blog/2026-04-14-rdma-key-technology-research-doorbell-uar-user-access-region/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2026-04-09-rdma-cover.jpg">
+<meta property="og:image:type" content="image/jpg">
+
+
+
+  <meta property="og:image:width" content="300">
+  <meta property="og:image:height" content="200">
+
+
+<meta property="og:updated_time" content="2026-05-06T15:56:14Z">
+
+  
+  
+  
+  <meta property="article:tag" content="RDMA">
+  
+  
+  <meta property="article:published_time" content="2026-04-14T06:36:13-0400">
+  <meta property="article:modified_time" content="2026-05-06T15:56:14Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="RDMA: Doorbell, UAR">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2026-04-09-rdma-cover.jpg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+    
+  </head>
+
+  <body>
+
+    <div id="all">
+
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+            ⭐️ If you like this project, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>! ⭐️
+        </p>
+      
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm mouseover" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/logo.png" alt="RDMA: Doorbell, UAR logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/logo-small.png" alt="RDMA: Doorbell, UAR logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">RDMA: Doorbell, UAR - go to homepage</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">Toggle Navigation</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Docs <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="https://docs.huatuo.tech/en/latest/">Latest</a></li>
+                            
+                            <li><a href="https://docs.huatuo.tech/en/v2.2.0/">V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Download <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="https://hub.docker.com/r/huatuo/huatuo-bamai/tags">Dockerhub</a></li>
+                            
+                            <li><a href="https://github.com/ccfos/huatuo/releases">Release</a></li>
+                            
+                            <li><a href="https://github.com/ccfos/huatuo">Github</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    <a href="/blog/">Blog</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/milestone/">News</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/about/">About</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                      English <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                      
+                        
+                      
+                        
+                          <li>
+                            
+                            <a href="/zh/">
+                              中文
+                            </a>
+                          </li>
+                        
+                      
+                    </ul>
+                </li>
+                
+                
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        <div id="heading-breadcrumbs">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>RDMA: Doorbell, UAR</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+        <div id="content">
+            <div class="container">
+
+                <div class="row">
+
+                    
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                          <p class="text-muted text-uppercase mb-small text-right">
+                            
+                                
+                                LastUpdate: 2026-05-06,
+			                    Author: <a href="/authors/hao022">HAO022</a>
+                            
+                          </p>
+                        
+
+                        <div id="post-content">
+                          <h3 id="uar-user-access-region">UAR, User Access Region</h3>
+<p><strong>UAR</strong></p>
+<p>The UAR is a region within the PCI address space. It contains device memory and registers. (Users may control the device via registers). The memory space address of the UAR is exposed as a PCI BAR and mapped to kernel space via IO-mapped I/O. A UAR typically occupies one system page of memory. At the driver layer, different UARs are mapped for different processes to achieve resource isolation. Furthermore, the CPU can directly access the mapped memory. This reduces context switches between kernel mode and user mode, thereby lowering latency. A very typical use case for the UAR is the Doorbell Register. A user-mode process may write directly to the Doorbell Register to trigger a hardware operation. The UAR has applications in scenarios such as NIC communication, storage services, and GPU computing. The primary components of the Mellanox NIC UAR Page format layout are:</p>
+<ul>
+<li>Completion WQ DoorBells: Stored in CQ registers</li>
+<li>Event WQ DoorBells: Stored in EQ registers</li>
+<li>Send DoorBells: Stored in Blue Flame registers</li>
+</ul>
+<p><strong>Memory Layout</strong></p>
+<p><img src="/img/blog/2025-04-18-db-01.png" alt="">
+<img src="/img/blog/2025-04-18-db-02.jpeg" alt=""></p>
+<p><strong>Blue Flame Reg</strong></p>
+<p>The Blue Flame Register is a technology implemented by Mellanox for the purpose of fast hardware resource access. The user may write WQEs directly to the device. Therefore, the device is not required to copy memory from the host, which in turn reduces latency. In terms of specific implementation, BlueFlame comprises a set of uniformly sized registers. Each register is 512B. A register is further divided into two uniformly sized Blue Flame Buffers.</p>
+<p><strong>Doorbell Record</strong></p>
+<p>The Doorbell Record is located in system physical memory. When an RQ/SQ is created, the memory address of the Doorbell Record is assigned to the hardware. The Doorbell Record primarily stores the SQ <code>sq_wqebb_counter</code> and the RQ, SRQ <code>wqe_counter</code>. These markers indicate the number of WQEs that have been submitted to the hardware queue.
+<img src="/img/blog/2025-04-18-db-record-format.jpeg" alt=""></p>
+<p><strong>Submitting a Request to a Work Queue</strong></p>
+<ul>
+<li>Write WQE to the WQE buffer sequentially to previously-posted WQE (on WQEBB granularity).</li>
+<li>Update Doorbell Record associated with that queue by writing their <code>sq_wqebb_counter</code> or <code>wqe_counter</code> for send and RQ respectively</li>
+<li>For send request ring DoorBell by writing to the Doorbell Register field in the UAR associated with that queue. For performance-critical send WQEs DoorBell can be rang by using the BlueFlame mechanism.</li>
+</ul>
+<p>Note: 1. For send requests, the execution of the third step is performed to ensure the WQE is executed. At the second step, the hardware has already executed the WQE. For WQEs that have already been executed, ringing the doorbell again does not cause harm; the hardware will ignore the event. 2. Software may submit WQEs in batches at the first step. The parameters updated at the second step include all WQEs.</p>
+<h3 id="doorbell-record-mapping">Doorbell Record Mapping</h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>ibv_create_qp <span style="color:#960050;background-color:#1e0010">…</span> mlx5_create_qp <span style="color:#960050;background-color:#1e0010">…</span> mlx5_alloc_dbrec <span style="color:#960050;background-color:#1e0010">…</span> kernel create_user_qp:
+</span></span></code></pre></div><ul>
+<li>Doorbell Record memory is allocated.</li>
+<li>The virtual address of this memory is passed to the kernel driver.</li>
+<li>The driver performs physical allocation, page pinning, DMA mapping, etc., for this memory.</li>
+<li>Finally, it is assigned to the QPC, and the hardware resource QP is created.</li>
+</ul>
+<p><strong>User-mode code</strong>:
+<code>providers/mlx5/verbs.c</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>mlx5_create_qp
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Returns a segment of virtual memory.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// This memory will be used for the send and receive Doorbell Records in the future.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        qp<span style="color:#f92672">-&gt;</span>db <span style="color:#f92672">=</span> mlx5_alloc_dbrec
+</span></span><span style="display:flex;"><span>        qp<span style="color:#f92672">-&gt;</span>db[MLX5_RCV_DBR] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>        qp<span style="color:#f92672">-&gt;</span>db[MLX5_SND_DBR] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Pass to kernel.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        cmd.db_addr  <span style="color:#f92672">=</span> (<span style="color:#66d9ef">uintptr_t</span>) qp<span style="color:#f92672">-&gt;</span>db;
+</span></span><span style="display:flex;"><span>        ...
+</span></span></code></pre></div><p><strong>Kernel driver code</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>mlx5_ib_create_qp create_user_qp
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Allocates physical memory, pins pages, maps.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        mlx5_ib_db_map_user
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Assigns the DMA address of this memory to the hardware.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#a6e22e">MLX5_SET64</span>(qpc, qpc, dbr_addr, qp<span style="color:#f92672">-&gt;</span>db.dma);
+</span></span><span style="display:flex;"><span>        ...
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">mlx5_ib_db_map_user</span>(<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">long</span> virt ...)
+</span></span><span style="display:flex;"><span>        page <span style="color:#f92672">=</span> <span style="color:#a6e22e">kmalloc</span>();
+</span></span><span style="display:flex;"><span>        page<span style="color:#f92672">-&gt;</span>user_virt <span style="color:#f92672">=</span> (virt <span style="color:#f92672">&amp;</span> PAGE_MASK);
+</span></span><span style="display:flex;"><span>        page<span style="color:#f92672">-&gt;</span>umem <span style="color:#f92672">=</span> <span style="color:#a6e22e">ib_umem_get</span>();
+</span></span><span style="display:flex;"><span>        db<span style="color:#f92672">-&gt;</span>dma <span style="color:#f92672">=</span> <span style="color:#a6e22e">sg_dma_address</span>();
+</span></span><span style="display:flex;"><span>        ...
+</span></span></code></pre></div><h3 id="doorbell-register-mapping">Doorbell Register Mapping</h3>
+<p>Mapping the register to user mode involves the <code>ibv_open_device</code> and <code>ibv_create_qp</code>:</p>
+<ul>
+<li><code>ibv_open_device</code> … <code>mlx5_alloc_context</code> … kernel <code>mlx5_ib_alloc_ucontext</code>:
+<ul>
+<li>Device context is allocated.</li>
+<li>Hardware allocates UAR.</li>
+<li>User maps UAR.</li>
+</ul>
+</li>
+<li><code>ibv_create_qp</code> … <code>mlx5_create_qp</code> … kernel <code>create_user_qp</code>:
+<ul>
+<li>UAR ID is associated with QP.</li>
+<li>An available UAR index is returned.</li>
+</ul>
+</li>
+</ul>
+<h4 id="1-ibv_open_device-uar-mapping">1. ibv_open_device UAR Mapping</h4>
+<ul>
+<li>
+<p><strong><code>ibv_open_device</code> User-mode Code (1)</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>ibv_open_device mlx5_alloc_context
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Number of requested registers, default is 16.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// Configurable via environment variable MLX5_TOTAL_UUARS.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        req.total_num_bfregs <span style="color:#f92672">=</span> context<span style="color:#f92672">-&gt;</span>tot_uuars;
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Number of requested low-latency registers, default is 4.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// Configurable via environment variable MLX5_NUM_LOW_LAT_UUARS.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        req.num_low_latency_bfregs <span style="color:#f92672">=</span> context<span style="color:#f92672">-&gt;</span>low_lat_uuars;
+</span></span><span style="display:flex;"><span>        req.lib_caps <span style="color:#f92672">|=</span> (MLX5_LIB_CAP_4K_UAR <span style="color:#f92672">|</span> MLX5_LIB_CAP_DYN_UAR);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Calls kernel mlx5_ib_alloc_ucontext to return device attributes
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#a6e22e">mlx5_cmd_get_context</span>(req, resp ... ) ...
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Initializes device context and UAR mapping based on the returned device attributes.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        mlx5_set_context
+</span></span></code></pre></div></li>
+<li>
+<p><strong><code>alloc_ucontext</code> Kernel-mode Code (1)</strong>:</p>
+<p>The IB device allocates the kernel-mode device context via <code>ib_device_ops.alloc_ucontext</code>. This information is stored in the structure <code>ibucontext</code> or the private structure <code>mlx5_ib_ucontext</code>.
+The <code>mlx5_ib_ucontext</code> structure member <code>mlx5_bfreg_info</code> maintains UAR information.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> mlx5_ib_ucontext {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">struct</span> ib_ucontext ibucontext;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">struct</span> mlx5_bfreg_info bfregi;
+</span></span><span style="display:flex;"><span>        ...
+</span></span><span style="display:flex;"><span>};
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> mlx5_bfreg_info {
+</span></span><span style="display:flex;"><span>        u32 <span style="color:#f92672">*</span>sys_pages; <span style="color:#75715e">// UAR ID
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">int</span> num_low_latency_bfregs;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>count;
+</span></span><span style="display:flex;"><span>        u32 num_sys_pages;
+</span></span><span style="display:flex;"><span>        u32 num_static_sys_pages;
+</span></span><span style="display:flex;"><span>        u32 total_num_bfregs;
+</span></span><span style="display:flex;"><span>        u32 num_dyn_bfregs;
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><p>The NIC hardware may operate on different platforms. The page size supported by a platform may be configured according to the kernel build option <code>CONFIG_PAGE_SHIFT</code>, which is typically 4K. It should also be understood that the total number of BFREGs per UAR is <code>NUM_BFREGS_PER_UAR</code> (4). Among these, <code>MLX5_NUM_NON_FP_BFREGS_PER_UAR</code> (2) are used for the slow path (No Fast Path). In the kernel implementation, <code>mlx5_ib_alloc_ucontext</code> calls <code>calc_total_bfregs</code> to initialize <code>mlx5_bfreg_info</code> based on the request and hardware configuration information. Finally, <code>mlx5_ib_alloc_ucontext</code> calls <code>allocate_uars</code> to allocate hardware UARs. The command parameters and return values for the Mellanox hardware UAR resource creation command are shown in the following figure.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>calc_total_bfregs
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// One UAR corresponds to one system page (4K).
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// Each UAR contains NUM_BFREGS_PER_UAR (4) BFREGs,
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// two of which are used for the non-fast path MLX5_NUM_NON_FP_BFREGS_PER_UAR.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// 
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// total_num_bfregs 16 static registers (the number of registers requested by the user mode)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// Since each UAR supports MLX5_NUM_NON_FP_BFREGS_PER_UAR (2) slow-path registers,
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// 8 UARs are required, i.e., 8 system pages.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        bfregi<span style="color:#f92672">-&gt;</span>num_static_sys_pages <span style="color:#f92672">=</span> <span style="color:#ae81ff">8</span>;
+</span></span><span style="display:flex;"><span>        bfregi<span style="color:#f92672">-&gt;</span>num_dyn_bfregs <span style="color:#f92672">=</span> <span style="color:#ae81ff">1024</span>; <span style="color:#75715e">// Dynamic registers, default is 1024
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// Dynamic + Static registers: 1040
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        bfregi<span style="color:#f92672">-&gt;</span>total_num_bfregs <span style="color:#f92672">=</span> req<span style="color:#f92672">-&gt;</span>total_num_bfregs <span style="color:#f92672">+</span> bfregi<span style="color:#f92672">-&gt;</span>num_dyn_bfregs;
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Total system pages required: 8
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        bfregi<span style="color:#f92672">-&gt;</span>num_sys_pages <span style="color:#f92672">=</span> req<span style="color:#f92672">-&gt;</span>total_num_bfregs <span style="color:#f92672">/</span> <span style="color:#ae81ff">2</span>;
+</span></span><span style="display:flex;"><span>        bfregi<span style="color:#f92672">-&gt;</span>sys_pages <span style="color:#f92672">=</span> <span style="color:#a6e22e">kcalloc</span>(bfregi<span style="color:#f92672">-&gt;</span>num_sys_pages, ....);
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>allocate_uars <span style="color:#75715e">// Allocates num_static_sys_pages hardware UAR resources
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">for</span> (i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> bfregi<span style="color:#f92672">-&gt;</span>num_static_sys_pages; i<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// sys_pages stores the UAR ID. This information is returned by the hardware.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#a6e22e">mlx5_cmd_alloc_uar</span>(dev<span style="color:#f92672">-&gt;</span>mdev, <span style="color:#f92672">&amp;</span>bfregi<span style="color:#f92672">-&gt;</span>sys_pages[i]);
+</span></span><span style="display:flex;"><span>        }
+</span></span></code></pre></div><p><img src="/img/blog/2025-04-18-db-uar-alloc-input-format.jpeg" alt="">
+<img src="/img/blog/2025-04-18-db-uar-alloc-output-format.jpeg" alt=""></p>
+</li>
+<li>
+<p><strong><code>ibv_open_device</code> User-mode Code (2)</strong>:</p>
+<p>The user-mode program completes the UAR resource mapping based on the information returned by the kernel:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>(gdb) p <span style="color:#f92672">*</span>resp
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">$</span><span style="color:#ae81ff">4</span> <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>        bf_reg_size <span style="color:#f92672">=</span> <span style="color:#ae81ff">512</span>,              <span style="color:#75715e">// BF register memory size
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        tot_bfregs <span style="color:#f92672">=</span> <span style="color:#ae81ff">16</span>,                <span style="color:#75715e">// Number of static BF registers
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        num_dyn_bfregs <span style="color:#f92672">=</span> <span style="color:#ae81ff">1024</span>,          <span style="color:#75715e">// Number of dynamic BF registers
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        num_uars_per_page <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>,          <span style="color:#75715e">// Number of UARs contained per system page
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        log_uar_size <span style="color:#f92672">=</span> <span style="color:#ae81ff">12</span>,              <span style="color:#75715e">// UAR memory equals 4K
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        qp_tab_size <span style="color:#f92672">=</span> <span style="color:#ae81ff">262144</span>,
+</span></span><span style="display:flex;"><span>        cache_line_size <span style="color:#f92672">=</span> <span style="color:#ae81ff">64</span>,
+</span></span><span style="display:flex;"><span>        max_sq_desc_sz <span style="color:#f92672">=</span> <span style="color:#ae81ff">1024</span>,
+</span></span><span style="display:flex;"><span>        max_rq_desc_sz <span style="color:#f92672">=</span> <span style="color:#ae81ff">512</span>,
+</span></span><span style="display:flex;"><span>        max_send_wqebb <span style="color:#f92672">=</span> <span style="color:#ae81ff">32768</span>,
+</span></span><span style="display:flex;"><span>        max_recv_wr <span style="color:#f92672">=</span> <span style="color:#ae81ff">32768</span>,
+</span></span><span style="display:flex;"><span>        max_srq_recv_wr <span style="color:#f92672">=</span> <span style="color:#ae81ff">32768</span>,
+</span></span><span style="display:flex;"><span>        num_ports <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>,
+</span></span><span style="display:flex;"><span>        flow_action_flags <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>,
+</span></span><span style="display:flex;"><span>        comp_mask <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>,
+</span></span><span style="display:flex;"><span>        response_length <span style="color:#f92672">=</span> <span style="color:#ae81ff">72</span>,
+</span></span><span style="display:flex;"><span>        cqe_version <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#e6db74">&#39;\001&#39;</span>,
+</span></span><span style="display:flex;"><span>        cmds_supp_uhw <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span> <span style="color:#e6db74">&#39;\003&#39;</span>,
+</span></span><span style="display:flex;"><span>        eth_min_inline <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span> <span style="color:#e6db74">&#39;\002&#39;</span>,
+</span></span><span style="display:flex;"><span>        clock_info_versions <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#e6db74">&#39;\001&#39;</span>,
+</span></span><span style="display:flex;"><span>        hca_core_clock_offset <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>,
+</span></span><span style="display:flex;"><span>        dump_fill_mkey <span style="color:#f92672">=</span> <span style="color:#ae81ff">1792</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>ibv_open_device ... mlx5_alloc_context ... mlx5_set_context
+</span></span><span style="display:flex;"><span>        ...
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Total 32 BFREG registers
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        gross_uuars <span style="color:#f92672">=</span> context<span style="color:#f92672">-&gt;</span>tot_uuars <span style="color:#f92672">/</span> MLX5_NUM_NON_FP_BFREGS_PER_UAR <span style="color:#f92672">*</span> NUM_BFREGS_PER_UAR;
+</span></span><span style="display:flex;"><span>        context<span style="color:#f92672">-&gt;</span>bfs <span style="color:#f92672">=</span> <span style="color:#a6e22e">calloc</span>(gross_uuars, <span style="color:#66d9ef">sizeof</span>(<span style="color:#f92672">*</span>context<span style="color:#f92672">-&gt;</span>bfs));
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        num_sys_page_map <span style="color:#f92672">=</span> context<span style="color:#f92672">-&gt;</span>tot_uuars <span style="color:#f92672">/</span> (context<span style="color:#f92672">-&gt;</span>num_uars_per_page <span style="color:#f92672">*</span> MLX5_NUM_NON_FP_BFREGS_PER_UAR);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 8 UAR memory mappings
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">for</span> (i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> num_sys_page_map; <span style="color:#f92672">++</span>i) {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// context-&gt;uar mapping
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#a6e22e">mlx5_mmap</span>(<span style="color:#f92672">&amp;</span>context<span style="color:#f92672">-&gt;</span>uar[i], i, cmd_fd, ... MLX5_UAR_TYPE_REGULAR);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Flattens context-&gt;uar[].reg into the array context-&gt;bfs[].reg
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        ...
+</span></span></code></pre></div></li>
+<li>
+<p><strong><code>mlx5_mmap</code> Kernel-mode Code (2)</strong>:</p>
+<p><code>mmap</code> exposes hardware resources (such as registers, memory regions) as addresses accessible to user space. This permits the user-mode program to bypass the kernel and operate these hardware resources directly. This approach avoids context switches and data copying, which reduces latency and increases throughput. In the Mellanox implementation, <code>mmap</code> implements the mapping of UAR resources. The process of UAR mapping is as follows: The index passed from user mode is obtained. The PCIe address is obtained according to this index. Finally, the device address and the user-mode <code>vma</code> address are remapped.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>ib_device_ops.mmap <span style="color:#f92672">=</span> mlx5_ib_mmap
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">mlx5_ib_mmap</span>(<span style="color:#66d9ef">struct</span> ib_ucontext <span style="color:#f92672">*</span>ibcontext, <span style="color:#66d9ef">struct</span> vm_area_struct <span style="color:#f92672">*</span>vma)
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// The offset contains the operation type and the UAR INDEX.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        command <span style="color:#f92672">=</span> <span style="color:#a6e22e">get_command</span>(vma<span style="color:#f92672">-&gt;</span>vm_pgoff);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">case</span> MLX5_IB_MMAP_REGULAR_PAGE:
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 1. The command operation is obtained according to vm_pgoff.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// 2. The UAR index is obtained according to vm_pgoff, and the device physical address is derived from it.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// 3. The physical address and the vma virtual address are remapped.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#a6e22e">uar_mmap</span>(dev, command, vma, context);
+</span></span><span style="display:flex;"><span>        ...
+</span></span></code></pre></div></li>
+<li>
+<p>Mapping Relationship
+<img src="/img/blog/2025-04-18-db-reg-ioremap.png" alt=""></p>
+</li>
+</ul>
+<h4 id="2-ibv_create_qp-uar-qp-association">2. ibv_create_qp UAR QP Association</h4>
+<p><code>mlx5_create_qp</code> completes the association of the QP with a specific UAR.</p>
+<ul>
+<li>
+<p><strong>User-mode code</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>mlx5_create_qp
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Creates QP.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        ibv_cmd_create_qp_ex
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 1. The newly created QP is not associated with all UAR resources.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// Instead, the UAR to be used is determined based on the returned bfreg_index.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">//
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// Assigns this register to qp.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// In fact, 16 registers are supported after ibv_open_device.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// 2. qp-&gt;bf = &amp;ctx-&gt;bfs[uuar_index];
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#a6e22e">map_uuar</span>(context, qp, resp_drv<span style="color:#f92672">-&gt;</span>bfreg_index, bf);
+</span></span></code></pre></div></li>
+<li>
+<p><strong>Kernel code</strong>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>create_user_qp
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 1. Selects an available bfreg from the already allocated context-&gt;bfregi.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        bfregn <span style="color:#f92672">=</span> <span style="color:#a6e22e">alloc_bfreg</span>(dev, <span style="color:#f92672">&amp;</span>context<span style="color:#f92672">-&gt;</span>bfregi);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 2. Obtains the sys_page based on bfreg, storing the UAR ID.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        uar_index <span style="color:#f92672">=</span> <span style="color:#a6e22e">bfregn_to_uar_index</span>(dev, <span style="color:#f92672">&amp;</span>context<span style="color:#f92672">-&gt;</span>bfregi, bfregn, false);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 3. Associates the QP with the UAR ID.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#a6e22e">MLX5_SET</span>(qpc, qpc, uar_page, uar_index);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 4. Returns the associated index.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        resp<span style="color:#f92672">-&gt;</span>bfreg_index <span style="color:#f92672">=</span> ...;
+</span></span></code></pre></div></li>
+</ul>
+<h3 id="diagram">Diagram</h3>
+<p><img src="/img/blog/2025-04-18-ctrl-memory-db-record-reg-ioremap.png" alt=""></p>
+<h3 id="considerations">Considerations</h3>
+<ul>
+<li>During the execution of <code>ibv_open_device</code>, Mellanox actually allocates and maps 8 UARs and 16 registers. If <code>ibv_create_qp</code> is called more than 16 times within the same <code>ibv_context</code>, reuse of BFREGs will occur.</li>
+</ul>
+<hr>
+<p><a href="https://github.com/ccfos/huatuo">HUATUO</a> is an operating system observability project open-sourced by DiDi and incubated under the China Computer Federation (CCF).</p>
+<p><img src="/img/contact-weixin.png" alt="微信"></p>
+
+                        </div>
+
+                        
+                        
+                        
+                        <div id="comments"><script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+</div>
+                        
+
+                    </div>
+                    
+
+                    
+
+                    
+
+                    <div class="col-md-3">
+
+                        
+
+                        
+
+<div class="panel panel-default sidebar-menu">
+
+    <div class="panel-heading">
+      <h3 class="panel-title">Search</h3>
+    </div>
+
+    <div class="panel-body">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" role="search">
+            <div class="input-group">
+                <input type="search" name="q" class="form-control" placeholder="Search" />
+                <input type="hidden" name="sitesearch" value="https://huatuo.tech/" />
+                <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">Tags</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/tags/blkio"><i class="fas fa-tags"></i> blkio</a>
+            </li>
+            
+            <li >
+                <a href="/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/bpf-foundation"><i class="fas fa-tags"></i> bpf foundation</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ccf"><i class="fas fa-tags"></i> ccf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/containers"><i class="fas fa-tags"></i> containers</a>
+            </li>
+            
+            <li >
+                <a href="/tags/cpuidle"><i class="fas fa-tags"></i> cpuidle</a>
+            </li>
+            
+            <li >
+                <a href="/tags/hao022"><i class="fas fa-tags"></i> hao022</a>
+            </li>
+            
+            <li >
+                <a href="/tags/huatuo"><i class="fas fa-tags"></i> huatuo</a>
+            </li>
+            
+            <li >
+                <a href="/tags/k8s"><i class="fas fa-tags"></i> k8s</a>
+            </li>
+            
+            <li >
+                <a href="/tags/linux-%e5%86%85%e6%a0%b8"><i class="fas fa-tags"></i> linux 内核</a>
+            </li>
+            
+            <li >
+                <a href="/tags/loadavg"><i class="fas fa-tags"></i> loadavg</a>
+            </li>
+            
+            <li >
+                <a href="/tags/netrecvlat"><i class="fas fa-tags"></i> netrecvlat</a>
+            </li>
+            
+            <li >
+                <a href="/tags/networking"><i class="fas fa-tags"></i> networking</a>
+            </li>
+            
+            <li >
+                <a href="/tags/rdma"><i class="fas fa-tags"></i> rdma</a>
+            </li>
+            
+            <li >
+                <a href="/tags/rlease"><i class="fas fa-tags"></i> rlease</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7"><i class="fas fa-tags"></i> 可观测性</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%90%88%e4%bd%9c"><i class="fas fa-tags"></i> 合作</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%a4%9c%e8%8e%ba%e7%9b%91%e6%8e%a7"><i class="fas fa-tags"></i> 夜莺监控</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%bc%80%e6%ba%90"><i class="fas fa-tags"></i> 开源</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%81%ab%e7%84%b0%e5%9b%be"><i class="fas fa-tags"></i> 火焰图</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%bd%91%e7%bb%9c%e4%bc%98%e5%8c%96"><i class="fas fa-tags"></i> 网络优化</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e8%8d%a3%e8%aa%89"><i class="fas fa-tags"></i> 荣誉</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+
+                        
+
+                    </div>
+                    
+
+                    
+
+                </div>
+                
+
+            </div>
+            
+        </div>
+        
+
+        <footer id="footer">
+    <div class="container">
+
+        
+        <div class="col-md-4 col-sm-6">
+            <h4>About us</h4>
+
+            Linux kernel developers, and observability developers.
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+        <div class="col-md-4 col-sm-6">
+
+            
+
+        </div>
+        
+
+        
+            
+            
+        
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026, HUATUO Open Source Community.</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+    
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+
+<script src="/js/front.js"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

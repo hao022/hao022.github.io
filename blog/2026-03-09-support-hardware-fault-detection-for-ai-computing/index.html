@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>新特性！支持 AI 计算硬件故障检测</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, 故障">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='//fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300italic,500,700,800' rel='stylesheet' type='text/css'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1778082979" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="Linux Kernel, Cloud-native and AI Infra Observability.">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en">
+<meta property="og:site_name" content="Linux Kernel, Cloud-native and AI Infra Observability.">
+<meta property="og:title" content="新特性！支持 AI 计算硬件故障检测">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/blog/2026-03-09-support-hardware-fault-detection-for-ai-computing/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2026-03-09-cover.jpg">
+<meta property="og:image:type" content="image/jpg">
+
+
+
+  <meta property="og:image:width" content="600">
+  <meta property="og:image:height" content="400">
+
+
+<meta property="og:updated_time" content="2026-05-06T15:56:14Z">
+
+  
+  
+  
+  <meta property="article:tag" content="HUATUO">
+  <meta property="article:tag" content="BPF">
+  <meta property="article:tag" content="故障">
+  
+  
+  <meta property="article:published_time" content="2026-03-08T09:56:26-0400">
+  <meta property="article:modified_time" content="2026-05-06T15:56:14Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="新特性！支持 AI 计算硬件故障检测">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2026-03-09-cover.jpg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+    
+  </head>
+
+  <body>
+
+    <div id="all">
+
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+            ⭐️ If you like this project, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>! ⭐️
+        </p>
+      
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm mouseover" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/logo.png" alt="新特性！支持 AI 计算硬件故障检测 logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/logo-small.png" alt="新特性！支持 AI 计算硬件故障检测 logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">新特性！支持 AI 计算硬件故障检测 - go to homepage</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">Toggle Navigation</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Docs <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="https://docs.huatuo.tech/en/latest/">Latest</a></li>
+                            
+                            <li><a href="https://docs.huatuo.tech/en/v2.2.0/">V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Download <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="https://hub.docker.com/r/huatuo/huatuo-bamai/tags">Dockerhub</a></li>
+                            
+                            <li><a href="https://github.com/ccfos/huatuo/releases">Release</a></li>
+                            
+                            <li><a href="https://github.com/ccfos/huatuo">Github</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    <a href="/blog/">Blog</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/milestone/">News</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/about/">About</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                      English <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                      
+                        
+                      
+                        
+                          <li>
+                            
+                            <a href="/zh/">
+                              中文
+                            </a>
+                          </li>
+                        
+                      
+                    </ul>
+                </li>
+                
+                
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        <div id="heading-breadcrumbs">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h1>新特性！支持 AI 计算硬件故障检测</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+        <div id="content">
+            <div class="container">
+
+                <div class="row">
+
+                    
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                          <p class="text-muted text-uppercase mb-small text-right">
+                            
+                                
+                                LastUpdate: 2026-05-06,
+			                    Author: <a href="/authors/hao022">HAO022</a>
+                            
+                          </p>
+                        
+
+                        <div id="post-content">
+                          <p>3月5日，十四届全国人大四次会议，国务院总理李强向 《政府工作报告》中明确提出，“支持人工智能开源社区建设，促进开源生态繁荣”，中国开源史上悄然翻开新章程。</p>
+<p><img src="/img/blog/2026-03-09-hardware-errors-opensource.jpeg" alt=""></p>
+<p>HUATUO 新版本开源 AI 计算场景下硬件故障检测功能！</p>
+<h3 id="业务痛点">业务痛点</h3>
+<p>大规模分布式模型训练需要在多达数千台机器上协同训练。如此庞大复杂的系统涉及海量的计算、通信、存储资源以及软件支持，因此发生故障的概率很高，可能导致训练任务失败。根据实际经验，每个训练任务平均每天会遇到约两次故障，有时会导致训练整体暂停数小时，故障检测已成为分布式训练的重要挑战。</p>
+<p><img src="/img/blog/2026-03-09-hardware-errors-fault-frequency.png" alt=""></p>
+<p><em>注：故障数量随着训练规模增长而增长。</em></p>
+<p>根据观察，训练中故障通常起源于单机问题（例如 CUDA 错误、NVLink 错误），但会产生级联效应，最终导致整个任务中断或明显减速。例如通信过程中的硬件 ECC 错误可能触发 NCCL 超时或网络断连，进而导致数百台机器同时停止并空闲。</p>
+<p><em>真实案例 PCIe 降速，某次 128 台机器训练任务因一台机器的 PCIe 链路从 800Mbps 降至 500Mbps，导致通信严重拥堵，数千张 V100 GPU 利用率大幅下降，整整慢了 40 分钟。</em></p>
+<h3 id="故障类型">故障类型</h3>
+<p>下列出了常见故障类型、发生频率，以及各类监控指标能够表征该故障的比例。</p>
+<p><img src="/img/blog/2026-03-09-hardware-errors-fault-types.png" alt=""></p>
+<p>通过分析上述表格，结论如下：硬件故障占主导（55.8%），其中 ECC 错误占比最高（38.9%）。单一指标无法覆盖所有故障，因此需要一种硬件级故障检测能力，而 HUATUO 华佗正式开源了该能力。</p>
+<p>HUATUO 最新版本支持硬件故障类型：</p>
+<ul>
+<li>CPU, L1/L2/L3 Cache, TLB</li>
+<li>Memory, ECC</li>
+<li>PCIe</li>
+<li>Network Interface Card Link</li>
+<li>PFC/RDMA</li>
+<li>ACPI</li>
+<li>GPU MetaX</li>
+</ul>
+<h3 id="实战应用">实战应用</h3>
+<p>HUATUO 通过事件触发实时感知各硬件模块上报的故障信息：故障类型，设备标识，错误信息，时间戳等。</p>
+<p>网卡故障，该故障信息被存储在部署华佗组件的服务器，huatuo-local/netdev_event，以及配置的 Elasticsearch 存储服务。其中本地存储的信息格式如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;hostname&#34;</span>: <span style="color:#e6db74">&#34;your-host-name&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;region&#34;</span>: <span style="color:#e6db74">&#34;xxx&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;uploaded_time&#34;</span>: <span style="color:#e6db74">&#34;2026-03-05T18:28:39.153438921+08:00&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;time&#34;</span>: <span style="color:#e6db74">&#34;2026-03-05 18:28:39.153 +0800&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;tracer_name&#34;</span>: <span style="color:#e6db74">&#34;netdev_event&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;tracer_time&#34;</span>: <span style="color:#e6db74">&#34;2026-03-05 18:28:39.153 +0800&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;tracer_type&#34;</span>: <span style="color:#e6db74">&#34;auto&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;tracer_data&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;ifname&#34;</span>: <span style="color:#e6db74">&#34;eth0&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;index&#34;</span>: 2,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;linkstatus&#34;</span>: <span style="color:#e6db74">&#34;linkstatus_admindown&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;mac&#34;</span>: <span style="color:#e6db74">&#34;5c:6f:11:11:11:11&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;start&#34;</span>: false
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><p>.linkstatus 数值类型还可能为：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>linkstatus_adminup <span style="color:#75715e"># 管理员开启网卡，例如通过 ip link set dev eth0 up</span>
+</span></span><span style="display:flex;"><span>linkstatus_admindown <span style="color:#75715e"># 管理员关闭网卡，例如通过 ip link set dev eth0 down</span>
+</span></span><span style="display:flex;"><span>linkstatus_carrierup <span style="color:#75715e"># 物理链路恢复</span>
+</span></span><span style="display:flex;"><span>linkstatus_carrierdown <span style="color:#75715e"># 物理链路故障</span>
+</span></span></code></pre></div><p>网卡故障，硬件丢包指标：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>huatuo_bamai_buddyinfo_blocks<span style="color:#f92672">{</span>host<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;hostname&#34;</span>,region<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span>,device<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;eth0&#34;</span>,driver<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;ixgbe&#34;</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">0</span>
+</span></span></code></pre></div><p>网卡 RDMA PFC 网络拥塞：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># HELP huatuo_bamai_netdev_dcb_pfc_received_total count of the received pfc frames</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># TYPE huatuo_bamai_netdev_dcb_pfc_received_total counter</span>
+</span></span><span style="display:flex;"><span>huatuo_bamai_netdev_dcb_pfc_received_total<span style="color:#f92672">{</span>device<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;enp6s0f0np0&#34;</span>,host<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;hostname&#34;</span>,prio<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;0&#34;</span>,region<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>huatuo_bamai_netdev_dcb_pfc_received_total<span style="color:#f92672">{</span>device<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;enp6s0f0np0&#34;</span>,host<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;hostname&#34;</span>,prio<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;1&#34;</span>,region<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>huatuo_bamai_netdev_dcb_pfc_received_total<span style="color:#f92672">{</span>device<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;enp6s0f0np0&#34;</span>,host<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;hostname&#34;</span>,prio<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;2&#34;</span>,region<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>huatuo_bamai_netdev_dcb_pfc_received_total<span style="color:#f92672">{</span>device<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;enp6s0f0np0&#34;</span>,host<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;hostname&#34;</span>,prio<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;3&#34;</span>,region<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>huatuo_bamai_netdev_dcb_pfc_received_total<span style="color:#f92672">{</span>device<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;enp6s0f0np0&#34;</span>,host<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;hostname&#34;</span>,prio<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;4&#34;</span>,region<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>huatuo_bamai_netdev_dcb_pfc_received_total<span style="color:#f92672">{</span>device<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;enp6s0f0np0&#34;</span>,host<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;hostname&#34;</span>,prio<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;5&#34;</span>,region<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>huatuo_bamai_netdev_dcb_pfc_received_total<span style="color:#f92672">{</span>device<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;enp6s0f0np0&#34;</span>,host<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;hostname&#34;</span>,prio<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;6&#34;</span>,region<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>huatuo_bamai_netdev_dcb_pfc_received_total<span style="color:#f92672">{</span>device<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;enp6s0f0np0&#34;</span>,host<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;hostname&#34;</span>,prio<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;7&#34;</span>,region<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># HELP huatuo_bamai_netdev_dcb_pfc_send_total count of the sent pfc frames</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># TYPE huatuo_bamai_netdev_dcb_pfc_send_total counter</span>
+</span></span><span style="display:flex;"><span>huatuo_bamai_netdev_dcb_pfc_send_total<span style="color:#f92672">{</span>device<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;enp6s0f0np0&#34;</span>,host<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;hostname&#34;</span>,prio<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;0&#34;</span>,region<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>huatuo_bamai_netdev_dcb_pfc_send_total<span style="color:#f92672">{</span>device<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;enp6s0f0np0&#34;</span>,host<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;hostname&#34;</span>,prio<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;1&#34;</span>,region<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>huatuo_bamai_netdev_dcb_pfc_send_total<span style="color:#f92672">{</span>device<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;enp6s0f0np0&#34;</span>,host<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;hostname&#34;</span>,prio<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;2&#34;</span>,region<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>huatuo_bamai_netdev_dcb_pfc_send_total<span style="color:#f92672">{</span>device<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;enp6s0f0np0&#34;</span>,host<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;hostname&#34;</span>,prio<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;3&#34;</span>,region<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>huatuo_bamai_netdev_dcb_pfc_send_total<span style="color:#f92672">{</span>device<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;enp6s0f0np0&#34;</span>,host<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;hostname&#34;</span>,prio<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;4&#34;</span>,region<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>huatuo_bamai_netdev_dcb_pfc_send_total<span style="color:#f92672">{</span>device<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;enp6s0f0np0&#34;</span>,host<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;hostname&#34;</span>,prio<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;5&#34;</span>,region<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>huatuo_bamai_netdev_dcb_pfc_send_total<span style="color:#f92672">{</span>device<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;enp6s0f0np0&#34;</span>,host<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;hostname&#34;</span>,prio<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;6&#34;</span>,region<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>huatuo_bamai_netdev_dcb_pfc_send_total<span style="color:#f92672">{</span>device<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;enp6s0f0np0&#34;</span>,host<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;hostname&#34;</span>,prio<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;7&#34;</span>,region<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">0</span>
+</span></span></code></pre></div><p>Linux 内核 RAS 硬件故障指标：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>huatuo_bamai_ras_hw_total<span style="color:#f92672">{</span>host<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;hostname&#34;</span>,region<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;xxx&#34;</span><span style="color:#f92672">}</span> <span style="color:#ae81ff">0</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;hostname&#34;</span>: <span style="color:#e6db74">&#34;your-host-name&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;region&#34;</span>: <span style="color:#e6db74">&#34;xxx&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;uploaded_time&#34;</span>: <span style="color:#e6db74">&#34;2026-03-01T15:41:13.027353585+08:00&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;time&#34;</span>: <span style="color:#e6db74">&#34;2026-03-01 15:41:13.027 +0800&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;tracer_name&#34;</span>: <span style="color:#e6db74">&#34;ras&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;tracer_time&#34;</span>: <span style="color:#e6db74">&#34;2026-03-01 15:41:13.027 +0800&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;tracer_type&#34;</span>: <span style="color:#e6db74">&#34;auto&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;tracer_data&#34;</span>: <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;dev&#34;</span>: <span style="color:#e6db74">&#34;MEM&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;event&#34;</span>: <span style="color:#e6db74">&#34;EDAC&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;type&#34;</span>: <span style="color:#e6db74">&#34;CORRECTED&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;timestamp&#34;</span>: 26870134986481080,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;info&#34;</span>: <span style="color:#e6db74">&#34;1 CORRECTED err: memory read error on CPU_SrcID#0_MC#1_Chan#0_DIMM#0 (mc: 1 location:0:0:-1 address: 0x3ddc84140 grain:32 syndrome:0x0  err_code:0x0101:0x0090 ProcessorSocketId:0x0 MemoryControllerId:0x1 PhysicalRankId:0x0 Row:0x15da Column:0x100 Bank:0x3 BankGroup:0x1 retry_rd_err_log[0001a209 00000000 00800000 0440d001 000015da] correrrcnt[0001 0000 0000 0000 0000 0000 0000 0000])&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span></code></pre></div><h4 id="内存故障">内存故障</h4>
+<p>如下是线上机器内存故障监控，以及详细故障信息。
+<img src="/img/blog/2026-03-09-hardware-errors-mem0.png" alt="">
+<img src="/img/blog/2026-03-09-hardware-errors-mem1.png" alt=""></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>触发故障的设备：MEM
+</span></span><span style="display:flex;"><span>故障类型：CORRECTED
+</span></span><span style="display:flex;"><span>tracer触发时间：2026-03-01 15:41:13.027
+</span></span><span style="display:flex;"><span>触发源：EDAC
+</span></span><span style="display:flex;"><span>具体设备反馈信息：
+</span></span><span style="display:flex;"><span>memory read error on CPU_SrcID#0_MC#1_Chan#0_DIMM#0 <span style="color:#f92672">(</span>mc: <span style="color:#ae81ff">1</span> location:0:0:-1 address: 0x3ddc84140 grain:32 syndrome:0x0  err_code:0x0101:0x0090 ProcessorSocketId:0x0 MemoryControllerId:0x1 PhysicalRankId:0x0 Row:0x15da Column:0x100 Bank:0x3 BankGroup:0x1 retry_rd_err_log<span style="color:#f92672">[</span>0001a209 <span style="color:#ae81ff">00000000</span> <span style="color:#ae81ff">00800000</span> 0440d001 000015da<span style="color:#f92672">]</span> correrrcnt<span style="color:#f92672">[</span><span style="color:#ae81ff">0001</span> <span style="color:#ae81ff">0000</span> <span style="color:#ae81ff">0000</span> <span style="color:#ae81ff">0000</span> <span style="color:#ae81ff">0000</span> <span style="color:#ae81ff">0000</span> <span style="color:#ae81ff">0000</span> 0000<span style="color:#f92672">])</span>
+</span></span></code></pre></div><h4 id="网卡故障">网卡故障</h4>
+<p>如下是HUATUO 华佗捕获的线上服务器的网卡物理链路不可用事件（最终确认光模块弱导致），该故障导致使线上业务应用指标抖动。
+<img src="/img/blog/2026-03-09-hardware-errors-nic0.png" alt="">
+<img src="/img/blog/2026-03-09-hardware-errors-nic1.png" alt=""></p>
+<p>交换机侧确认光模块问题
+<img src="/img/blog/2026-03-09-hardware-errors-nic2.png" alt=""></p>
+<h3 id="原理剖析">原理剖析</h3>
+<p>HUATUO 华佗总体架构如下，支持各种硬件类型故障检查。
+<img src="/img/blog/2026-03-09-hardware-errors-framework.png" alt=""></p>
+<p>HUATUO 基于 Linux 内核 MCE 和 RAS 技术，通过 eBPF 捕获关键硬件事件，获取硬件设备信息。RAS 在 Linux 内核一直在不断演进发展，从内核 2.6 版本开始逐步的引入更多 tracepoint 点。这种轻量级，事件驱动的实现方式能够覆盖绝大多数高频硬件故障场景。此外 HUATUO 还支持 PFC/RDMA，网卡物理链路状态的检查。
+<img src="/img/blog/2026-03-09-hardware-errors-ras.jpg" alt=""></p>
+<hr>
+<p><strong>篇尾：</strong></p>
+<ul>
+<li>HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的操作系统深度观测项目。</li>
+<li>关注微信公众号，或扫码加微信，邀请你加入用户群（请备注姓名+单位）：</li>
+</ul>
+<p><img src="/img/contact-weixin.png" alt="微信"></p>
+<ul>
+<li>仓库1：<a href="https://github.com/ccfos/huatuo">https://github.com/ccfos/huatuo</a></li>
+<li>仓库2：<a href="https://gitlink.org.cn/ccfos/huatuo">https://gitlink.org.cn/ccfos/huatuo</a></li>
+<li>官网：<a href="https://github.com/ccfos/huatuo">https://huatuo.tech/</a></li>
+</ul>
+
+                        </div>
+
+                        
+                        
+                        
+                        <div id="comments"><script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+</div>
+                        
+
+                    </div>
+                    
+
+                    
+
+                    
+
+                    <div class="col-md-3">
+
+                        
+
+                        
+
+<div class="panel panel-default sidebar-menu">
+
+    <div class="panel-heading">
+      <h3 class="panel-title">Search</h3>
+    </div>
+
+    <div class="panel-body">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" role="search">
+            <div class="input-group">
+                <input type="search" name="q" class="form-control" placeholder="Search" />
+                <input type="hidden" name="sitesearch" value="https://huatuo.tech/" />
+                <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">Tags</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/tags/blkio"><i class="fas fa-tags"></i> blkio</a>
+            </li>
+            
+            <li >
+                <a href="/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/bpf-foundation"><i class="fas fa-tags"></i> bpf foundation</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ccf"><i class="fas fa-tags"></i> ccf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/containers"><i class="fas fa-tags"></i> containers</a>
+            </li>
+            
+            <li >
+                <a href="/tags/cpuidle"><i class="fas fa-tags"></i> cpuidle</a>
+            </li>
+            
+            <li >
+                <a href="/tags/hao022"><i class="fas fa-tags"></i> hao022</a>
+            </li>
+            
+            <li >
+                <a href="/tags/huatuo"><i class="fas fa-tags"></i> huatuo</a>
+            </li>
+            
+            <li >
+                <a href="/tags/k8s"><i class="fas fa-tags"></i> k8s</a>
+            </li>
+            
+            <li >
+                <a href="/tags/linux-%e5%86%85%e6%a0%b8"><i class="fas fa-tags"></i> linux 内核</a>
+            </li>
+            
+            <li >
+                <a href="/tags/loadavg"><i class="fas fa-tags"></i> loadavg</a>
+            </li>
+            
+            <li >
+                <a href="/tags/netrecvlat"><i class="fas fa-tags"></i> netrecvlat</a>
+            </li>
+            
+            <li >
+                <a href="/tags/networking"><i class="fas fa-tags"></i> networking</a>
+            </li>
+            
+            <li >
+                <a href="/tags/rdma"><i class="fas fa-tags"></i> rdma</a>
+            </li>
+            
+            <li >
+                <a href="/tags/rlease"><i class="fas fa-tags"></i> rlease</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7"><i class="fas fa-tags"></i> 可观测性</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%90%88%e4%bd%9c"><i class="fas fa-tags"></i> 合作</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%a4%9c%e8%8e%ba%e7%9b%91%e6%8e%a7"><i class="fas fa-tags"></i> 夜莺监控</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%bc%80%e6%ba%90"><i class="fas fa-tags"></i> 开源</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%81%ab%e7%84%b0%e5%9b%be"><i class="fas fa-tags"></i> 火焰图</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%bd%91%e7%bb%9c%e4%bc%98%e5%8c%96"><i class="fas fa-tags"></i> 网络优化</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e8%8d%a3%e8%aa%89"><i class="fas fa-tags"></i> 荣誉</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+
+                        
+
+                    </div>
+                    
+
+                    
+
+                </div>
+                
+
+            </div>
+            
+        </div>
+        
+
+        <footer id="footer">
+    <div class="container">
+
+        
+        <div class="col-md-4 col-sm-6">
+            <h4>About us</h4>
+
+            Linux kernel developers, and observability developers.
+
+            <hr class="hidden-md hidden-lg hidden-sm">
+
+        </div>
+        
+        
+
+        <div class="col-md-4 col-sm-6">
+
+            
+
+        </div>
+        
+
+        
+            
+            
+        
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026, HUATUO Open Source Community.</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+    
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+
+<script src="/js/front.js"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

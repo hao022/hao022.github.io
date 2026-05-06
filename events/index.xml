@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Events on Linux Kernel, Cloud-native and AI Infra Observability.</title>
+    <link>https://huatuo.tech/events/</link>
+    <description>Recent content in Events on Linux Kernel, Cloud-native and AI Infra Observability.</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Wed, 06 May 2026 15:56:14 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/events/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>V2.2.0 Released</title>
+      <link>https://huatuo.tech/events/2026-03-30-release-v220/</link>
+      <pubDate>Mon, 30 Mar 2026 08:25:49 -0400</pubDate>
+      <guid>https://huatuo.tech/events/2026-03-30-release-v220/</guid>
+      <description>&lt;p&gt;Following a period of development and testing, the v2.2.0 release is now available. This provides a more stable and robust foundation for large-scale production environments.&lt;/p&gt;&#xA;&lt;h3 id=&#34;key-features&#34;&gt;Key Features&lt;/h3&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&lt;strong&gt;Hardware&lt;/strong&gt;: Hardware fault detection has been added for AI and general-purpose computing scenarios. This includes support for RDMA PFC congestion detection.&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;Multi-Cloud&lt;/strong&gt;: Native adapters have been implemented for major cloud platforms, including Alibaba Cloud, Google Cloud, and AWS.&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;MetaX&lt;/strong&gt;: GPU hardware fault detection capabilities were contributed to the community by MetaX,&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;Kubernetes&lt;/strong&gt;: Support for additional cgroup driver types has been added, along with an automated detection mechanism.&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;IOtracing&lt;/strong&gt;: The &lt;code&gt;iotracing&lt;/code&gt; tool has been open-sourced. It supports rapid execution and automated tracing from the command line, addressing intermittent I/O performance issues.&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;Configuration&lt;/strong&gt;: All configuration options have been standardized. This significantly reduces the complexity.&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;Testing&lt;/strong&gt;: The test suite has been expanded to unit, integration, and end-to-end tests.&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;documentation&#34;&gt;Documentation&lt;/h3&gt;&#xA;&lt;p&gt;The documentation structure for version 2.2.0 has been revised and expanded. These improvements are intended to accelerate the onboarding process and enable users to more fully leverage HUATUO.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>MetaX Joins Our Ecosystem</title>
+      <link>https://huatuo.tech/events/2026-03-10-metax-works-together-with-huatuo-opensource/</link>
+      <pubDate>Mon, 09 Mar 2026 03:44:45 -0400</pubDate>
+      <guid>https://huatuo.tech/events/2026-03-10-metax-works-together-with-huatuo-opensource/</guid>
+      <description>&lt;p&gt;&lt;img src=&#34;https://huatuo.tech/img/events/2026-03-10-metax-and-huatuo.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;&#xA;&lt;h3 id=&#34;沐曦股份开源生态介绍&#34;&gt;沐曦股份开源生态介绍&lt;/h3&gt;&#xA;&lt;p&gt;沐曦股份坚持“自主创新与开放兼容”双轨战略，以自研MXMACA软件栈为核心，构建硬件与应用的桥梁，并承载开源核心使命。该栈于2025年2月正式开源，致力于打造开放的GPU编程接口标准，大幅降低开发门槛，有效破解跨平台兼容难题，驱动AI算力生态协同创新。&lt;/p&gt;&#xA;&lt;p&gt;技术落地方面，沐曦深度融入全球开源社区：成为vLLM官方支持的中国GPU厂商，与红帽联合推出MXAIE优化方案，实现对龙蜥、OpenCloudOS、麒麟、RHEL等主流OS的适配，并深度参与vLLM、PaddlePaddle、OpenXLA、BigDL等上游项目，确保主流框架和大模型的“Day 0”级支持。截至2025年底，已发布30余个开源项目，MXMACA用户超25万，支持超4500个模型“即插即用”。通过技术赛事、高校推广及算力服务平台建设，沐曦正加速构建覆盖开发者、产业与科研的开放生态，目标是铸就AI时代的“Android式”开放共赢算力基础。&lt;/p&gt;&#xA;&lt;h3 id=&#34;huatuo-华佗&#34;&gt;HUATUO 华佗&lt;/h3&gt;&#xA;&lt;p&gt;HUATUO（华佗）是由滴滴开源并依托 CCF （中国计算机学会）孵化的操作系统深度观测项目，专注为云原生通用计算，AI 计算，云服务，基础服务等提供操作系统内核级深度观测能力，&lt;a href=&#34;https://mp.weixin.qq.com/s/aFKdCiXIHKFKBFdSf58buQ&#34;&gt;《滴滴操作系统可观测 HUATUO 项目正式入驻 CCF》&lt;/a&gt;。&lt;/p&gt;&#xA;&lt;p&gt;&lt;img src=&#34;https://huatuo.tech/img/events/2026-03-10-metax-huatuo-ccf.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;&#xA;&lt;h3 id=&#34;适配介绍&#34;&gt;适配介绍&lt;/h3&gt;&#xA;&lt;p&gt;&lt;img src=&#34;https://huatuo.tech/img/events/huatuo-fullstack-with-component.png&#34; alt=&#34;&#34;&gt;&lt;/p&gt;&#xA;&lt;p&gt;HUATUO 通过调用 MetaX libmxsml 获取实时的 GPU 数据，在开启了 MetaX GPU 监控后，可以在华佗中查询到 GPU 相关的数据，如：&lt;/p&gt;&#xA;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;1. GPU 基础信息：如 GPU 型号、GPU 标识、驱动版本等&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;2. GPU 状态：如 GPU 功耗、温度、利用率、时钟频率等&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;3. GPU 通信：如 PCIe 速度、带宽，MetaXLink 速度、带宽等&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;这些数据可以帮助我们更加清晰地定位生产环境中的各种问题。有关指标的详细说明，请见后续的&amp;quot;指标介绍&amp;quot;章节。如果想要启用 MetaX GPU 的监控，需要将以下内容挂载到容器中的对应位置：&lt;/p&gt;&#xA;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;1. /opt/maca:/opt/maca&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;2. /opt/mxdriver:/opt/mxdriver&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;3. /dev/dri:/dev/dri&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Docker 容器的启动命令为：&lt;/p&gt;&#xA;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;docker run --privileged --cgroupns&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;host --network&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;host &lt;span style=&#34;color:#ae81ff&#34;&gt;\&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;&lt;/span&gt;        -v /sys:/sys &lt;span style=&#34;color:#ae81ff&#34;&gt;\&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;&lt;/span&gt;        -v /proc:/proc &lt;span style=&#34;color:#ae81ff&#34;&gt;\&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;&lt;/span&gt;        -v /run:/run &lt;span style=&#34;color:#ae81ff&#34;&gt;\&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;&lt;/span&gt;        -v /opt/maca:/opt/maca &lt;span style=&#34;color:#ae81ff&#34;&gt;\&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;&lt;/span&gt;        -v /opt/mxdriver:/opt/mxdriver &lt;span style=&#34;color:#ae81ff&#34;&gt;\&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;&lt;/span&gt;        -v /dev/dri:/dev/dri &lt;span style=&#34;color:#ae81ff&#34;&gt;\&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;&lt;/span&gt;        huatuo/huatuo-bamai:latest&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;如果是在 K8s 中使用，则创建相应的 PV 与 PVC 即可。在容器启动完毕后，访问其服务地址的 &lt;code&gt;/metrics&lt;/code&gt; endpoint，如果输出中包含带有 metax 字样的指标，则成功采集了 GPU 数据。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>eBPF Emerging Project</title>
+      <link>https://huatuo.tech/events/2026-01-22-huatuo-and-ebpf-foundation-work-together/</link>
+      <pubDate>Thu, 22 Jan 2026 05:52:37 -0500</pubDate>
+      <guid>https://huatuo.tech/events/2026-01-22-huatuo-and-ebpf-foundation-work-together/</guid>
+      <description>HUATUO (华佗) 被 eBPF 基金会列为新兴项目，标志着行业对该项目社区实力与生态价值的认可。eBPF 已经被广泛应用于可观测性领域。</description>
+    </item>
+    <item>
+      <title>Tencent &#34;Outstanding Contribution Award&#34;</title>
+      <link>https://huatuo.tech/events/2025-12-20-huatuo-and-tencent-outstanding-contribution/</link>
+      <pubDate>Fri, 19 Dec 2025 21:43:17 -0500</pubDate>
+      <guid>https://huatuo.tech/events/2025-12-20-huatuo-and-tencent-outstanding-contribution/</guid>
+      <description>近日，2025 OpenCloudOS 操作系统生态大会在北京成功举办。会上，滴滴出行荣获年度“杰出贡献单位”奖，体现腾讯操作系统社区对滴滴出行所做贡献的高度认可，更彰显了HUATUO（华佗）社区在推动操作系统可观测生态繁荣方面所做的深刻实践</description>
+    </item>
+    <item>
+      <title>腾讯操作系统 OC 和 HUATUO (华佗) 深度集成</title>
+      <link>https://huatuo.tech/events/2025-11-11-opencloudos-and-huatuo-together/</link>
+      <pubDate>Mon, 10 Nov 2025 19:12:53 -0500</pubDate>
+      <guid>https://huatuo.tech/events/2025-11-11-opencloudos-and-huatuo-together/</guid>
+      <description>滴滴 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO（华佗）&lt;/a&gt; 和腾讯操作系统 OC 深度集成，进一步提升 OC 操作系统在云原生环境下内核级深度观测的能力，为云上用户提升内核问题排查效率，保障业务持续性.</description>
+    </item>
+    <item>
+      <title>荣获《OSCAR 尖峰开源项目及开源社区》称号</title>
+      <link>https://huatuo.tech/events/2025-10-28-huatuo-oscar-event/</link>
+      <pubDate>Sun, 26 Oct 2025 10:19:02 -0400</pubDate>
+      <guid>https://huatuo.tech/events/2025-10-28-huatuo-oscar-event/</guid>
+      <description>&lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO（华佗）&lt;/a&gt; 凭借其在技术创新、社区建设等方面的卓越表现，荣获中国信息通信研究院、中国通信标准化协会颁发的《OSCAR 尖峰开源项目及开源社区》 奖项 &amp;hellip;</description>
+    </item>
+    <item>
+      <title>滴滴操作系统可观测项目 HUATUO 正式入驻 CCF</title>
+      <link>https://huatuo.tech/events/2025-08-07-huatuo-open-source-project-has-entered-the-ccf-incubation-phase/</link>
+      <pubDate>Fri, 08 Aug 2025 03:19:58 -0400</pubDate>
+      <guid>https://huatuo.tech/events/2025-08-07-huatuo-open-source-project-has-entered-the-ccf-incubation-phase/</guid>
+      <description>8月2日，滴滴宣布其开源云原生操作系统可观测性项目 HUATUO 正式入驻中国计算机学会，加入其重点孵化项目序列。本次入驻不仅体现了滴滴长期践行开源共建共享的理念，也希望通过行业协作，共同推动可观测领域操作系统基础设施的高效标准化发展。</description>
+    </item>
+  </channel>
+</rss>
