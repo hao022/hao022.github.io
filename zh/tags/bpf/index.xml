@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>BPF on HUATUO 开源社区</title>
+    <link>https://huatuo.tech/zh/tags/bpf/</link>
+    <description>Recent content in BPF on HUATUO 开源社区</description>
+    <generator>Hugo</generator>
+    <language>zh</language>
+    <lastBuildDate>Sun, 14 Jun 2026 13:22:39 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/zh/tags/bpf/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Linux 内核 RAS 原理剖析与实践案例</title>
+      <link>https://huatuo.tech/zh/blog/2026-03-26-the-linux-kernel-ras-practical/</link>
+      <pubDate>Thu, 26 Mar 2026 03:39:25 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-03-26-the-linux-kernel-ras-practical/</guid>
+      <description>本篇介绍 Linux 内核 RAS, MCE, AER 等硬件故障检查原理。HUATUO 华佗项目依赖该检测机制实现了通用硬件故障监控。</description>
+    </item>
+    <item>
+      <title>新特性！支持 AI 计算硬件故障检测</title>
+      <link>https://huatuo.tech/zh/blog/2026-03-09-support-hardware-fault-detection-for-ai-computing/</link>
+      <pubDate>Sun, 08 Mar 2026 09:56:26 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-03-09-support-hardware-fault-detection-for-ai-computing/</guid>
+      <description>本篇介绍了 HUATUO 项目的新特性，支持 AI 计算场景下硬件故障检测能力，包括故障指标，实际案例，原理分析等。</description>
+    </item>
+    <item>
+      <title>腾讯操作系统 OC 和 HUATUO (华佗) 深度集成</title>
+      <link>https://huatuo.tech/zh/events/2025-11-11-opencloudos-and-huatuo-together/</link>
+      <pubDate>Mon, 10 Nov 2025 19:12:53 -0500</pubDate>
+      <guid>https://huatuo.tech/zh/events/2025-11-11-opencloudos-and-huatuo-together/</guid>
+      <description>滴滴 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO（华佗）&lt;/a&gt; 和腾讯操作系统 OC 深度集成，进一步提升 OC 操作系统在云原生环境下内核级深度观测的能力，为云上用户提升内核问题排查效率，保障业务持续性.</description>
+    </item>
+    <item>
+      <title>荣获《OSCAR 尖峰开源项目及开源社区》称号</title>
+      <link>https://huatuo.tech/zh/events/2025-10-28-huatuo-oscar-event/</link>
+      <pubDate>Sun, 26 Oct 2025 10:19:02 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/events/2025-10-28-huatuo-oscar-event/</guid>
+      <description>&lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO（华佗）&lt;/a&gt; 凭借其在技术创新、社区建设等方面的卓越表现，荣获中国信息通信研究院、中国通信标准化协会颁发的《OSCAR 尖峰开源项目及开源社区》 奖项 &amp;hellip;</description>
+    </item>
+    <item>
+      <title>滴滴操作系统可观测项目 HUATUO 正式入驻 CCF</title>
+      <link>https://huatuo.tech/zh/events/2025-08-07-huatuo-open-source-project-has-entered-the-ccf-incubation-phase/</link>
+      <pubDate>Fri, 08 Aug 2025 03:19:58 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/events/2025-08-07-huatuo-open-source-project-has-entered-the-ccf-incubation-phase/</guid>
+      <description>8月2日，滴滴宣布其开源云原生操作系统可观测性项目 HUATUO 正式入驻中国计算机学会，加入其重点孵化项目序列。本次入驻不仅体现了滴滴长期践行开源共建共享的理念，也希望通过行业协作，共同推动可观测领域操作系统基础设施的高效标准化发展。</description>
+    </item>
+  </channel>
+</rss>

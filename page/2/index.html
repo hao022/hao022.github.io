@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+
+<title>Linux Kernel, Cloud-native and AI Infra Observability.</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' rel='stylesheet'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1781443366" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+<link rel="android-chrome-icon" href="/img/android-chrome-512x512.png" />
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="Linux Kernel, Cloud-native and AI Infra Observability.">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en">
+<meta property="og:site_name" content="Linux Kernel, Cloud-native and AI Infra Observability.">
+<meta property="og:title" content="Linux Kernel, Cloud-native and AI Infra Observability.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://huatuo.tech/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/sharing-default.png">
+<meta property="og:image:type" content="image/png">
+
+
+
+  <meta property="og:image:width" content="428">
+  <meta property="og:image:height" content="149">
+
+
+<meta property="og:updated_time" content="2026-06-14T13:22:39Z">
+
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="Linux Kernel, Cloud-native and AI Infra Observability.">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/sharing-default.png">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+    
+  </head>
+
+  <body>
+
+    <div id="all">
+
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+              🚀  Listed in the CNCF Landscape and eBPF Foundation Emerging Project. If you like this project, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>!  ❤️
+          </p>
+        
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm " role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/logo.png" alt="Linux Kernel, Cloud-native and AI Infra Observability. logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/logo-small.png" alt="Linux Kernel, Cloud-native and AI Infra Observability. logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">Linux Kernel, Cloud-native and AI Infra Observability. - go to homepage</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">Toggle Navigation</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-book nav-icon' style='margin-right:5px;'></i>Docs <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="https://docs.huatuo.tech/en/latest/">Latest</a></li>
+                            
+                            <li><a href="https://docs.huatuo.tech/en/v2.2.0/">V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-download nav-icon' style='margin-right:5px;'></i>Download <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="https://hub.docker.com/r/huatuo/huatuo-bamai/tags">Dockerhub</a></li>
+                            
+                            <li><a href="https://github.com/ccfos/huatuo/releases">Release</a></li>
+                            
+                            <li><a href="https://github.com/ccfos/huatuo">Github</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/blog/"><i class='fas fa-pen-nib nav-icon' style='margin-right:5px;'></i>Blog</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/milestone/"><i class='fas fa-newspaper nav-icon' style='margin-right:5px;'></i>News</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/about/"><i class='fas fa-info-circle nav-icon' style='margin-right:5px;'></i>About</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" style="display:flex;align-items:center;gap:5px;">
+                      <i class="fas fa-globe nav-icon"></i>
+                      English
+                      <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                      
+                      
+                      
+                        
+                        
+                        
+                        
+                          
+                            
+                          
+                        
+                          
+                        
+                        
+                        <li class="active">
+                          <a href="/" style="display:flex;align-items:center;gap:8px;">
+                            
+                              <i class="fas fa-check" style="font-size:0.8em;"></i>
+                            
+                            English
+                          </a>
+                        </li>
+                      
+                        
+                        
+                        
+                        
+                          
+                        
+                          
+                            
+                          
+                        
+                        
+                        <li >
+                          <a href="/zh/" style="display:flex;align-items:center;gap:8px;">
+                            
+                              <i style="display:inline-block;width:0.8em;"></i>
+                            
+                            中文
+                          </a>
+                        </li>
+                      
+                    </ul>
+                  </li>
+                  
+                  
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars"
+                         onerror="this.style.display='none'">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        
+
+
+
+
+
+<section>
+    <div class="home-carousel">
+        <div class="dark-mask"></div>
+        <div class="container">
+            <div class="homepage owl-carousel"
+                data-autoplay="true"
+                data-slide-speed="2000"
+                data-pagination-speed="1000">
+
+                
+                      
+
+                
+
+                <div class="item">
+                    
+
+                    <div class="row">
+                        <div class="col-sm-5 right">
+                            <h1>Kernel Insight</h1>
+                            <p>Low Overhead<br>Zero Instruction<br>Intelligent Adaptive Backoff</p>
+                        </div>
+                        <div class="col-sm-7">
+                            
+                            <img class="img-responsive" src="/img/carousel/template-all-bpf-tools-removebg-preview.png" alt="" fetchpriority="high">
+                        </div>
+                    </div>
+
+                    
+                </div>
+                
+
+                
+
+                <div class="item">
+                    
+
+                    <div class="row">
+                        <div class="col-sm-5 right">
+                            <h1>Instant Observability</h1>
+                            <ul class="list-style-none">
+   <li>Context Events</li>
+   <li>Full-stack Deep Insight</li>
+   <li>Key-Path Instrumentation</li>
+ </ul>
+
+                        </div>
+                        <div class="col-sm-7">
+                            
+                            <img class="img-responsive" src="/img/carousel/template-bpf-event.jpeg" alt="" loading="lazy">
+                            
+                        </div>
+                    </div>
+
+                    
+                </div>
+                
+
+                
+                      
+
+                
+
+                <div class="item">
+                    
+
+                    <div class="row">
+                        <div class="col-sm-5 right">
+                            <h1>Continuous Profiling</h1>
+                            <ul class="list-style-none">
+  <li>Multi-Language</li>
+  <li>Memory, CPU, Lock</li>
+  <li>Driving Business Innovation</li>
+</ul>
+
+                        </div>
+                        <div class="col-sm-7">
+                            
+                            <img class="img-responsive" src="/img/carousel/template-profiling.png" alt="" loading="lazy">
+                            
+                        </div>
+                    </div>
+
+                    
+                </div>
+                
+
+                
+                      
+
+                
+
+                <div class="item">
+                    
+
+                    <div class="row">
+                        <div class="col-sm-5 right">
+                            <h1>Autotracing</h1>
+                            <ul class="list-style-none">
+  <li>Tracing Engine</li>
+  <li>Automated Snapshots</li>
+  <li>Resolution for System Jitter</li>
+</ul>
+
+                        </div>
+                        <div class="col-sm-7">
+                            
+                            <img class="img-responsive" src="/img/carousel/template-auto-burst.png" alt="" loading="lazy">
+                            
+                        </div>
+                    </div>
+
+                    
+                </div>
+                
+
+                
+                      
+            </div>
+            
+        </div>
+    </div>
+</section>
+
+
+
+
+
+        
+
+
+
+
+
+
+
+<section class="bar background-white">
+    <div class="container">
+        
+        
+
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+                
+            
+        
+            
+                
+            
+        
+            
+                
+            
+        
+            
+                
+            
+        
+            
+                
+            
+        
+            
+                
+            
+        
+
+        
+
+        
+
+        
+
+        
+          <div class="row row-0 row-odd">
+            
+
+                
+                
+                    
+
+                    <div class="col-md-4 col-0 col-odd">
+                        <div class="box-simple">
+                            
+                                <div class="icon">
+                                    <i class="fas fa-binoculars"></i>
+                                </div>
+                            
+                            <h3>Kernel-wide Insight</h3>
+                            <p>Leveraging BPF to deliver full-stack observability and deep performance insights into memory, scheduling, networking, and block I/O, with 1% overhead.</p>
+                        </div>
+                    </div>
+                
+            
+
+                
+                
+                    
+
+                    <div class="col-md-4 col-1 col-even">
+                        <div class="box-simple">
+                            
+                                <div class="icon">
+                                    <i class="fas fa-bolt"></i>
+                                </div>
+                            
+                            <h3>Instant Observability</h3>
+                            <p>Event-driven context snapshot with instrumentation across kernel slow paths. Automatic reports for system-wide events, including scheduling, networking, and interrupts.</p>
+                        </div>
+                    </div>
+                
+            
+
+                
+                
+                    
+
+                    <div class="col-md-4 col-2 col-odd">
+                        <div class="box-simple">
+                            
+                                <div class="icon">
+                                    <i class="fas fa-route"></i>
+                                </div>
+                            
+                            <h3>AutoTracing</h3>
+                            <p>Pinpoint performance degradation in cloud-native environments with tracing-based intelligence. Automated tracing for CPU idle drops, I/O latency, and Loadavg spikes.</p>
+                        </div>
+                    </div>
+                
+            
+          </div>
+        
+          <div class="row row-1 row-even">
+            
+
+                
+                
+                    
+
+                    <div class="col-md-4 col-0 col-odd">
+                        <div class="box-simple">
+                            
+                                <div class="icon">
+                                    <i class="fas fa-gauge-high"></i>
+                                </div>
+                            
+                            <h3>Continuous Profiling</h3>
+                            <p>Continuous profiling of OS kernel and multi-language (e.g. Java, Python, Go, C/C++.) applications across CPU, memory, I/O, and Lock. Driving business innovation.</p>
+                        </div>
+                    </div>
+                
+            
+
+                
+                
+                    
+
+                    <div class="col-md-4 col-1 col-even">
+                        <div class="box-simple">
+                            
+                                <div class="icon">
+                                    <i class="fas fa-diagram-project"></i>
+                                </div>
+                            
+                            <h3>Distributed Tracing</h3>
+                            <p>Network-centric, service‑oriented request tracing across distributed systems. Delivers end‑to‑end visibility of microservice, ensuring system stability in large‑scale environments.</p>
+                        </div>
+                    </div>
+                
+            
+
+                
+                
+                    
+
+                    <div class="col-md-4 col-2 col-odd">
+                        <div class="box-simple">
+                            
+                                <div class="icon">
+                                    <i class="fas fa-puzzle-piece"></i>
+                                </div>
+                            
+                            <h3>Ecosystem Integration</h3>
+                            <p>Integrate open‑source observability stacks. Support bare‑metal and cloud‑native deployments. Aware of K8s containers / labels / annotations. Support mainstream Linux distributions.</p>
+                        </div>
+                    </div>
+                
+            
+          </div>
+        
+    </div>
+</section>
+
+
+
+
+
+
+        
+
+
+
+
+
+
+<section class="bar background-pentagon no-mb">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="heading text-center">
+                    
+                    <h2>Best Practice</h2>
+                </div>
+
+                <p class="lead">
+                  
+                </p>
+
+                
+
+                <ul class="owl-carousel testimonials same-height-row"
+                    data-items="3"
+                    data-autoplay="true"
+                    data-slide-speed="2000"
+                    data-pagination-speed="1000">
+                    
+                
+                    
+                      
+                
+                    
+                      
+                
+                    
+                      
+                
+                    
+                      
+                
+                    
+                      
+                
+                    
+                      
+                
+                    
+                    
+                    <li class="item">
+                        <div class="testimonial same-height-always">
+                            <div class="bottom">
+                                <div class="name-picture">
+                                    <h5><span class="testimonial-icon-badge"><i class="fas fa-server"></i></span>Cloud Native</h5>
+                                    <strong>Kubernetes, Distributed System</strong>
+                                </div>
+                            </div>
+                            <div class="text">
+                                <p>Provide observability metrics, kernel events, tracing, and profiling for containers, physical machines, and controllers.</p>
+                            </div>
+                        </div>
+                    </li>
+                    
+                
+                    
+                    
+                    <li class="item">
+                        <div class="testimonial same-height-always">
+                            <div class="bottom">
+                                <div class="name-picture">
+                                    <h5><span class="testimonial-icon-badge"><i class="fas fa-microchip"></i></span>AI Computing</h5>
+                                    <strong>Large model training and inference</strong>
+                                </div>
+                            </div>
+                            <div class="text">
+                                <p>Extend GPU fault detection, delivering metrics and events for CPU, Memory, PCIe, HCA, and other components.</p>
+                            </div>
+                        </div>
+                    </li>
+                    
+                
+                    
+                    
+                    <li class="item">
+                        <div class="testimonial same-height-always">
+                            <div class="bottom">
+                                <div class="name-picture">
+                                    <h5><span class="testimonial-icon-badge"><i class="fas fa-cubes"></i></span>Agent Sandbox</h5>
+                                    <strong>General-purpose AI Agent Sandbox</strong>
+                                </div>
+                            </div>
+                            <div class="text">
+                                <p>Designed for the general-purpose sandbox runtime and serverless computing, e.g. Kata, Firecracker, Cloud Hypervisor microVMs.</p>
+                            </div>
+                        </div>
+                    </li>
+                    
+                
+                    
+                    
+                    <li class="item">
+                        <div class="testimonial same-height-always">
+                            <div class="bottom">
+                                <div class="name-picture">
+                                    <h5><span class="testimonial-icon-badge"><i class="fas fa-cloud"></i></span>Cloud Computing</h5>
+                                    <strong>Integrated Linux Operating System</strong>
+                                </div>
+                            </div>
+                            <div class="text">
+                                <p>Support for Huawei EulerOS, Alibaba Anolis OS, Tencent TencentOS, and other mainstream operating systems.</p>
+                            </div>
+                        </div>
+                    </li>
+                    
+                
+                    
+                    
+                    <li class="item">
+                        <div class="testimonial same-height-always">
+                            <div class="bottom">
+                                <div class="name-picture">
+                                    <h5><span class="testimonial-icon-badge"><i class="fas fa-layer-group"></i></span>Infrastructure Services</h5>
+                                    <strong>Data Center, Bare Metal</strong>
+                                </div>
+                            </div>
+                            <div class="text">
+                                <p>Apply to infrastructure services, including storage, big data, message queues, microservices, and other systems.</p>
+                            </div>
+                        </div>
+                    </li>
+                    
+                
+                    
+                    
+                    <li class="item">
+                        <div class="testimonial same-height-always">
+                            <div class="bottom">
+                                <div class="name-picture">
+                                    <h5><span class="testimonial-icon-badge"><i class="fas fa-shield-alt"></i></span>Chaos Engineering</h5>
+                                    <strong>System Reliability and Stability</strong>
+                                </div>
+                            </div>
+                            <div class="text">
+                                <p>Support chaos engineering, fault injection, and data center disaster recovery, enabling users to understand application.</p>
+                            </div>
+                        </div>
+                    </li>
+                    
+                </ul>
+
+                
+
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+
+
+
+
+
+        
+
+
+<section class="bar background-white no-mb">
+    <div class="container">
+
+        <div class="col-md-12">
+            <div class="heading text-center">
+                
+                <h2>Blog</h2>
+            </div>
+
+            <p class="lead">
+              
+            </p>
+
+            
+
+            <div class="row rp-row">
+                
+                
+                <div class="col-md-3 col-sm-6">
+                    <div class="box-image-text blog">
+                        <div class="top">
+                            <div class="image" style="overflow:hidden">
+                                
+                                <img src="/img/blog/2026-01-03-huatuo-cover.jpg" class="img-responsive" alt="" fetchpriority="high" />
+                                
+                            </div>
+                            <div class="bg"></div>
+                            <div class="text">
+                                <p class="buttons">
+                                    <a href="https://huatuo.tech/blog/2026-01-03-cloud-report-insights-instance-specifications-performance-and-cost/" class="btn btn-template-transparent-primary"><i class="fas fa-link"></i> Read more</a>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="content">
+                            <h4><a href="https://huatuo.tech/blog/2026-01-03-cloud-report-insights-instance-specifications-performance-and-cost/">云报告洞察，实例规格、性能、成本选择</a></h4>
+                            <div class="rp-meta">
+                                
+                                
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                <span><i class="far fa-calendar"></i>2026-01-03</span>
+                                
+                                
+                                <span><i class="far fa-user"></i><a href="/authors/hao022">HAO022</a></span>
+                                
+                            </div>
+                            
+                            <p class="intro">本篇博客重点分析了主流云厂商对虚拟机实例规格的分类（通用型，计算型，存储型，内存型等），实例大小对性能的影响(小规格实例的vCPU性能占据明显优势)，内存计算比例选择背后的思考，以及最后的成本选择。</p>
+                            <p class="read-more">
+                              <a href="https://huatuo.tech/blog/2026-01-03-cloud-report-insights-instance-specifications-performance-and-cost/" class="btn btn-template-main">Read more</a>
+                            </p>
+                            
+                        </div>
+                    </div>
+                    
+
+                </div>
+                
+                <div class="col-md-3 col-sm-6">
+                    <div class="box-image-text blog">
+                        <div class="top">
+                            <div class="image" style="overflow:hidden">
+                                
+                                <img src="/img/blog/2025-12-31-net-cover.png" class="img-responsive" alt="" loading="lazy" />
+                                
+                            </div>
+                            <div class="bg"></div>
+                            <div class="text">
+                                <p class="buttons">
+                                    <a href="https://huatuo.tech/blog/2025-12-31-2025-report-on-chinese-operating-systems/" class="btn btn-template-transparent-primary"><i class="fas fa-link"></i> Read more</a>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="content">
+                            <h4><a href="https://huatuo.tech/blog/2025-12-31-2025-report-on-chinese-operating-systems/">2025 国产服务器操作系统发展报告概要</a></h4>
+                            <div class="rp-meta">
+                                
+                                
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                <span><i class="far fa-calendar"></i>2025-12-30</span>
+                                
+                                
+                                <span><i class="far fa-user"></i><a href="/authors/hao022">HAO022</a></span>
+                                
+                            </div>
+                            
+                            <p class="intro">本篇博客重点分析了中国智能计算产业联盟发布的《2025 国产服务器操作系统发展报告》，包括国产操作系统发展现状、发展趋势、面临问题、发展建议。通过硬件协同，资源管理，并行计算等支撑大规模计算， …</p>
+                            <p class="read-more">
+                              <a href="https://huatuo.tech/blog/2025-12-31-2025-report-on-chinese-operating-systems/" class="btn btn-template-main">Read more</a>
+                            </p>
+                            
+                        </div>
+                    </div>
+                    
+
+                </div>
+                
+                <div class="col-md-3 col-sm-6">
+                    <div class="box-image-text blog">
+                        <div class="top">
+                            <div class="image" style="overflow:hidden">
+                                
+                                <img src="/img/blog/2025-12-29-huatuo-cover.jpeg" class="img-responsive" alt="" loading="lazy" />
+                                
+                            </div>
+                            <div class="bg"></div>
+                            <div class="text">
+                                <p class="buttons">
+                                    <a href="https://huatuo.tech/blog/2025-12-29-how-to-effectively-resolve-application-failure-issues/" class="btn btn-template-transparent-primary"><i class="fas fa-link"></i> Read more</a>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="content">
+                            <h4><a href="https://huatuo.tech/blog/2025-12-29-how-to-effectively-resolve-application-failure-issues/">如何高效定位服务器概率性应用毛刺问题</a></h4>
+                            <div class="rp-meta">
+                                
+                                
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                <span><i class="far fa-calendar"></i>2025-12-29</span>
+                                
+                                
+                                <span><i class="far fa-user"></i><a href="/authors/%E6%9D%8E%E6%B5%A9">李浩</a></span>
+                                
+                            </div>
+                            
+                            <p class="intro">本篇博客详细梳理了，近期公司某机房的一些机器出现偶发概率性的服务毛刺问题，并最终给出了解决方案，效果立竿见影。在整个定位过程中 <a href="https://huatuo.tech/">HUATUO</a> 发挥了关键作用，体现了其在故障定位中的强大价值。</p>
+                            <p class="read-more">
+                              <a href="https://huatuo.tech/blog/2025-12-29-how-to-effectively-resolve-application-failure-issues/" class="btn btn-template-main">Read more</a>
+                            </p>
+                            
+                        </div>
+                    </div>
+                    
+
+                </div>
+                
+                <div class="col-md-3 col-sm-6">
+                    <div class="box-image-text blog">
+                        <div class="top">
+                            <div class="image" style="overflow:hidden">
+                                
+                                <img src="/img/blog/2025-12-16-huatuo-cover.jpg" class="img-responsive" alt="" loading="lazy" />
+                                
+                            </div>
+                            <div class="bg"></div>
+                            <div class="text">
+                                <p class="buttons">
+                                    <a href="https://huatuo.tech/blog/2025-12-16-summary-of-faults-over-the-years/" class="btn btn-template-transparent-primary"><i class="fas fa-link"></i> Read more</a>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="content">
+                            <h4><a href="https://huatuo.tech/blog/2025-12-16-summary-of-faults-over-the-years/"> 这些年全面崩溃的互联网大厂系统故障，经验总结</a></h4>
+                            <div class="rp-meta">
+                                
+                                
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                    
+                                
+                                <span><i class="far fa-calendar"></i>2025-12-15</span>
+                                
+                                
+                                <span><i class="far fa-user"></i><a href="/authors/%E5%AE%98%E6%96%B9%E5%B0%8F%E7%BC%96">官方小编</a></span>
+                                
+                            </div>
+                            
+                            <p class="intro">本篇博客梳理了历年的全球IT基础设施故障案例，并尝试从中总结一系列经验，指导日常的生产实践。故障难以避免，重要的是如何快速的感知，止损，隔离，恢复。在稳定性保障体系中 <a href="https://huatuo.tech/">HUATUO</a> 能够发挥强大的价 …</p>
+                            <p class="read-more">
+                              <a href="https://huatuo.tech/blog/2025-12-16-summary-of-faults-over-the-years/" class="btn btn-template-main">Read more</a>
+                            </p>
+                            
+                        </div>
+                    </div>
+                    
+
+                </div>
+                
+
+            </div>
+            
+
+            
+
+        </div>
+    </div>
+    
+</section>
+
+
+
+
+        
+        
+
+        <section class="bar background-white no-mb">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <div class="heading text-center">
+                    <h2>Ecosystem</h2>
+                </div>
+                <img src="/img/huatuo-ecosystem.svg" alt="Huatuo Ecosystem" class="ecosystem-img" loading="lazy" decoding="async">
+            </div>
+        </div>
+    </div>
+</section>
+
+        
+        
+
+
+
+<section class="bar background-gray no-mb">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="heading text-center">
+                    <h2>Users</h2>
+                </div>
+
+                <ul class="image-gallery" >
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-didichuxing.webp" type="image/webp">
+                            <img src="/img/clients/client-didichuxing.png" alt="滴滴出行" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-flashcat.webp" type="image/webp">
+                            <img src="/img/clients/client-flashcat.png" alt="快猫星云" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-ccf.webp" type="image/webp">
+                            <img src="/img/clients/client-ccf.png" alt="中国计算机协会" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-xiecheng.webp" type="image/webp">
+                            <img src="/img/clients/client-xiecheng.png" alt="https://www.ctrip.com/" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-huaxiaozhu.webp" type="image/webp">
+                            <img src="/img/clients/client-huaxiaozhu.png" alt="https://hxz.didichuxing.com/" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-baidu.webp" type="image/webp">
+                            <img src="/img/clients/client-baidu.png" alt="https://cloud.baidu.com/" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-xiaomi.webp" type="image/webp">
+                            <img src="/img/clients/client-xiaomi.png" alt="https://www.mi.com/" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-metax.webp" type="image/webp">
+                            <img src="/img/clients/client-metax.png" alt="https://www.metax-tech.com/" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-oc.webp" type="image/webp">
+                            <img src="/img/clients/client-oc.png" alt="https://opencloudos.org/" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-anolis.webp" type="image/webp">
+                            <img src="/img/clients/client-anolis.png" alt="龙蜥社区" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-euler.webp" type="image/webp">
+                            <img src="/img/clients/client-euler.png" alt="欧拉社区" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-kylinos.webp" type="image/webp">
+                            <img src="/img/clients/client-kylinos.png" alt="https://www.kylinos.cn/" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-fedora.webp" type="image/webp">
+                            <img src="/img/clients/client-fedora.png" alt="https://fedoraproject.org/" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-centos.webp" type="image/webp">
+                            <img src="/img/clients/client-centos.png" alt="https://www.centos.org/" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-ubuntu.webp" type="image/webp">
+                            <img src="/img/clients/client-ubuntu.png" alt="https://ubuntu.com/" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-muhefangda.webp" type="image/webp">
+                            <img src="/img/clients/client-muhefangda.png" alt="" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-xingbake.webp" type="image/webp">
+                            <img src="/img/clients/client-xingbake.png" alt="https://www.starbucks.com.cn/" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-byd.webp" type="image/webp">
+                            <img src="/img/clients/client-byd.png" alt="https://www.byd.com/cn" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-yunmai.webp" type="image/webp">
+                            <img src="/img/clients/client-yunmai.png" alt="https://www.yunsilicon.com/about.html" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-zhada.webp" type="image/webp">
+                            <img src="/img/clients/client-zhada.png" alt="https://www.sc.com/cn/" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-bilibili.webp" type="image/webp">
+                            <img src="/img/clients/client-bilibili.png" alt="https://www.bilibili.com/" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-liantongyun.webp" type="image/webp">
+                            <img src="/img/clients/client-liantongyun.png" alt="https://www.cucloud.cn/" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-huya.webp" type="image/webp">
+                            <img src="/img/clients/client-huya.png" alt="https://www.huya.com/" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-pinduoduo.webp" type="image/webp">
+                            <img src="/img/clients/client-pinduoduo.png" alt="https://www.pinduoduo.com/" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-minimax.webp" type="image/webp">
+                            <img src="/img/clients/client-minimax.png" alt="https://www.minimaxi.com/" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-jidou.webp" type="image/webp">
+                            <img src="/img/clients/client-jidou.png" alt="https://www.jidouauto.com/" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-shangtang.webp" type="image/webp">
+                            <img src="/img/clients/client-shangtang.png" alt="https://www.sensetime.com/" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                    
+                    
+                    <li class="image-item">
+                        <picture>
+                            <source srcset="/img/clients/client-state-grid.webp" type="image/webp">
+                            <img src="/img/clients/client-state-grid.png" alt="https://www.csg.cn/" loading="lazy" decoding="async">
+                        </picture>
+                    </li>
+                    
+                </ul>
+
+                <p class="lead">
+                    If updates required, please contact us.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+
+
+
+        
+
+
+
+
+        <footer id="footer">
+    <div class="container">
+        
+        
+        
+        
+        <div class="row">
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>Official Certifications</h4>
+                <div class="footer-certifications">
+                    
+                    <a href="https://landscape.cncf.io/?item=observability-and-analysis--observability--huatuo" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="CNCF Landscape">
+                        <img src="/img/certifications/cncf.png" alt="CNCF Landscape" />
+                    </a>
+                    
+                    <a href="https://ebpf.foundation/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="eBPF Foundation">
+                        <img src="/img/certifications/ebpf-foundation.png" alt="eBPF Foundation" />
+                    </a>
+                    
+                    <a href="https://prometheus.io/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="prometheus">
+                        <img src="/img/certifications/prometheus-logo.png" alt="prometheus" />
+                    </a>
+                    
+                    <a href="https://www.ccf.org.cn/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="ccf">
+                        <img src="/img/certifications/ccf.png" alt="ccf" />
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>About us</h4>
+                Linux kernel developers, and observability developers.
+            </div>
+            
+            
+        </div>
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026, HUATUO Open Source Community.</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+    
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+<script src="/js/front.js"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

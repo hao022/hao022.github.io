@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tags on HUATUO 开源社区</title>
+    <link>https://huatuo.tech/zh/tags/</link>
+    <description>Recent content in Tags on HUATUO 开源社区</description>
+    <generator>Hugo</generator>
+    <language>zh</language>
+    <lastBuildDate>Sun, 14 Jun 2026 13:22:39 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/zh/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>BLKIO</title>
+      <link>https://huatuo.tech/zh/tags/blkio/</link>
+      <pubDate>Tue, 05 May 2026 23:17:00 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/tags/blkio/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>RDMA</title>
+      <link>https://huatuo.tech/zh/tags/rdma/</link>
+      <pubDate>Tue, 14 Apr 2026 06:36:13 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/tags/rdma/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>动态</title>
+      <link>https://huatuo.tech/zh/tags/%E5%8A%A8%E6%80%81/</link>
+      <pubDate>Mon, 30 Mar 2026 08:25:49 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/tags/%E5%8A%A8%E6%80%81/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>BPF</title>
+      <link>https://huatuo.tech/zh/tags/bpf/</link>
+      <pubDate>Thu, 26 Mar 2026 03:39:25 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/tags/bpf/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>故障</title>
+      <link>https://huatuo.tech/zh/tags/%E6%95%85%E9%9A%9C/</link>
+      <pubDate>Thu, 26 Mar 2026 03:39:25 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/tags/%E6%95%85%E9%9A%9C/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>合作</title>
+      <link>https://huatuo.tech/zh/tags/%E5%90%88%E4%BD%9C/</link>
+      <pubDate>Mon, 10 Nov 2025 19:12:53 -0500</pubDate>
+      <guid>https://huatuo.tech/zh/tags/%E5%90%88%E4%BD%9C/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>News</title>
+      <link>https://huatuo.tech/zh/tags/news/</link>
+      <pubDate>Fri, 07 Nov 2025 08:25:49 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/tags/news/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>荣誉</title>
+      <link>https://huatuo.tech/zh/tags/%E8%8D%A3%E8%AA%89/</link>
+      <pubDate>Sun, 26 Oct 2025 10:19:02 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/tags/%E8%8D%A3%E8%AA%89/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>CCF</title>
+      <link>https://huatuo.tech/zh/tags/ccf/</link>
+      <pubDate>Fri, 08 Aug 2025 03:19:58 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/tags/ccf/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>开源</title>
+      <link>https://huatuo.tech/zh/tags/%E5%BC%80%E6%BA%90/</link>
+      <pubDate>Fri, 08 Aug 2025 03:19:58 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/tags/%E5%BC%80%E6%BA%90/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>可观测性</title>
+      <link>https://huatuo.tech/zh/tags/%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7/</link>
+      <pubDate>Fri, 08 Aug 2025 03:19:58 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/tags/%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7/</guid>
+      <description></description>
+    </item>
+  </channel>
+</rss>
