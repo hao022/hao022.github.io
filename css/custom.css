@@ -1,0 +1,1005 @@
+/* your styles go here */
+/* Example site test */
+
+:root {
+    --content-font-family: Avenir, "Inter", Helvetica, Arial, sans-serif;
+    --content-font-size: 15px;
+}
+
+body {
+    font-family: var(--content-font-family);
+    font-size: var(--content-font-size);
+}
+
+.box-image-text .image {
+    height: 190px;
+    overflow: hidden;
+}
+
+.box-image-text .image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    margin: 0;
+}
+
+.box-simple {
+    min-height: 230px;
+}
+
+table {
+    border: thin solid;
+    max-width: 100%;
+    width: auto;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    font-size: 95%;
+    color: rgb(74, 74, 74);
+    border: 1px solid #666666;
+    padding: 0.4rem;
+    word-wrap: break-word;
+    white-space: normal;
+}
+
+
+th {
+    background-color: #f8f9fa;
+}
+
+#navbar .navbar-nav a,
+#navbar .navbar-nav a:hover,
+#navbar .navbar-nav a:focus {
+    text-decoration: none !important;
+}
+
+/* Topbar background: override default dark gray (var(--text-primary)) with brand yellow */
+#top {
+    background: #FEE391;
+    color: #333333;
+    font-weight: bold;
+}
+
+#top p {
+    color: #333333;
+}
+
+#top a {
+    font-weight: bold;
+}
+
+/* 默认继承 Bootstrap 的 15px */
+#navbar .navbar-nav > li > a {
+    padding-left: 12px;
+    padding-right: 12px;
+    transition: color 0.15s ease;
+}
+
+/* ── 导航栏图标 + 文字：统一 hover 变白 ── */
+
+/* 所有导航图标默认品牌色（pre 图标 + 地球图标统一用 nav-icon 类） */
+#navbar .navbar-nav > li > a .nav-icon {
+    color: var(--primary-accent);
+    transition: color 0.15s ease;
+}
+
+/* hover：鼠标在 <li> 内（含下拉菜单区域）时，触发按钮文字+背景变化 */
+#navbar .navbar-nav > li:hover > a {
+    color: #ffffff;
+    background-color: var(--navbar-focus);
+}
+
+/* hover / 当前选中：图标同步变白 */
+#navbar .navbar-nav > li:hover > a .nav-icon,
+#navbar .navbar-nav > li.active > a .nav-icon {
+    color: #ffffff;
+}
+
+/* 移动端：点击展开下拉菜单时，触发按钮保持高亮 */
+@media (max-width: 767px) {
+    #navbar .navbar-nav > li.open > a,
+    #navbar .navbar-nav > li.open > a:hover,
+    #navbar .navbar-nav > li.open > a:focus {
+        color: #ffffff;
+        background-color: var(--navbar-focus);
+    }
+    #navbar .navbar-nav > li.open > a .nav-icon {
+        color: #ffffff;
+    }
+}
+
+/* 桌面端：CSS 悬停展开下拉菜单，无需 JS trigger */
+@media (min-width: 768px) {
+    #navbar .navbar-nav > li.dropdown:hover > .dropdown-menu {
+        display: block;
+    }
+}
+
+#navbar .navbar-nav .dropdown-menu > li > a {
+    font-weight: 500;
+}
+
+/* Testimonial card icon badge */
+.testimonial-icon-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2em;
+    height: 2em;
+    border-radius: 50%;
+    background: var(--primary-accent);
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.testimonial-icon-badge i {
+    color: #ffffff;
+    font-size: 0.9em;
+}
+
+/* ── Sidebar ── */
+
+/* Widget container: clean card, no heavy panel chrome */
+.panel.sidebar-menu {
+    border: 1px solid #e8edf2;
+    border-radius: 4px;
+    padding: 18px 20px;
+    box-shadow: none;
+}
+
+/* Section title: small caps label, no thick underline */
+.panel.sidebar-menu .panel-heading {
+    margin-bottom: 14px;
+}
+
+.panel.sidebar-menu .panel-heading h3 {
+    font-size: 0.72em;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #999;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+/* Categories: clean list rows with count badge */
+.panel.sidebar-menu .nav-pills > li > a {
+    padding: 7px 0;
+    color: #444;
+    font-size: 0.9em;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    background: transparent;
+    border-radius: 0;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel.sidebar-menu .nav-pills > li > a:hover {
+    background: transparent;
+    color: var(--primary-accent);
+}
+
+.panel.sidebar-menu .nav-pills > li.active > a,
+.panel.sidebar-menu .nav-pills > li.active > a:hover {
+    background: transparent;
+    color: var(--primary-accent);
+    font-weight: 600;
+}
+
+.panel.sidebar-menu .nav-pills > li:last-child > a {
+    border-bottom: none;
+}
+
+/* Tags: modern rounded pills */
+.panel.sidebar-menu ul.tag-cloud li a {
+    border-radius: 20px;
+    font-size: 0.78em;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 3px 12px;
+    border: 1px solid #e0e0e0;
+    color: var(--text-primary);
+    background: #fff;
+}
+
+.panel.sidebar-menu ul.tag-cloud li a:hover {
+    border-color: var(--primary-accent);
+    color: var(--primary-accent);
+    background: rgba(56,167,187,0.06);
+}
+
+.panel.sidebar-menu ul.tag-cloud li.active a,
+.panel.sidebar-menu ul.tag-cloud li.active a:hover {
+    background: var(--primary-accent);
+    border-color: var(--primary-accent);
+    color: #fff;
+}
+
+/* Search box: minimal style */
+.panel.sidebar-menu .input-group .form-control {
+    border-radius: 4px 0 0 4px;
+    border-color: #e0e0e0;
+    font-size: 0.9em;
+}
+
+.panel.sidebar-menu .input-group .btn {
+    border-radius: 0 4px 4px 0;
+}
+
+/* ─── Milestone / News Page ─────────────────────────── */
+
+/* ══ Hero Section ══════════════════════════════════════
+   全宽暗色头部，包含网格背景、径向光晕、图标、标题、
+   副标题和统计面板。
+   ═══════════════════════════════════════════════════ */
+
+/* 全宽暗色容器，overflow:hidden 裁剪绝对定位的装饰层 */
+.page-hero {
+    position: relative;
+    background: #2c4a5a;
+    padding: 22px 20px 24px;
+    text-align: center;
+    color: #fff;
+    overflow: hidden;
+}
+
+/* 科技感网格线：双向线性渐变叠加，低透明度不抢主视觉 */
+.page-hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(56, 167, 187, .10) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(56, 167, 187, .10) 1px, transparent 1px);
+    background-size: 50px 50px;
+    pointer-events: none;
+}
+
+/* 中心径向光晕，为内容区域增加视觉焦点 */
+.page-hero-glow {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 700px;
+    height: 350px;
+    background: radial-gradient(ellipse, rgba(56, 167, 187, .22) 0%, transparent 68%);
+    pointer-events: none;
+}
+
+/* 内容层叠在装饰层之上 */
+.page-hero-inner {
+    position: relative;
+    z-index: 1;
+}
+
+/* 圆形图标徽章，主题色半透明背景 + 边框 */
+.page-hero-icon {
+    width: 58px;
+    height: 58px;
+    margin: 0;
+    flex-shrink: 0;
+    background: rgba(56, 167, 187, .12);
+    border: 1px solid rgba(56, 167, 187, .35);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.page-hero-icon i {
+    color: #38a7bb;
+    font-size: 22px;
+}
+
+.page-hero-title {
+    font-size: 2.2em;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+    letter-spacing: .02em;
+}
+
+/* ══ Body（工具栏 + 视图区）═══════════════════════════ */
+
+.ms-body {
+    background: #f4f6f8;
+    padding: 36px 0 72px;
+}
+
+/* ══ Toolbar ════════════════════════════════════════════
+   视图切换按钮组（时间轴 / 事件墙）+ 右侧记录总数标签
+   ═══════════════════════════════════════════════════ */
+
+.ms-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 36px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+/* 按钮组容器：描边圆角，溢出隐藏使相邻按钮无间隙 */
+.ms-view-toggle {
+    display: inline-flex;
+    border: 1px solid #e0e6ec;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.ms-toggle-btn {
+    padding: 8px 18px;
+    font-size: .85em;
+    font-weight: 500;
+    color: #777;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background .15s, color .15s;
+}
+
+/* 相邻按钮之间补一条分隔线 */
+.ms-toggle-btn + .ms-toggle-btn {
+    border-left: 1px solid #e0e6ec;
+}
+
+.ms-toggle-btn:hover {
+    color: #38a7bb;
+    background: rgba(56, 167, 187, .05);
+}
+
+/* 激活态：实色主题背景 */
+.ms-toggle-btn.ms-toggle-active {
+    background: #38a7bb;
+    color: #fff;
+}
+
+.ms-count-label {
+    font-size: .82em;
+    color: #aaa;
+}
+
+/* ══ Timeline View ══════════════════════════════════════
+   垂直中轴线 + 左右交替卡片布局。
+   结构：.ms-timeline > .ms-tl-item(.ms-left|.ms-right)
+           ├── .ms-tl-node  （中轴圆点）
+           ├── .ms-tl-when  （日期，绝对定位于卡片与轴线间）
+           └── .ms-tl-card  （卡片链接：图片 + 标题）
+   ═══════════════════════════════════════════════════ */
+
+.ms-timeline {
+    position: relative;
+    padding: 16px 0 8px;
+}
+
+/* 中轴线：两端渐隐，视觉上更优雅 */
+.ms-timeline::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(
+        to bottom,
+        transparent 0,
+        #38a7bb 40px,
+        #38a7bb calc(100% - 40px),
+        transparent 100%
+    );
+    transform: translateX(-50%);
+}
+
+/* 每个时间轴条目，::after clearfix 清除内部浮动 */
+.ms-tl-item {
+    position: relative;
+    padding-bottom: 36px;
+    width: 100%;
+}
+
+.ms-tl-item::after {
+    content: '';
+    display: table;
+    clear: both;
+}
+
+/* 圆点容器：绝对定位在中轴线上 */
+.ms-tl-node {
+    position: absolute;
+    left: 50%;
+    top: 22px;
+    transform: translateX(-50%);
+    z-index: 2;
+}
+
+/* 日期标签：绝对定位于卡片与圆点之间的间隙
+   top:29px = 圆点 top(22px) + 圆点半径(6.5px)，
+   translateY(-50%) 使文字中线与圆点圆心水平对齐 */
+.ms-tl-when {
+    position: absolute;
+    top: 29px;
+    transform: translateY(-50%);
+    font-size: .72em;
+    font-weight: 600;
+    color: var(--primary-accent);
+    white-space: nowrap;
+    line-height: 1;
+}
+
+/* 左侧卡片：日期在卡片右边缘到中轴左侧，右对齐 */
+.ms-left .ms-tl-when {
+    left: 39%;
+    right: calc(50% + 14px);
+    text-align: right;
+}
+
+/* 右侧卡片：日期在中轴右侧到卡片左边缘，左对齐 */
+.ms-right .ms-tl-when {
+    left: calc(50% + 14px);
+    right: 39%;
+    text-align: left;
+}
+
+/* 圆点本体：主题色填充 + 外发光环 */
+.ms-tl-dot {
+    display: block;
+    width: 13px;
+    height: 13px;
+    background: #38a7bb;
+    border: 2px solid #f4f6f8; /* 与背景同色形成"镂空"感 */
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px rgba(56, 167, 187, .3);
+    transition: box-shadow .2s;
+}
+
+/* 悬停时发光环扩散 */
+.ms-tl-item:hover .ms-tl-dot {
+    box-shadow: 0 0 0 6px rgba(56, 167, 187, .18);
+}
+
+/* 卡片：整体作为 <a> 链接，宽38%浮动在中轴两侧 */
+.ms-tl-card {
+    width: 38%;
+    background: #fff;
+    border: 1px solid #e8edf2;
+    border-top: 3px solid #38a7bb; /* 顶部主题色描边 */
+    border-radius: 3px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+    overflow: hidden;
+    transition: box-shadow .2s, transform .2s;
+    display: block;
+    text-decoration: none;
+}
+
+.ms-tl-card:hover {
+    box-shadow: 0 6px 22px rgba(56, 167, 187, .14);
+    transform: translateY(-2px);
+    text-decoration: none; /* 防止全局 a:hover 规则追加下划线 */
+}
+
+.ms-left .ms-tl-card {
+    float: left;
+}
+
+.ms-right .ms-tl-card {
+    float: right;
+}
+
+.ms-tl-img img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    display: block;
+}
+
+.ms-tl-body {
+    padding: 10px 12px 12px;
+}
+
+/* 标题最多2行，超出省略号截断 */
+.ms-tl-title {
+    font-size: .88em;
+    font-weight: 600;
+    line-height: 1.4;
+    margin: 0;
+    color: var(--text-primary);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.ms-tl-card:hover .ms-tl-title {
+    color: var(--primary-accent);
+}
+
+/* ══ Event Wall View ════════════════════════════════════
+   4列响应式网格（col-md-3），等高卡片布局。
+   flex 容器保证同行卡片高度一致，固定高度防止参差。
+   ═══════════════════════════════════════════════════ */
+
+/* flex 替代 Bootstrap 3 的 float，使同行列等高 */
+.ms-wall .row {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+/* 列本身也需要 flex，才能让内部卡片拉伸至列高 */
+.ms-wall-col {
+    margin-bottom: 24px;
+    display: flex;
+}
+
+/* 固定高度卡片，flex column 布局使内容垂直分布 */
+.ms-wall-card {
+    background: #fff;
+    border: 1px solid #e8edf2;
+    border-top: 3px solid #38a7bb;
+    border-radius: 3px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
+    transition: box-shadow .2s, transform .2s;
+    width: 100%;
+    height: 320px;
+    display: flex;
+    flex-direction: column;
+}
+
+.ms-wall-card:hover {
+    box-shadow: 0 6px 22px rgba(56, 167, 187, .14);
+    transform: translateY(-2px);
+}
+
+/* 图片区不可压缩，保持固定高度 */
+.ms-wall-img-wrap {
+    display: block;
+    flex-shrink: 0;
+}
+
+.ms-wall-img-wrap img {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    display: block;
+}
+
+/* 内容区 flex:1 填满剩余空间，overflow:hidden 裁剪超出文字 */
+.ms-wall-body {
+    padding: 10px 12px 12px;
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 标题最多2行，超出省略号截断 */
+.ms-wall-title {
+    font-size: .88em;
+    font-weight: 600;
+    line-height: 1.4;
+    margin: 0 0 6px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.ms-wall-title a {
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.ms-wall-title a:hover {
+    color: var(--primary-accent);
+}
+
+/* 摘要最多2行 */
+.ms-wall-summary {
+    font-size: .82em;
+    color: #888;
+    line-height: 1.6;
+    margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ══ 卡片公共元素 ════════════════════════════════════ */
+
+/* 日期徽章：圆角胶囊，主题色文字 + 浅色背景 */
+.ms-date {
+    display: inline-block;
+    font-size: .76em;
+    font-weight: 600;
+    letter-spacing: .04em;
+    color: #38a7bb;
+    background: rgba(56, 167, 187, .09);
+    border-radius: 20px;
+    padding: 2px 10px;
+    margin-bottom: 8px;
+}
+
+/* tag-pills：milestone 页面 tag 容器间距 */
+.tag-pills {
+    margin-bottom: 10px;
+}
+
+/* milestone 卡片特有：将"阅读更多"推至卡片底部 */
+.ms-wall-body .post-read-more,
+.ms-tl-body .post-read-more {
+    margin-top: auto;
+}
+
+/* 无内容占位提示 */
+.ms-empty {
+    text-align: center;
+    color: #bbb;
+    padding: 48px 0;
+    font-size: .95em;
+}
+
+.ecosystem-img {
+    width: 100%;
+    display: block;
+    margin: 0 auto;
+}
+
+/* ── Blog homepage cards: mobile spacing ── */
+@media (max-width: 767px) {
+    .rp-row > [class*="col-"] {
+        margin-bottom: 24px;
+    }
+}
+
+/* ══ Responsive（移动端 ≤767px）════════════════════════
+   时间轴折叠为左对齐单列；事件墙保持2列。
+   ═══════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+    .page-hero {
+        padding: 24px 20px 20px;
+    }
+
+    .page-hero-title {
+        font-size: 1.7em;
+    }
+
+    /* 中轴线移至左边缘 */
+    .ms-timeline::before {
+        left: 16px;
+        transform: none;
+    }
+
+    /* 圆点固定在条目左上角 */
+    .ms-tl-node {
+        left: 16px;
+        top: 16px;
+        transform: none;
+    }
+
+    /* 条目顶部留出一行高度，用于放置圆点和日期；移除左侧缩进 */
+    .ms-tl-item {
+        padding-left: 0;
+        padding-top: 44px;
+        padding-bottom: 24px;
+    }
+
+    /* 日期：紧靠圆点右侧，top 与圆心对齐（16px + 半径6.5px = 22.5px） */
+    .ms-left .ms-tl-when,
+    .ms-right .ms-tl-when {
+        left: 36px;
+        right: auto;
+        top: 23px;
+        transform: translateY(-50%);
+        text-align: left;
+    }
+
+    /* 卡片与日期左边缘对齐，通过左侧缩进实现 */
+    .ms-tl-card,
+    .ms-left .ms-tl-card,
+    .ms-right .ms-tl-card {
+        width: calc(100% - 36px);
+        margin-left: 36px;
+        float: none;
+    }
+
+    .ms-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* ── About Page ── */
+.about-page {
+    padding-bottom: 0;
+    font-size: var(--post-font-size);
+    color: var(--post-color);
+}
+
+.about-page .col-md-9 {
+    float: none;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.about-section {
+    padding: 0 0 128px;
+}
+
+.about-section-title {
+    font-size: 1.35em;
+    font-weight: 700;
+    color: var(--primary-accent);
+    margin: 0 0 24px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(56,167,187,0.18);
+}
+
+
+.about-foundations-row {
+    display: flex;
+    gap: 20px;
+}
+
+.about-foundation-card {
+    flex: 0 0 160px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border: 1px solid #e8edf2;
+    border-radius: 6px;
+    padding: 10px 20px;
+    text-decoration: none !important;
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.about-foundation-card:hover {
+    box-shadow: 0 4px 16px rgba(56,167,187,0.1);
+    border-color: rgba(56,167,187,0.35);
+}
+
+.about-foundation-card img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    display: block;
+}
+
+.about-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 32px;
+    list-style: none;
+    padding: 12px 0 0;
+    margin: 0;
+}
+
+.about-fact {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: var(--post-font-size);
+    font-weight: 400;
+    color: var(--post-color);
+    letter-spacing: 0;
+    padding: 6px 0;
+}
+
+.about-fact i {
+    color: var(--primary-accent);
+    font-size: 1.1em;
+    position: relative;
+    top: -1px;
+}
+
+.about-section-sub {
+    font-size: var(--post-font-size);
+    color: var(--post-color);
+    margin: 0 0 24px;
+}
+
+/* 三列等高：flex 替换 Bootstrap 3 的 float */
+.about-channels {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.about-channels > [class*="col-"] {
+    display: flex;
+    float: none;
+}
+
+@media (max-width: 991px) {
+    .about-channels > [class*="col-"] {
+        width: 100%;
+    }
+}
+
+.about-channel-card {
+    background: #fff;
+    border: 1px solid #e8edf2;
+    border-top: 3px solid var(--primary-accent);
+    border-radius: 3px;
+    padding: 24px 22px 28px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.2s;
+    margin-bottom: 20px;
+}
+
+.about-channel-card:hover {
+    box-shadow: 0 6px 20px rgba(56,167,187,0.1);
+}
+
+/* 图标 + 标题同行 */
+.about-channel-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.about-channel-icon {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: rgba(56,167,187,0.08);
+    border: 1px solid rgba(56,167,187,0.22);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.about-channel-icon i {
+    color: var(--primary-accent);
+    font-size: 17px;
+}
+
+.about-channel-title {
+    font-size: 1em;
+    font-weight: 700;
+    color: #222;
+    margin: 0;
+}
+
+.about-channel-desc {
+    font-size: 0.88em;
+    color: #777;
+    line-height: 1.75;
+    margin-bottom: 16px;
+}
+
+.about-channel-qr {
+    display: block;
+    width: 130px;
+    height: 130px;
+    object-fit: contain;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    padding: 4px;
+    background: #fff;
+    margin-top: auto;
+}
+
+.about-channel-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85em;
+    font-weight: 600;
+    color: var(--primary-accent);
+    text-decoration: none !important;
+}
+
+.about-channel-link:hover {
+    color: var(--link-focus);
+}
+
+.about-channel-link i {
+    font-size: 0.8em;
+    transition: transform 0.15s;
+}
+
+.about-channel-link:hover i {
+    transform: translateX(3px);
+}
+
+@media (max-width: 767px) {
+    .about-facts {
+        gap: 0 20px;
+    }
+    .about-foundations-row {
+        flex-direction: column;
+    }
+    .about-foundation-card {
+        flex: none;
+        width: 100%;
+        height: 56px;
+    }
+}
+
+
+/* ── Page Hero (博客 / 关于 / 动态) ── */
+.page-hero-title-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 6px;
+}
+
+.has-page-hero #content {
+    padding-top: 32px;
+}
+
+.ms-page-root #content {
+    padding-top: 0;
+}
+
+/* ── Footer columns: mobile divider ── */
+@media (max-width: 767px) {
+    .footer-col + .footer-col {
+        border-top: 3px solid rgba(255, 255, 255, 0.25);
+        margin-top: 20px;
+        padding-top: 20px;
+    }
+}
+
+/* ── Footer Certifications ── */
+/* inline-flex 让容器宽度收缩到最宽卡片；align-items:stretch 让所有卡片同宽 */
+.footer-certifications {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.footer-certification-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 6px;
+    padding: 8px 14px;
+    height: 48px;
+    transition: background 0.15s, border-color 0.15s;
+    text-decoration: none !important;
+}
+
+.footer-certification-card:hover {
+    background: rgba(255,255,255,0.14);
+    border-color: rgba(56,167,187,0.5);
+}
+
+.footer-certification-card img {
+    height: 28px;
+    width: auto;
+    object-fit: contain;
+    display: block;
+    filter: brightness(0) invert(1);
+    opacity: 0.8;
+    transition: opacity 0.15s;
+}
+
+.footer-certification-card:hover img {
+    opacity: 1;
+}

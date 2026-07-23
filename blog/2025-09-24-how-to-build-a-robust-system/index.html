@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+
+<title>思考篇：如何构建一个稳健的系统</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, loadavg, containers">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' rel='stylesheet'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1784795367" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+<link rel="android-chrome-icon" href="/img/android-chrome-512x512.png" />
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="Linux Kernel, Cloud-native and AI Infra Observability.">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en">
+<meta property="og:site_name" content="Linux Kernel, Cloud-native and AI Infra Observability.">
+<meta property="og:title" content="思考篇：如何构建一个稳健的系统">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/blog/2025-09-24-how-to-build-a-robust-system/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2025-09-24-cover.jpg">
+<meta property="og:image:type" content="image/jpg">
+
+
+
+  <meta property="og:image:width" content="900">
+  <meta property="og:image:height" content="600">
+
+
+<meta property="og:updated_time" content="2026-07-23T08:29:19Z">
+
+  
+  
+  
+  <meta property="article:tag" content="loadavg">
+  <meta property="article:tag" content="containers">
+  <meta property="article:tag" content="可观测性">
+  <meta property="article:tag" content="BPF">
+  
+  
+  <meta property="article:published_time" content="2025-09-23T22:13:21-0400">
+  <meta property="article:modified_time" content="2026-07-23T08:29:19Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="思考篇：如何构建一个稳健的系统">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2025-09-24-cover.jpg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+  </head>
+
+  <body><div id="all" class="has-page-hero">
+
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+              🚀  Listed in the CNCF Landscape and eBPF Foundation Emerging Project. If you like this project, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>!  ❤️
+          </p>
+        
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm " role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/logo.png" alt="思考篇：如何构建一个稳健的系统 logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/logo-small.png" alt="思考篇：如何构建一个稳健的系统 logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">思考篇：如何构建一个稳健的系统 - go to homepage</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">Toggle Navigation</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-book nav-icon' style='margin-right:5px;'></i>Docs <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="https://docs.huatuo.tech/en/latest/">Latest</a></li>
+                            
+                            <li><a href="https://docs.huatuo.tech/en/v2.2.0/">V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-download nav-icon' style='margin-right:5px;'></i>Download <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="https://hub.docker.com/r/huatuo/huatuo-bamai/tags">Dockerhub</a></li>
+                            
+                            <li><a href="https://github.com/ccfos/huatuo/releases">Release</a></li>
+                            
+                            <li><a href="https://github.com/ccfos/huatuo">Github</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    <a href="/blog/"><i class='fas fa-pen-nib nav-icon' style='margin-right:5px;'></i>Blog</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/milestone/"><i class='fas fa-newspaper nav-icon' style='margin-right:5px;'></i>News</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/about/"><i class='fas fa-info-circle nav-icon' style='margin-right:5px;'></i>About</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" style="display:flex;align-items:center;gap:5px;">
+                      <i class="fas fa-globe nav-icon"></i>
+                      English
+                      <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                      
+                      
+                      
+                        
+                        
+                        
+                        
+                          
+                            
+                          
+                        
+                        
+                        <li class="active">
+                          <a href="/blog/2025-09-24-how-to-build-a-robust-system/" style="display:flex;align-items:center;gap:8px;">
+                            
+                              <i class="fas fa-check" style="font-size:0.8em;"></i>
+                            
+                            English
+                          </a>
+                        </li>
+                      
+                        
+                        
+                        
+                        
+                          
+                        
+                        
+                          
+                            
+                          
+                            
+                              
+                            
+                          
+                        
+                        <li >
+                          <a href="/zh/" style="display:flex;align-items:center;gap:8px;">
+                            
+                              <i style="display:inline-block;width:0.8em;"></i>
+                            
+                            中文
+                          </a>
+                        </li>
+                      
+                    </ul>
+                  </li>
+                  
+                  
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars"
+                         onerror="this.style.display='none'">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        
+        
+        <div class="page-hero">
+    <div class="page-hero-grid"></div>
+    <div class="page-hero-glow"></div>
+    <div class="page-hero-inner">
+        <div class="page-hero-title-row">
+            <div class="page-hero-icon"><i class="fas fa-pen-nib"></i></div>
+            <h1 class="page-hero-title">Blog</h1>
+        </div>
+    </div>
+</div>
+
+        
+
+        <div id="content">
+            <div class="container">
+                <div class="row">
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                        <h1 class="post-title">思考篇：如何构建一个稳健的系统</h1>
+                        <div class="post-meta">
+                            <span class="post-meta-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                2025-09-23
+                            </span>
+                            
+                            <span class="post-meta-authors">
+                                <i class="fas fa-user"></i>
+                                <a href="/authors/hao022">hao022</a>
+                            </span>
+                            
+                            
+                            <span class="post-meta-tags">
+                                <a href="/tags/loadavg" class="post-meta-tag">loadavg</a><a href="/tags/containers" class="post-meta-tag">containers</a><a href="/tags/%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7" class="post-meta-tag">可观测性</a><a href="/tags/bpf" class="post-meta-tag">BPF</a>
+                            </span>
+                            
+                        </div>
+                        
+
+                        <div id="post-content">
+                          <p><em>该文章借鉴了一位大神的思路，但更具总结性。</em> 稳健系统定义：一个稳健的系统，在负载压力增大，甚至超出理论最大负载时依然能够保持稳定的线性输出。</p>
+<h3 id="基础概念">基础概念</h3>
+<p>先了解如下概念：</p>
+<ol>
+<li>最大吞吐：绝大数情况下，我们的服务不会处于最大吞吐状态，它只是昙花一现。高负载状态下随着时间的推移，服务的队列和延迟会无限增加。</li>
+<li>持续吞吐：服务延迟可控状态的下的可持续的性能吞吐。</li>
+<li>目标吞吐：根据真实服务负载评估出的用于扩容的吞吐量。</li>
+</ol>
+<h3 id="构造方法">构造方法</h3>
+<p>围绕上面的概念，无论设计基础软件，业务软件，还是集群软件，均可做如下思考：</p>
+<ol>
+<li>系统指标：健壮的系统应该具备完善的表征系统负载，资源水位的指标，如资源，组件，任务，性能，队列，请求延迟等</li>
+<li>拒绝服务：一个健壮的系统能够实时表征自己的服务负载，资源状态。当这些指标当超出服务能力上限时，能够拒绝超出服务能力的请求，而不是让系统进入不可控状态。（想想那些雪崩的系统，无效的集群扩容。）</li>
+<li>反馈机制：服务端和客户端之间要有反馈机制，客户端能够知晓后端的负载情况，调整自己的策略。（想想网络拥塞，无损网络，RPC 策略，分布式系统的 backoff。）
+<img src="/img/blog/2025-09-24-max-throughput.png" alt="" loading="lazy" />
+</li>
+</ol>
+<h3 id="几种关系">几种关系</h3>
+<ol>
+<li>吞吐和延迟：吞吐更容易表现一个系统的负载，然而背后的延迟指标，是保证系统持续服务的关键，只有延迟保持在一定的范围才能保证服务的持续性，即延迟要有边界，可收敛。</li>
+<li>延迟和队列：队列能够平滑突增的流量，避免系统瞬间击垮。队列通过牺牲一部分请求来保障系统整体的稳定性和吞吐量。本质上队列将突发的高延迟风险转化为了可控的、可预测的排队延迟。</li>
+<li>队列的削峰填谷，流量削峰还有个形象的名字叫做削峰填谷，其实就是指当数据量激增时，能够有效地隔离上下游业务，将上游突增的流量缓存起来，真正地填到谷中，以平滑的方式传到下游系统，避免了流量的不规则冲击。比如，有个活动页面平时也就 50qps，某一特殊时刻访问量突然增多，能达到 1000qps，但是当前系统的处理能力最多为 100qps，这个时候可以通过消息队列来进行削峰填谷，如下图所示。</li>
+<li>队列：队列本身有局限性，并不完美，否则就没有优先级，抢占，丢弃策略。另外任何系统都有队列，如果不存在则可能被转嫁到了客户端或者服务端。</li>
+</ol>
+<p><img src="/img/blog/2025-09-24-mq.png" alt="" loading="lazy" />
+</p>
+<h3 id="huatuo">HUATUO</h3>
+<p>在构建稳健系统过程中，HUATUO 能够让你看清应用性能表现。https://huatuo.tech/quickstart/</p>
+
+                        </div>
+
+                        
+                        <div id="comments">
+                            
+                            <script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="en"
+        crossorigin="anonymous"
+        async>
+</script>
+
+                        </div>
+                        
+
+                    </div>
+
+                    <div class="col-md-3">
+                        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">Tags</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/tags/blkio"><i class="fas fa-tags"></i> blkio</a>
+            </li>
+            
+            <li >
+                <a href="/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/bpf-foundation"><i class="fas fa-tags"></i> bpf foundation</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ccf"><i class="fas fa-tags"></i> ccf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/containers"><i class="fas fa-tags"></i> containers</a>
+            </li>
+            
+            <li >
+                <a href="/tags/cpuidle"><i class="fas fa-tags"></i> cpuidle</a>
+            </li>
+            
+            <li >
+                <a href="/tags/hao022"><i class="fas fa-tags"></i> hao022</a>
+            </li>
+            
+            <li >
+                <a href="/tags/k8s"><i class="fas fa-tags"></i> k8s</a>
+            </li>
+            
+            <li >
+                <a href="/tags/linux-%e5%86%85%e6%a0%b8"><i class="fas fa-tags"></i> linux 内核</a>
+            </li>
+            
+            <li >
+                <a href="/tags/loadavg"><i class="fas fa-tags"></i> loadavg</a>
+            </li>
+            
+            <li >
+                <a href="/tags/net"><i class="fas fa-tags"></i> net</a>
+            </li>
+            
+            <li >
+                <a href="/tags/networking"><i class="fas fa-tags"></i> networking</a>
+            </li>
+            
+            <li >
+                <a href="/tags/news"><i class="fas fa-tags"></i> news</a>
+            </li>
+            
+            <li >
+                <a href="/tags/rdma"><i class="fas fa-tags"></i> rdma</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8a%a8%e6%80%81"><i class="fas fa-tags"></i> 动态</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7"><i class="fas fa-tags"></i> 可观测性</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%90%88%e4%bd%9c"><i class="fas fa-tags"></i> 合作</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%a4%9c%e8%8e%ba%e7%9b%91%e6%8e%a7"><i class="fas fa-tags"></i> 夜莺监控</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%bc%80%e6%ba%90"><i class="fas fa-tags"></i> 开源</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%81%ab%e7%84%b0%e5%9b%be"><i class="fas fa-tags"></i> 火焰图</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%bd%91%e7%bb%9c%e4%bc%98%e5%8c%96"><i class="fas fa-tags"></i> 网络优化</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e8%8d%a3%e8%aa%89"><i class="fas fa-tags"></i> 荣誉</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <footer id="footer">
+    <div class="container">
+        
+        
+        
+        
+        <div class="row">
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>Official Certifications</h4>
+                <div class="footer-certifications">
+                    
+                    <a href="https://landscape.cncf.io/?item=observability-and-analysis--observability--huatuo" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="CNCF Landscape">
+                        <img src="/img/certifications/cncf.png" alt="CNCF Landscape" />
+                    </a>
+                    
+                    <a href="https://ebpf.foundation/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="eBPF Foundation">
+                        <img src="/img/certifications/ebpf-foundation.png" alt="eBPF Foundation" />
+                    </a>
+                    
+                    <a href="https://prometheus.io/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="prometheus">
+                        <img src="/img/certifications/prometheus-logo.png" alt="prometheus" />
+                    </a>
+                    
+                    <a href="https://www.ccf.org.cn/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="ccf">
+                        <img src="/img/certifications/ccf.png" alt="ccf" />
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>About us</h4>
+                Linux kernel developers, and observability developers.
+            </div>
+            
+            
+        </div>
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026, HUATUO Open Source Community.</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+<script src="/js/front.js"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

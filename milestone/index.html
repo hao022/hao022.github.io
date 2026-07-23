@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+
+<title>News and Milestone</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' rel='stylesheet'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1784795367" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+<link rel="android-chrome-icon" href="/img/android-chrome-512x512.png" />
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="Linux Kernel, Cloud-native and AI Infra Observability.">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en">
+<meta property="og:site_name" content="Linux Kernel, Cloud-native and AI Infra Observability.">
+<meta property="og:title" content="News and Milestone">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://huatuo.tech/milestone/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/sharing-default.png">
+<meta property="og:image:type" content="image/png">
+
+
+
+  <meta property="og:image:width" content="428">
+  <meta property="og:image:height" content="149">
+
+
+<meta property="og:updated_time" content="2026-07-23T08:29:19Z">
+
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="News and Milestone">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/sharing-default.png">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+  </head>
+
+  <body>
+
+    <div id="all" class="has-page-hero ms-page-root">
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+              🚀  Listed in the CNCF Landscape and eBPF Foundation Emerging Project. If you like this project, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>!  ❤️
+          </p>
+        
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm " role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/logo.png" alt="News and Milestone logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/logo-small.png" alt="News and Milestone logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">News and Milestone - go to homepage</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">Toggle Navigation</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-book nav-icon' style='margin-right:5px;'></i>Docs <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="https://docs.huatuo.tech/en/latest/">Latest</a></li>
+                            
+                            <li><a href="https://docs.huatuo.tech/en/v2.2.0/">V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-download nav-icon' style='margin-right:5px;'></i>Download <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="https://hub.docker.com/r/huatuo/huatuo-bamai/tags">Dockerhub</a></li>
+                            
+                            <li><a href="https://github.com/ccfos/huatuo/releases">Release</a></li>
+                            
+                            <li><a href="https://github.com/ccfos/huatuo">Github</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/blog/"><i class='fas fa-pen-nib nav-icon' style='margin-right:5px;'></i>Blog</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+                    
+                  
+
+                  
+                    
+                  
+
+                  
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                  
+
+                  
+                  <li class="dropdown active">
+                    <a href="/milestone/"><i class='fas fa-newspaper nav-icon' style='margin-right:5px;'></i>News</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/about/"><i class='fas fa-info-circle nav-icon' style='margin-right:5px;'></i>About</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" style="display:flex;align-items:center;gap:5px;">
+                      <i class="fas fa-globe nav-icon"></i>
+                      English
+                      <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                      
+                      
+                      
+                        
+                        
+                        
+                        
+                          
+                            
+                          
+                        
+                          
+                        
+                        
+                        <li class="active">
+                          <a href="/milestone/" style="display:flex;align-items:center;gap:8px;">
+                            
+                              <i class="fas fa-check" style="font-size:0.8em;"></i>
+                            
+                            English
+                          </a>
+                        </li>
+                      
+                        
+                        
+                        
+                        
+                          
+                        
+                          
+                            
+                          
+                        
+                        
+                        <li >
+                          <a href="/zh/milestone/" style="display:flex;align-items:center;gap:8px;">
+                            
+                              <i style="display:inline-block;width:0.8em;"></i>
+                            
+                            中文
+                          </a>
+                        </li>
+                      
+                    </ul>
+                  </li>
+                  
+                  
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars"
+                         onerror="this.style.display='none'">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        <div class="page-hero">
+    <div class="page-hero-grid"></div>
+    <div class="page-hero-glow"></div>
+    <div class="page-hero-inner">
+        <div class="page-hero-title-row">
+            <div class="page-hero-icon"><i class="fas fa-history"></i></div>
+            <h1 class="page-hero-title">News and Milestone</h1>
+        </div>
+    </div>
+</div>
+
+
+        <div id="content">
+            <div class="ms-page">
+
+  
+  <div class="ms-body">
+    <div class="container">
+
+      
+      <div class="ms-toolbar">
+        <div class="ms-view-toggle">
+          <button class="ms-toggle-btn ms-toggle-active" id="ms-btn-tl">
+            <i class="fas fa-list-ul"></i>
+            <span>Timeline</span>
+          </button>
+          <button class="ms-toggle-btn" id="ms-btn-wall">
+            <i class="fas fa-th-large"></i>
+            <span>Event Wall</span>
+          </button>
+        </div>
+        <span class="ms-count-label">8 Milestones · Since 2025</span>
+      </div>
+
+      
+      <div id="ms-view-tl" class="ms-timeline">
+        <div class="ms-tl-item ms-left">
+          <div class="ms-tl-node"><span class="ms-tl-dot"></span></div>
+          <div class="ms-tl-when">2026 · 03 · 30</div>
+          <a href="https://huatuo.tech/events/2026-03-30-release-v220/" class="ms-tl-card">
+            <div class="ms-tl-img">
+              <img src="/img/events/2026-03-30-release-cover.jpg" alt="V2.2.0 Released" loading="lazy">
+            </div>
+            <div class="ms-tl-body">
+              <h3 class="ms-tl-title">V2.2.0 Released</h3>
+            </div>
+          </a>
+        </div>
+        <div class="ms-tl-item ms-right">
+          <div class="ms-tl-node"><span class="ms-tl-dot"></span></div>
+          <div class="ms-tl-when">2026 · 03 · 09</div>
+          <a href="https://huatuo.tech/events/2026-03-10-metax-works-together-with-huatuo-opensource/" class="ms-tl-card">
+            <div class="ms-tl-img">
+              <img src="/img/events/2026-03-10-metax-cover.jpg" alt="MetaX Joins Our Ecosystem" loading="lazy">
+            </div>
+            <div class="ms-tl-body">
+              <h3 class="ms-tl-title">MetaX Joins Our Ecosystem</h3>
+            </div>
+          </a>
+        </div>
+        <div class="ms-tl-item ms-left">
+          <div class="ms-tl-node"><span class="ms-tl-dot"></span></div>
+          <div class="ms-tl-when">2026 · 01 · 22</div>
+          <a href="https://huatuo.tech/events/2026-01-22-huatuo-and-ebpf-foundation-work-together/" class="ms-tl-card">
+            <div class="ms-tl-img">
+              <img src="/img/blog/2026-01-22-huatuo-cover.jpeg" alt="eBPF Emerging Project" loading="lazy">
+            </div>
+            <div class="ms-tl-body">
+              <h3 class="ms-tl-title">eBPF Emerging Project</h3>
+            </div>
+          </a>
+        </div>
+        <div class="ms-tl-item ms-right">
+          <div class="ms-tl-node"><span class="ms-tl-dot"></span></div>
+          <div class="ms-tl-when">2025 · 12 · 19</div>
+          <a href="https://huatuo.tech/events/2025-12-20-huatuo-and-tencent-outstanding-contribution/" class="ms-tl-card">
+            <div class="ms-tl-img">
+              <img src="/img/blog/2025-12-20-cover.jpg" alt="Tencent &#34;Outstanding Contribution Award&#34;" loading="lazy">
+            </div>
+            <div class="ms-tl-body">
+              <h3 class="ms-tl-title">Tencent &#34;Outstanding Contribution Award&#34;</h3>
+            </div>
+          </a>
+        </div>
+        <div class="ms-tl-item ms-left">
+          <div class="ms-tl-node"><span class="ms-tl-dot"></span></div>
+          <div class="ms-tl-when">2025 · 11 · 10</div>
+          <a href="https://huatuo.tech/events/2025-11-11-opencloudos-and-huatuo-together/" class="ms-tl-card">
+            <div class="ms-tl-img">
+              <img src="/img/blog/2025-11-11-oc-cover.jpg" alt="腾讯操作系统 OC 和 HUATUO (华佗) 深度集成" loading="lazy">
+            </div>
+            <div class="ms-tl-body">
+              <h3 class="ms-tl-title">腾讯操作系统 OC 和 HUATUO (华佗) 深度集成</h3>
+            </div>
+          </a>
+        </div>
+        <div class="ms-tl-item ms-right">
+          <div class="ms-tl-node"><span class="ms-tl-dot"></span></div>
+          <div class="ms-tl-when">2025 · 11 · 07</div>
+          <a href="https://huatuo.tech/events/2025-11-07-share-huatuo-practices-to-zhejiang-university/" class="ms-tl-card">
+            <div class="ms-tl-img">
+              <img src="/img/events/2025-11-07-huatuo-zhejiang-00.png" alt="HUATUO 华佗走进浙江大学｜共话开源实践与高校共建" loading="lazy">
+            </div>
+            <div class="ms-tl-body">
+              <h3 class="ms-tl-title">HUATUO 华佗走进浙江大学｜共话开源实践与高校共建</h3>
+            </div>
+          </a>
+        </div>
+        <div class="ms-tl-item ms-left">
+          <div class="ms-tl-node"><span class="ms-tl-dot"></span></div>
+          <div class="ms-tl-when">2025 · 10 · 26</div>
+          <a href="https://huatuo.tech/events/2025-10-28-huatuo-oscar-event/" class="ms-tl-card">
+            <div class="ms-tl-img">
+              <img src="/img/blog/2025-10-28-oscar-cover.jpeg" alt="荣获《OSCAR 尖峰开源项目及开源社区》称号" loading="lazy">
+            </div>
+            <div class="ms-tl-body">
+              <h3 class="ms-tl-title">荣获《OSCAR 尖峰开源项目及开源社区》称号</h3>
+            </div>
+          </a>
+        </div>
+        <div class="ms-tl-item ms-right">
+          <div class="ms-tl-node"><span class="ms-tl-dot"></span></div>
+          <div class="ms-tl-when">2025 · 08 · 08</div>
+          <a href="https://huatuo.tech/events/2025-08-07-huatuo-open-source-project-has-entered-the-ccf-incubation-phase/" class="ms-tl-card">
+            <div class="ms-tl-img">
+              <img src="/img/blog/2025-08-07-ccf-didi-opensource.png" alt="滴滴操作系统可观测项目 HUATUO 正式入驻 CCF" loading="lazy">
+            </div>
+            <div class="ms-tl-body">
+              <h3 class="ms-tl-title">滴滴操作系统可观测项目 HUATUO 正式入驻 CCF</h3>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      
+      <div id="ms-view-wall" class="ms-wall" style="display:none">
+        <div class="row">
+          <div class="col-sm-6 col-md-3 ms-wall-col">
+            <div class="ms-wall-card">
+              <a href="https://huatuo.tech/events/2026-03-30-release-v220/" class="ms-wall-img-wrap">
+                <img src="/img/events/2026-03-30-release-cover.jpg" alt="V2.2.0 Released" loading="lazy">
+              </a>
+              <div class="ms-wall-body">
+                <div class="ms-date">2026 · 03 · 30</div>
+                <h3 class="ms-wall-title"><a href="https://huatuo.tech/events/2026-03-30-release-v220/">V2.2.0 Released</a></h3>
+                <p class="ms-wall-summary">Following a period of development and testing, the v2.2.0 release is now available. This provides a...</p>
+                <div class="tag-pills"><span class="tag-pill">News</span></div>
+                <a href="https://huatuo.tech/events/2026-03-30-release-v220/" class="post-read-more">Read more →</a>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-md-3 ms-wall-col">
+            <div class="ms-wall-card">
+              <a href="https://huatuo.tech/events/2026-03-10-metax-works-together-with-huatuo-opensource/" class="ms-wall-img-wrap">
+                <img src="/img/events/2026-03-10-metax-cover.jpg" alt="MetaX Joins Our Ecosystem" loading="lazy">
+              </a>
+              <div class="ms-wall-body">
+                <div class="ms-date">2026 · 03 · 09</div>
+                <h3 class="ms-wall-title"><a href="https://huatuo.tech/events/2026-03-10-metax-works-together-with-huatuo-opensource/">MetaX Joins Our Ecosystem</a></h3>
+                <p class="ms-wall-summary"> 沐曦股份开源生态介绍 沐曦股份坚持“自主创新与开放兼容”双轨战略，以自研MXMACA软件栈为核心，构建硬件与应用的桥梁，并承载开源核心使命。该栈于2025年2月正式开源，致力于打造开放的GPU编程接...</p>
+                <a href="https://huatuo.tech/events/2026-03-10-metax-works-together-with-huatuo-opensource/" class="post-read-more">Read more →</a>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-md-3 ms-wall-col">
+            <div class="ms-wall-card">
+              <a href="https://huatuo.tech/events/2026-01-22-huatuo-and-ebpf-foundation-work-together/" class="ms-wall-img-wrap">
+                <img src="/img/blog/2026-01-22-huatuo-cover.jpeg" alt="eBPF Emerging Project" loading="lazy">
+              </a>
+              <div class="ms-wall-body">
+                <div class="ms-date">2026 · 01 · 22</div>
+                <h3 class="ms-wall-title"><a href="https://huatuo.tech/events/2026-01-22-huatuo-and-ebpf-foundation-work-together/">eBPF Emerging Project</a></h3>
+                <p class="ms-wall-summary">HUATUO (华佗) 被 eBPF 基金会列为新兴项目，标志着行业对该项目社区实力与生态价值的认可。eBPF 已经被广泛应用于可观测性领域。</p>
+                <div class="tag-pills"><span class="tag-pill">News</span><span class="tag-pill">BPF Foundation</span></div>
+                <a href="https://huatuo.tech/events/2026-01-22-huatuo-and-ebpf-foundation-work-together/" class="post-read-more">Read more →</a>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-md-3 ms-wall-col">
+            <div class="ms-wall-card">
+              <a href="https://huatuo.tech/events/2025-12-20-huatuo-and-tencent-outstanding-contribution/" class="ms-wall-img-wrap">
+                <img src="/img/blog/2025-12-20-cover.jpg" alt="Tencent &#34;Outstanding Contribution Award&#34;" loading="lazy">
+              </a>
+              <div class="ms-wall-body">
+                <div class="ms-date">2025 · 12 · 19</div>
+                <h3 class="ms-wall-title"><a href="https://huatuo.tech/events/2025-12-20-huatuo-and-tencent-outstanding-contribution/">Tencent &#34;Outstanding Contribution Award&#34;</a></h3>
+                <p class="ms-wall-summary">近日，2025 OpenCloudOS 操作系统生态大会在北京成功举办。会上，滴滴出行荣获年度“杰出贡献单位”奖，体现腾讯操作系统社区对滴滴出行所做贡献的高度认可，更彰显了HUATUO（华佗）社区在推动操作系统可观测生态繁荣方面所做的深刻实践</p>
+                <div class="tag-pills"><span class="tag-pill">News</span></div>
+                <a href="https://huatuo.tech/events/2025-12-20-huatuo-and-tencent-outstanding-contribution/" class="post-read-more">Read more →</a>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-md-3 ms-wall-col">
+            <div class="ms-wall-card">
+              <a href="https://huatuo.tech/events/2025-11-11-opencloudos-and-huatuo-together/" class="ms-wall-img-wrap">
+                <img src="/img/blog/2025-11-11-oc-cover.jpg" alt="腾讯操作系统 OC 和 HUATUO (华佗) 深度集成" loading="lazy">
+              </a>
+              <div class="ms-wall-body">
+                <div class="ms-date">2025 · 11 · 10</div>
+                <h3 class="ms-wall-title"><a href="https://huatuo.tech/events/2025-11-11-opencloudos-and-huatuo-together/">腾讯操作系统 OC 和 HUATUO (华佗) 深度集成</a></h3>
+                <p class="ms-wall-summary">滴滴 [HUATUO（华佗）](https://huatuo.tech/) 和腾讯操作系统 OC 深度集成，进一步提升 OC 操作系统在云原生环境下内核级深度观测的能力，为云上用户提升内核问题排查效率，保障业务持续性.</p>
+                <div class="tag-pills"><span class="tag-pill">BPF</span><span class="tag-pill">合作</span></div>
+                <a href="https://huatuo.tech/events/2025-11-11-opencloudos-and-huatuo-together/" class="post-read-more">Read more →</a>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-md-3 ms-wall-col">
+            <div class="ms-wall-card">
+              <a href="https://huatuo.tech/events/2025-11-07-share-huatuo-practices-to-zhejiang-university/" class="ms-wall-img-wrap">
+                <img src="/img/events/2025-11-07-huatuo-zhejiang-00.png" alt="HUATUO 华佗走进浙江大学｜共话开源实践与高校共建" loading="lazy">
+              </a>
+              <div class="ms-wall-body">
+                <div class="ms-date">2025 · 11 · 07</div>
+                <h3 class="ms-wall-title"><a href="https://huatuo.tech/events/2025-11-07-share-huatuo-practices-to-zhejiang-university/">HUATUO 华佗走进浙江大学｜共话开源实践与高校共建</a></h3>
+                <p class="ms-wall-summary"> 滴滴基础产品事业部高级软件开发工程师涂曾兵分享了《HUATUO在滴滴的规模化应用实践和开源社区建设》。在云原生与AI技术快速发展的今天，操作系统级可观测性成为保障复杂系统稳定性的关键。滴滴开源...</p>
+                <div class="tag-pills"><span class="tag-pill">News</span></div>
+                <a href="https://huatuo.tech/events/2025-11-07-share-huatuo-practices-to-zhejiang-university/" class="post-read-more">Read more →</a>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-md-3 ms-wall-col">
+            <div class="ms-wall-card">
+              <a href="https://huatuo.tech/events/2025-10-28-huatuo-oscar-event/" class="ms-wall-img-wrap">
+                <img src="/img/blog/2025-10-28-oscar-cover.jpeg" alt="荣获《OSCAR 尖峰开源项目及开源社区》称号" loading="lazy">
+              </a>
+              <div class="ms-wall-body">
+                <div class="ms-date">2025 · 10 · 26</div>
+                <h3 class="ms-wall-title"><a href="https://huatuo.tech/events/2025-10-28-huatuo-oscar-event/">荣获《OSCAR 尖峰开源项目及开源社区》称号</a></h3>
+                <p class="ms-wall-summary">[HUATUO（华佗）](https://huatuo.tech/) 凭借其在技术创新、社区建设等方面的卓越表现，荣获中国信息通信研究院、中国通信标准化协会颁发的《OSCAR 尖峰开源项目及开源社区》 奖项 ...</p>
+                <div class="tag-pills"><span class="tag-pill">动态</span><span class="tag-pill">News</span><span class="tag-pill">BPF</span><span class="tag-pill">荣誉</span></div>
+                <a href="https://huatuo.tech/events/2025-10-28-huatuo-oscar-event/" class="post-read-more">Read more →</a>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-md-3 ms-wall-col">
+            <div class="ms-wall-card">
+              <a href="https://huatuo.tech/events/2025-08-07-huatuo-open-source-project-has-entered-the-ccf-incubation-phase/" class="ms-wall-img-wrap">
+                <img src="/img/blog/2025-08-07-ccf-didi-opensource.png" alt="滴滴操作系统可观测项目 HUATUO 正式入驻 CCF" loading="lazy">
+              </a>
+              <div class="ms-wall-body">
+                <div class="ms-date">2025 · 08 · 08</div>
+                <h3 class="ms-wall-title"><a href="https://huatuo.tech/events/2025-08-07-huatuo-open-source-project-has-entered-the-ccf-incubation-phase/">滴滴操作系统可观测项目 HUATUO 正式入驻 CCF</a></h3>
+                <p class="ms-wall-summary">8月2日，滴滴宣布其开源云原生操作系统可观测性项目 HUATUO 正式入驻中国计算机学会，加入其重点孵化项目序列。本次入驻不仅体现了滴滴长期践行开源共建共享的理念，也希望通过行业协作，共同推动可观测领域操作系统基础设施的高效标准化发展。</p>
+                <div class="tag-pills"><span class="tag-pill">CCF</span><span class="tag-pill">开源</span><span class="tag-pill">可观测性</span><span class="tag-pill">BPF</span></div>
+                <a href="https://huatuo.tech/events/2025-08-07-huatuo-open-source-project-has-entered-the-ccf-incubation-phase/" class="post-read-more">Read more →</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var btnTl = document.getElementById('ms-btn-tl');
+  var btnWall = document.getElementById('ms-btn-wall');
+  var viewTl = document.getElementById('ms-view-tl');
+  var viewWall = document.getElementById('ms-view-wall');
+  if (!btnTl) return;
+  function show(view) {
+    btnTl.classList.toggle('ms-toggle-active', view === 'tl');
+    btnWall.classList.toggle('ms-toggle-active', view === 'wall');
+    viewTl.style.display = view === 'tl' ? '' : 'none';
+    viewWall.style.display = view === 'wall' ? '' : 'none';
+  }
+  btnTl.addEventListener('click', function () { show('tl'); });
+  btnWall.addEventListener('click', function () { show('wall'); });
+}());
+</script>
+
+        </div>
+
+        <footer id="footer">
+    <div class="container">
+        
+        
+        
+        
+        <div class="row">
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>Official Certifications</h4>
+                <div class="footer-certifications">
+                    
+                    <a href="https://landscape.cncf.io/?item=observability-and-analysis--observability--huatuo" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="CNCF Landscape">
+                        <img src="/img/certifications/cncf.png" alt="CNCF Landscape" />
+                    </a>
+                    
+                    <a href="https://ebpf.foundation/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="eBPF Foundation">
+                        <img src="/img/certifications/ebpf-foundation.png" alt="eBPF Foundation" />
+                    </a>
+                    
+                    <a href="https://prometheus.io/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="prometheus">
+                        <img src="/img/certifications/prometheus-logo.png" alt="prometheus" />
+                    </a>
+                    
+                    <a href="https://www.ccf.org.cn/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="ccf">
+                        <img src="/img/certifications/ccf.png" alt="ccf" />
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>About us</h4>
+                Linux kernel developers, and observability developers.
+            </div>
+            
+            
+        </div>
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026, HUATUO Open Source Community.</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+<script src="/js/front.js"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

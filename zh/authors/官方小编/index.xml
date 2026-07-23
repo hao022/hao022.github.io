@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>官方小编 on HUATUO 开源社区</title>
+    <link>https://huatuo.tech/zh/authors/%E5%AE%98%E6%96%B9%E5%B0%8F%E7%BC%96/</link>
+    <description>Recent content in 官方小编 on HUATUO 开源社区</description>
+    <generator>Hugo</generator>
+    <language>zh</language>
+    <lastBuildDate>Thu, 23 Jul 2026 08:29:19 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/zh/authors/%E5%AE%98%E6%96%B9%E5%B0%8F%E7%BC%96/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>HUATUO 华佗被 eBPF 基金会列为新兴项目</title>
+      <link>https://huatuo.tech/zh/events/2026-01-22-huatuo-and-ebpf-foundation-work-together/</link>
+      <pubDate>Thu, 22 Jan 2026 05:52:37 -0500</pubDate>
+      <guid>https://huatuo.tech/zh/events/2026-01-22-huatuo-and-ebpf-foundation-work-together/</guid>
+      <description>HUATUO (华佗) 被 eBPF 基金会列为新兴项目，标志着行业对该项目社区实力与生态价值的认可。eBPF 已经被广泛应用于可观测性领域。</description>
+    </item>
+    <item>
+      <title>滴滴出行荣获腾讯操作系统生态OC, 杰出贡献单位</title>
+      <link>https://huatuo.tech/zh/events/2025-12-20-huatuo-and-tencent-outstanding-contribution/</link>
+      <pubDate>Fri, 19 Dec 2025 21:43:17 -0500</pubDate>
+      <guid>https://huatuo.tech/zh/events/2025-12-20-huatuo-and-tencent-outstanding-contribution/</guid>
+      <description>近日，2025 OpenCloudOS 操作系统生态大会在北京成功举办。会上，滴滴出行荣获年度“杰出贡献单位”奖，体现腾讯操作系统社区对滴滴出行所做贡献的高度认可，更彰显了HUATUO（华佗）社区在推动操作系统可观测生态繁荣方面所做的深刻实践</description>
+    </item>
+    <item>
+      <title>腾讯操作系统 OC 和 HUATUO (华佗) 深度集成</title>
+      <link>https://huatuo.tech/zh/events/2025-11-11-opencloudos-and-huatuo-together/</link>
+      <pubDate>Mon, 10 Nov 2025 19:12:53 -0500</pubDate>
+      <guid>https://huatuo.tech/zh/events/2025-11-11-opencloudos-and-huatuo-together/</guid>
+      <description>滴滴 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO（华佗）&lt;/a&gt; 和腾讯操作系统 OC 深度集成，进一步提升 OC 操作系统在云原生环境下内核级深度观测的能力，为云上用户提升内核问题排查效率，保障业务持续性.</description>
+    </item>
+    <item>
+      <title>荣获《OSCAR 尖峰开源项目及开源社区》称号</title>
+      <link>https://huatuo.tech/zh/events/2025-10-28-huatuo-oscar-event/</link>
+      <pubDate>Sun, 26 Oct 2025 10:19:02 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/events/2025-10-28-huatuo-oscar-event/</guid>
+      <description>&lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO（华佗）&lt;/a&gt; 凭借其在技术创新、社区建设等方面的卓越表现，荣获中国信息通信研究院、中国通信标准化协会颁发的《OSCAR 尖峰开源项目及开源社区》 奖项 &amp;hellip;</description>
+    </item>
+  </channel>
+</rss>

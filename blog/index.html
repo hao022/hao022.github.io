@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+
+<title>Blog</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障">
+
+
+<meta name="description" content="Latest blogs">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' rel='stylesheet'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1784795366" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+<link rel="android-chrome-icon" href="/img/android-chrome-512x512.png" />
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="Linux Kernel, Cloud-native and AI Infra Observability.">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en">
+<meta property="og:site_name" content="Linux Kernel, Cloud-native and AI Infra Observability.">
+<meta property="og:title" content="Blog">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://huatuo.tech/blog/" />
+<meta property="og:description" content="Latest blogs">
+<meta property="og:image" content="https://huatuo.tech/img/sharing-default.png">
+<meta property="og:image:type" content="image/png">
+
+
+
+  <meta property="og:image:width" content="428">
+  <meta property="og:image:height" content="149">
+
+
+<meta property="og:updated_time" content="2026-07-23T08:29:19Z">
+
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="Blog">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/sharing-default.png">
+
+<meta name="twitter:description" content="Latest blogs">
+
+
+  </head>
+
+  <body>
+
+    <div id="all" class="has-page-hero">
+
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+              🚀  Listed in the CNCF Landscape and eBPF Foundation Emerging Project. If you like this project, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>!  ❤️
+          </p>
+        
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm " role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/logo.png" alt="Blog logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/logo-small.png" alt="Blog logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">Blog - go to homepage</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">Toggle Navigation</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-book nav-icon' style='margin-right:5px;'></i>Docs <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="https://docs.huatuo.tech/en/latest/">Latest</a></li>
+                            
+                            <li><a href="https://docs.huatuo.tech/en/v2.2.0/">V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-download nav-icon' style='margin-right:5px;'></i>Download <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            <li><a href="https://hub.docker.com/r/huatuo/huatuo-bamai/tags">Dockerhub</a></li>
+                            
+                            <li><a href="https://github.com/ccfos/huatuo/releases">Release</a></li>
+                            
+                            <li><a href="https://github.com/ccfos/huatuo">Github</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+                    
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    <a href="/blog/"><i class='fas fa-pen-nib nav-icon' style='margin-right:5px;'></i>Blog</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/milestone/"><i class='fas fa-newspaper nav-icon' style='margin-right:5px;'></i>News</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/about/"><i class='fas fa-info-circle nav-icon' style='margin-right:5px;'></i>About</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" style="display:flex;align-items:center;gap:5px;">
+                      <i class="fas fa-globe nav-icon"></i>
+                      English
+                      <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                      
+                      
+                      
+                        
+                        
+                        
+                        
+                          
+                            
+                          
+                        
+                          
+                        
+                        
+                        <li class="active">
+                          <a href="/blog/" style="display:flex;align-items:center;gap:8px;">
+                            
+                              <i class="fas fa-check" style="font-size:0.8em;"></i>
+                            
+                            English
+                          </a>
+                        </li>
+                      
+                        
+                        
+                        
+                        
+                          
+                        
+                          
+                            
+                          
+                        
+                        
+                        <li >
+                          <a href="/zh/blog/" style="display:flex;align-items:center;gap:8px;">
+                            
+                              <i style="display:inline-block;width:0.8em;"></i>
+                            
+                            中文
+                          </a>
+                        </li>
+                      
+                    </ul>
+                  </li>
+                  
+                  
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars"
+                         onerror="this.style.display='none'">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        
+        <div class="page-hero">
+    <div class="page-hero-grid"></div>
+    <div class="page-hero-glow"></div>
+    <div class="page-hero-inner">
+        <div class="page-hero-title-row">
+            <div class="page-hero-icon"><i class="fas fa-pen-nib"></i></div>
+            <h1 class="page-hero-title">Blog</h1>
+        </div>
+    </div>
+</div>
+
+        
+
+        <div id="content">
+            <div class="container">
+                <div class="row">
+                    
+
+                    <div class="col-md-9" id="blog-listing-medium">
+
+                        
+                        
+
+                        
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+
+                        <article class="blog-post-card">
+                            <div class="post-meta">
+                                
+                                <span><i class="far fa-calendar"></i>2026-07-01</span>
+                                
+                                
+                                <span><i class="far fa-user"></i><a href="/authors/hao022">HAO022</a>, <a href="/authors/%E8%83%A1%E6%B4%AA">胡洪</a></span>
+                                
+                                <span><i class="far fa-clock"></i>8 min</span>
+                                
+                                
+                                <a href="/tags/net" class="post-tag-item"><i class="fas fa-tag"></i>NET</a>
+                                
+                            </div>
+
+                            <h2><a href="https://huatuo.tech/blog/2026-07-01-full-stack-packet-loss-detection-of-the-linux-kernel-based-on-ebpf/">Kernel Packet Drop Tracing with eBPF Dropwatch</a></h2>
+
+                            
+                            <p class="post-summary">This article describes how HUATUO uses eBPF to implement full-stack packet drop observability across the Linux kernel protocol stack.</p>
+                            
+
+                            <div class="post-footer">
+                                <a href="https://huatuo.tech/blog/2026-07-01-full-stack-packet-loss-detection-of-the-linux-kernel-based-on-ebpf/" class="post-read-more">Continue reading &rarr;</a>
+                            </div>
+                        </article>
+                        
+
+                        
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+
+                        <article class="blog-post-card">
+                            <div class="post-meta">
+                                
+                                <span><i class="far fa-calendar"></i>2026-05-05</span>
+                                
+                                
+                                <span><i class="far fa-user"></i><a href="/authors/hao022">HAO022</a></span>
+                                
+                                <span><i class="far fa-clock"></i>5 min</span>
+                                
+                                
+                                <a href="/tags/blkio" class="post-tag-item"><i class="fas fa-tag"></i>BLKIO</a>
+                                
+                            </div>
+
+                            <h2><a href="https://huatuo.tech/blog/2026-05-06-container-level-block-device-io-delay-based-on-ebpf/">Block Device I/O Latency</a></h2>
+
+                            
+                            <p class="post-summary">The block I/O latency detection provided by HUATUO addresses the Linux cgroup, and hardware level problems.</p>
+                            
+
+                            <div class="post-footer">
+                                <a href="https://huatuo.tech/blog/2026-05-06-container-level-block-device-io-delay-based-on-ebpf/" class="post-read-more">Continue reading &rarr;</a>
+                            </div>
+                        </article>
+                        
+
+                        
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+
+                        <article class="blog-post-card">
+                            <div class="post-meta">
+                                
+                                <span><i class="far fa-calendar"></i>2026-04-14</span>
+                                
+                                
+                                <span><i class="far fa-user"></i><a href="/authors/hao022">HAO022</a></span>
+                                
+                                <span><i class="far fa-clock"></i>8 min</span>
+                                
+                                
+                                <a href="/tags/rdma" class="post-tag-item"><i class="fas fa-tag"></i>RDMA</a>
+                                
+                            </div>
+
+                            <h2><a href="https://huatuo.tech/blog/2026-04-14-rdma-key-technology-research-doorbell-uar-user-access-region/">RDMA: Doorbell, UAR</a></h2>
+
+                            
+                            <p class="post-summary">The UAR memory layout, allocation, mapping, and the user-mode and kernel-mode implementations.</p>
+                            
+
+                            <div class="post-footer">
+                                <a href="https://huatuo.tech/blog/2026-04-14-rdma-key-technology-research-doorbell-uar-user-access-region/" class="post-read-more">Continue reading &rarr;</a>
+                            </div>
+                        </article>
+                        
+
+                        
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+
+                        <article class="blog-post-card">
+                            <div class="post-meta">
+                                
+                                <span><i class="far fa-calendar"></i>2026-04-09</span>
+                                
+                                
+                                <span><i class="far fa-user"></i><a href="/authors/hao022">HAO022</a></span>
+                                
+                                <span><i class="far fa-clock"></i>3 min</span>
+                                
+                                
+                                <a href="/tags/rdma" class="post-tag-item"><i class="fas fa-tag"></i>RDMA</a>
+                                
+                            </div>
+
+                            <h2><a href="https://huatuo.tech/blog/2026-04-09-rdma-key-technology-research-memory-window/">RDMA: Memory Window</a></h2>
+
+                            
+                            <p class="post-summary">Analyzing Memory Window user-space, kernel, and underlying hardware implementation, design considerations.</p>
+                            
+
+                            <div class="post-footer">
+                                <a href="https://huatuo.tech/blog/2026-04-09-rdma-key-technology-research-memory-window/" class="post-read-more">Continue reading &rarr;</a>
+                            </div>
+                        </article>
+                        
+
+                        
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+
+                        <article class="blog-post-card">
+                            <div class="post-meta">
+                                
+                                <span><i class="far fa-calendar"></i>2026-04-08</span>
+                                
+                                
+                                <span><i class="far fa-user"></i><a href="/authors/hao022">HAO022</a></span>
+                                
+                                <span><i class="far fa-clock"></i>4 min</span>
+                                
+                                
+                                <a href="/tags/rdma" class="post-tag-item"><i class="fas fa-tag"></i>RDMA</a>
+                                
+                            </div>
+
+                            <h2><a href="https://huatuo.tech/blog/2026-04-08-rdma-key-technology-research-queue-pairs/">RDMA: Queue Pairs</a></h2>
+
+                            
+                            <p class="post-summary">Analyzing Queue Pairs user-space, kernel, and underlying hardware implementation, design considerations.</p>
+                            
+
+                            <div class="post-footer">
+                                <a href="https://huatuo.tech/blog/2026-04-08-rdma-key-technology-research-queue-pairs/" class="post-read-more">Continue reading &rarr;</a>
+                            </div>
+                        </article>
+                        
+
+                        
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+
+                        <article class="blog-post-card">
+                            <div class="post-meta">
+                                
+                                <span><i class="far fa-calendar"></i>2026-04-07</span>
+                                
+                                
+                                <span><i class="far fa-user"></i><a href="/authors/hao022">HAO022</a></span>
+                                
+                                <span><i class="far fa-clock"></i>2 min</span>
+                                
+                                
+                                <a href="/tags/rdma" class="post-tag-item"><i class="fas fa-tag"></i>RDMA</a>
+                                
+                            </div>
+
+                            <h2><a href="https://huatuo.tech/blog/2026-04-07-rdma-key-technology-research-memory-region/">RDMA: Memory Region</a></h2>
+
+                            
+                            <p class="post-summary">Analyzing Memory Region user-space, kernel, and underlying hardware implementation, design considerations.</p>
+                            
+
+                            <div class="post-footer">
+                                <a href="https://huatuo.tech/blog/2026-04-07-rdma-key-technology-research-memory-region/" class="post-read-more">Continue reading &rarr;</a>
+                            </div>
+                        </article>
+                        
+
+                        
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+
+                        <article class="blog-post-card">
+                            <div class="post-meta">
+                                
+                                <span><i class="far fa-calendar"></i>2026-03-26</span>
+                                
+                                
+                                <span><i class="far fa-user"></i><a href="/authors/%E7%8E%8B%E6%B4%AA%E7%A3%8A">王洪磊</a></span>
+                                
+                                <span><i class="far fa-clock"></i>2 min</span>
+                                
+                                
+                                <a href="/tags/bpf" class="post-tag-item"><i class="fas fa-tag"></i>BPF</a>
+                                
+                                <a href="/tags/%e6%95%85%e9%9a%9c" class="post-tag-item"><i class="fas fa-tag"></i>故障</a>
+                                
+                            </div>
+
+                            <h2><a href="https://huatuo.tech/blog/2026-03-26-the-linux-kernel-ras-practical/">Linux Kernel RAS</a></h2>
+
+                            
+                            <p class="post-summary">The hardware error detection in the kernel, including RAS, MCE, AER, and others.</p>
+                            
+
+                            <div class="post-footer">
+                                <a href="https://huatuo.tech/blog/2026-03-26-the-linux-kernel-ras-practical/" class="post-read-more">Continue reading &rarr;</a>
+                            </div>
+                        </article>
+                        
+
+                        
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+
+                        <article class="blog-post-card">
+                            <div class="post-meta">
+                                
+                                <span><i class="far fa-calendar"></i>2026-03-08</span>
+                                
+                                
+                                <span><i class="far fa-user"></i><a href="/authors/hao022">HAO022</a></span>
+                                
+                                <span><i class="far fa-clock"></i>2 min</span>
+                                
+                                
+                                <a href="/tags/bpf" class="post-tag-item"><i class="fas fa-tag"></i>BPF</a>
+                                
+                                <a href="/tags/%e6%95%85%e9%9a%9c" class="post-tag-item"><i class="fas fa-tag"></i>故障</a>
+                                
+                            </div>
+
+                            <h2><a href="https://huatuo.tech/blog/2026-03-09-support-hardware-fault-detection-for-ai-computing/">新特性！支持 AI 计算硬件故障检测</a></h2>
+
+                            
+                            <p class="post-summary">本篇介绍了 HUATUO 项目的新特性，支持 AI 计算场景下硬件故障检测能力，包括故障指标，实际案例，原理分析等。</p>
+                            
+
+                            <div class="post-footer">
+                                <a href="https://huatuo.tech/blog/2026-03-09-support-hardware-fault-detection-for-ai-computing/" class="post-read-more">Continue reading &rarr;</a>
+                            </div>
+                        </article>
+                        
+
+                        
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+
+                        <article class="blog-post-card">
+                            <div class="post-meta">
+                                
+                                <span><i class="far fa-calendar"></i>2026-02-25</span>
+                                
+                                
+                                <span><i class="far fa-user"></i><a href="/authors/hao022">HAO022</a></span>
+                                
+                                <span><i class="far fa-clock"></i>1 min</span>
+                                
+                                
+                                <a href="/tags/bpf" class="post-tag-item"><i class="fas fa-tag"></i>BPF</a>
+                                
+                                <a href="/tags/%e6%95%85%e9%9a%9c" class="post-tag-item"><i class="fas fa-tag"></i>故障</a>
+                                
+                            </div>
+
+                            <h2><a href="https://huatuo.tech/blog/2026-02-25-system-failure-caused-by-ethtool/">避坑！使用 ethtool 导致的线上故障</a></h2>
+
+                            
+                            <p class="post-summary">本篇分享在实际生产中，因使用 ethtools，导致的线上故障，根因隐蔽复杂，只有深入内核，驱动原理方可识得庐山真面目。</p>
+                            
+
+                            <div class="post-footer">
+                                <a href="https://huatuo.tech/blog/2026-02-25-system-failure-caused-by-ethtool/" class="post-read-more">Continue reading &rarr;</a>
+                            </div>
+                        </article>
+                        
+
+                        
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+
+                        <article class="blog-post-card">
+                            <div class="post-meta">
+                                
+                                <span><i class="far fa-calendar"></i>2026-02-20</span>
+                                
+                                
+                                <span><i class="far fa-user"></i><a href="/authors/%E5%AE%98%E6%96%B9%E5%B0%8F%E7%BC%96">官方小编</a></span>
+                                
+                                <span><i class="far fa-clock"></i>1 min</span>
+                                
+                                
+                                <a href="/tags/bpf" class="post-tag-item"><i class="fas fa-tag"></i>BPF</a>
+                                
+                                <a href="/tags/%e6%95%85%e9%9a%9c" class="post-tag-item"><i class="fas fa-tag"></i>故障</a>
+                                
+                            </div>
+
+                            <h2><a href="https://huatuo.tech/blog/2026-02-21-how-ebpf-could-make-faster-database-systems/">P99Conf：eBPF 构建更快的数据库系统</a></h2>
+
+                            
+                            <p class="post-summary">本篇介绍了数据库在现在操作系统上遇到的痛点，以及 eBPF 如何解决优化这些系统性能瓶颈，BPF-DB 给出了全新的思路。</p>
+                            
+
+                            <div class="post-footer">
+                                <a href="https://huatuo.tech/blog/2026-02-21-how-ebpf-could-make-faster-database-systems/" class="post-read-more">Continue reading &rarr;</a>
+                            </div>
+                        </article>
+                        
+
+                        
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+
+                        <article class="blog-post-card">
+                            <div class="post-meta">
+                                
+                                <span><i class="far fa-calendar"></i>2026-02-01</span>
+                                
+                                
+                                <span><i class="far fa-user"></i><a href="/authors/%E5%AE%98%E6%96%B9%E5%B0%8F%E7%BC%96">官方小编</a></span>
+                                
+                                <span><i class="far fa-clock"></i>1 min</span>
+                                
+                                
+                                <a href="/tags/bpf" class="post-tag-item"><i class="fas fa-tag"></i>BPF</a>
+                                
+                                <a href="/tags/%e6%95%85%e9%9a%9c" class="post-tag-item"><i class="fas fa-tag"></i>故障</a>
+                                
+                            </div>
+
+                            <h2><a href="https://huatuo.tech/blog/2026-02-01-ebpf-research-shows-kernel-tech-powering-modern-ai/">eBPF 正成为现代 AI 基础设施的重要部分</a></h2>
+
+                            
+                            <p class="post-summary">本篇介绍了 eBPF 基金会发布的一份研究报告，该报告清晰地揭示了一个正在发生的重大转变，eBPF 正赋能 AI 基础设施。</p>
+                            
+
+                            <div class="post-footer">
+                                <a href="https://huatuo.tech/blog/2026-02-01-ebpf-research-shows-kernel-tech-powering-modern-ai/" class="post-read-more">Continue reading &rarr;</a>
+                            </div>
+                        </article>
+                        
+
+                        
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+
+                        <article class="blog-post-card">
+                            <div class="post-meta">
+                                
+                                <span><i class="far fa-calendar"></i>2026-01-28</span>
+                                
+                                
+                                <span><i class="far fa-user"></i><a href="/authors/%E8%83%A1%E6%B4%AA">胡洪</a></span>
+                                
+                                <span><i class="far fa-clock"></i>1 min</span>
+                                
+                                
+                                <a href="/tags/bpf" class="post-tag-item"><i class="fas fa-tag"></i>BPF</a>
+                                
+                                <a href="/tags/%e6%95%85%e9%9a%9c" class="post-tag-item"><i class="fas fa-tag"></i>故障</a>
+                                
+                            </div>
+
+                            <h2><a href="https://huatuo.tech/blog/2026-01-28-how-to-analyze-the-504-timeout-error/">避坑！504 超时错误的元凶竟然是它</a></h2>
+
+                            
+                            <p class="post-summary">本篇重点分析了核心链路服务出现 504 错误的根因，其中 HUATUO 发挥了关键作用，无论丢包还是网卡硬件故障。</p>
+                            
+
+                            <div class="post-footer">
+                                <a href="https://huatuo.tech/blog/2026-01-28-how-to-analyze-the-504-timeout-error/" class="post-read-more">Continue reading &rarr;</a>
+                            </div>
+                        </article>
+                        
+
+                        
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+
+                        <article class="blog-post-card">
+                            <div class="post-meta">
+                                
+                                <span><i class="far fa-calendar"></i>2026-01-20</span>
+                                
+                                
+                                <span><i class="far fa-user"></i><a href="/authors/%E7%8E%8B%E6%B4%AA%E7%A3%8A">王洪磊</a></span>
+                                
+                                <span><i class="far fa-clock"></i>2 min</span>
+                                
+                                
+                                <a href="/tags/bpf" class="post-tag-item"><i class="fas fa-tag"></i>BPF</a>
+                                
+                                <a href="/tags/%e6%95%85%e9%9a%9c" class="post-tag-item"><i class="fas fa-tag"></i>故障</a>
+                                
+                            </div>
+
+                            <h2><a href="https://huatuo.tech/blog/2026-01-20-fault-analysis-caused-by-amd-server-instruction/">避坑！AMD 服务器指令集引发的故障分析</a></h2>
+
+                            
+                            <p class="post-summary">本篇重点分析了 AMD 服务器因指令集问题导致的业务容器 CPU 掉底，业务指标抖动问题。涉及 HUATUO 火焰图，libstdc++ 库等</p>
+                            
+
+                            <div class="post-footer">
+                                <a href="https://huatuo.tech/blog/2026-01-20-fault-analysis-caused-by-amd-server-instruction/" class="post-read-more">Continue reading &rarr;</a>
+                            </div>
+                        </article>
+                        
+
+                        
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+
+                        <article class="blog-post-card">
+                            <div class="post-meta">
+                                
+                                <span><i class="far fa-calendar"></i>2026-01-13</span>
+                                
+                                
+                                <span><i class="far fa-user"></i><a href="/authors/%E7%8E%8B%E6%B4%AA%E7%A3%8A">王洪磊</a></span>
+                                
+                                <span><i class="far fa-clock"></i>2 min</span>
+                                
+                                
+                                <a href="/tags/bpf" class="post-tag-item"><i class="fas fa-tag"></i>BPF</a>
+                                
+                                <a href="/tags/%e6%95%85%e9%9a%9c" class="post-tag-item"><i class="fas fa-tag"></i>故障</a>
+                                
+                            </div>
+
+                            <h2><a href="https://huatuo.tech/blog/2026-01-13-anlysis-the-amd-server-latency-issue/">避坑！AMD 服务器诡异的耗时毛刺问题</a></h2>
+
+                            
+                            <p class="post-summary">本篇分析解决 AMD 服务器诡异的毛刺问题，涉及 HUATUO 关键指标，内核选核策略，CPU 架构，内核调度，调度域等核心技术。</p>
+                            
+
+                            <div class="post-footer">
+                                <a href="https://huatuo.tech/blog/2026-01-13-anlysis-the-amd-server-latency-issue/" class="post-read-more">Continue reading &rarr;</a>
+                            </div>
+                        </article>
+                        
+
+                        
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+
+                        <article class="blog-post-card">
+                            <div class="post-meta">
+                                
+                                <span><i class="far fa-calendar"></i>2026-01-06</span>
+                                
+                                
+                                <span><i class="far fa-user"></i><a href="/authors/%E6%88%B4%E5%9D%A4%E6%B5%B7">戴坤海</a></span>
+                                
+                                <span><i class="far fa-clock"></i>2 min</span>
+                                
+                                
+                                <a href="/tags/bpf" class="post-tag-item"><i class="fas fa-tag"></i>BPF</a>
+                                
+                                <a href="/tags/%e6%95%85%e9%9a%9c" class="post-tag-item"><i class="fas fa-tag"></i>故障</a>
+                                
+                            </div>
+
+                            <h2><a href="https://huatuo.tech/blog/2026-01-07-the-new-feature-full-stack-observation-of-linux-kernel-io/">新特性！支持 Linux 内核 IO 全栈观测</a></h2>
+
+                            
+                            <p class="post-summary">面对生产环境用户的 IO 痛点，HUATUO 社区提出 iotracing 解决方案，涉及基础用法，高级用法，以及搭载 Autotracing 等。</p>
+                            
+
+                            <div class="post-footer">
+                                <a href="https://huatuo.tech/blog/2026-01-07-the-new-feature-full-stack-observation-of-linux-kernel-io/" class="post-read-more">Continue reading &rarr;</a>
+                            </div>
+                        </article>
+                        
+
+                        <nav class="blog-pagination">
+                            
+                            <span class="page-btn disabled">&larr; Newer</span>
+                            
+
+                            
+                            
+                            <span class="page-num active">1</span>
+                            
+                            
+                            
+                            <a href="/blog/page/2/" class="page-num">2</a>
+                            
+                            
+
+                            
+                            <a href="/blog/page/2/" class="page-btn">Older &rarr;</a>
+                            
+                        </nav>
+                    </div>
+                    
+
+                    <div class="col-md-3">
+                        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">Tags</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/tags/blkio"><i class="fas fa-tags"></i> blkio</a>
+            </li>
+            
+            <li >
+                <a href="/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/bpf-foundation"><i class="fas fa-tags"></i> bpf foundation</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ccf"><i class="fas fa-tags"></i> ccf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/containers"><i class="fas fa-tags"></i> containers</a>
+            </li>
+            
+            <li >
+                <a href="/tags/cpuidle"><i class="fas fa-tags"></i> cpuidle</a>
+            </li>
+            
+            <li >
+                <a href="/tags/hao022"><i class="fas fa-tags"></i> hao022</a>
+            </li>
+            
+            <li >
+                <a href="/tags/k8s"><i class="fas fa-tags"></i> k8s</a>
+            </li>
+            
+            <li >
+                <a href="/tags/linux-%e5%86%85%e6%a0%b8"><i class="fas fa-tags"></i> linux 内核</a>
+            </li>
+            
+            <li >
+                <a href="/tags/loadavg"><i class="fas fa-tags"></i> loadavg</a>
+            </li>
+            
+            <li >
+                <a href="/tags/net"><i class="fas fa-tags"></i> net</a>
+            </li>
+            
+            <li >
+                <a href="/tags/networking"><i class="fas fa-tags"></i> networking</a>
+            </li>
+            
+            <li >
+                <a href="/tags/news"><i class="fas fa-tags"></i> news</a>
+            </li>
+            
+            <li >
+                <a href="/tags/rdma"><i class="fas fa-tags"></i> rdma</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8a%a8%e6%80%81"><i class="fas fa-tags"></i> 动态</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7"><i class="fas fa-tags"></i> 可观测性</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%90%88%e4%bd%9c"><i class="fas fa-tags"></i> 合作</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%a4%9c%e8%8e%ba%e7%9b%91%e6%8e%a7"><i class="fas fa-tags"></i> 夜莺监控</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%bc%80%e6%ba%90"><i class="fas fa-tags"></i> 开源</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%81%ab%e7%84%b0%e5%9b%be"><i class="fas fa-tags"></i> 火焰图</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%bd%91%e7%bb%9c%e4%bc%98%e5%8c%96"><i class="fas fa-tags"></i> 网络优化</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e8%8d%a3%e8%aa%89"><i class="fas fa-tags"></i> 荣誉</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+                    </div>
+                    
+
+                </div>
+                
+            </div>
+            
+        </div>
+        
+
+        <footer id="footer">
+    <div class="container">
+        
+        
+        
+        
+        <div class="row">
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>Official Certifications</h4>
+                <div class="footer-certifications">
+                    
+                    <a href="https://landscape.cncf.io/?item=observability-and-analysis--observability--huatuo" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="CNCF Landscape">
+                        <img src="/img/certifications/cncf.png" alt="CNCF Landscape" />
+                    </a>
+                    
+                    <a href="https://ebpf.foundation/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="eBPF Foundation">
+                        <img src="/img/certifications/ebpf-foundation.png" alt="eBPF Foundation" />
+                    </a>
+                    
+                    <a href="https://prometheus.io/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="prometheus">
+                        <img src="/img/certifications/prometheus-logo.png" alt="prometheus" />
+                    </a>
+                    
+                    <a href="https://www.ccf.org.cn/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="ccf">
+                        <img src="/img/certifications/ccf.png" alt="ccf" />
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>About us</h4>
+                Linux kernel developers, and observability developers.
+            </div>
+            
+            
+        </div>
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026, HUATUO Open Source Community.</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+    
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+<script src="/js/front.js"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>
