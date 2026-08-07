@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+
+<title>Some Thoughts on a Dual-Uplink Non-Stacking Network Architecture</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, networking, observability">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' rel='stylesheet'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1786096693" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+<link rel="android-chrome-icon" href="/img/android-chrome-512x512.png" />
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="Linux Kernel, Cloud-native and AI Infra Observability.">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en">
+<meta property="og:site_name" content="Linux Kernel, Cloud-native and AI Infra Observability.">
+<meta property="og:title" content="Some Thoughts on a Dual-Uplink Non-Stacking Network Architecture">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/blog/2025-09-26-some-thoughts-on-non-stacking-network-architecture/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2025-09-26-cover.jpg">
+<meta property="og:image:type" content="image/jpg">
+
+
+
+  <meta property="og:image:width" content="900">
+  <meta property="og:image:height" content="599">
+
+
+<meta property="og:updated_time" content="2026-08-07T09:58:03Z">
+
+  
+  
+  
+  <meta property="article:tag" content="networking">
+  <meta property="article:tag" content="observability">
+  <meta property="article:tag" content="BPF">
+  
+  
+  <meta property="article:published_time" content="2025-09-26T03:20:47-0400">
+  <meta property="article:modified_time" content="2026-08-07T09:58:03Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="Some Thoughts on a Dual-Uplink Non-Stacking Network Architecture">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2025-09-26-cover.jpg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+  </head>
+
+  <body><div id="all" class="has-page-hero">
+
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+              🚀  Listed in the CNCF Landscape and eBPF Foundation Emerging Project. If you like this project, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>!  ❤️
+          </p>
+        
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm " role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/logo.png" alt="Some Thoughts on a Dual-Uplink Non-Stacking Network Architecture logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/logo-small.png" alt="Some Thoughts on a Dual-Uplink Non-Stacking Network Architecture logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">Some Thoughts on a Dual-Uplink Non-Stacking Network Architecture - go to homepage</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">Toggle Navigation</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-cubes theme-icon nav-icon nav-menu-icon'></i>Projects <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                            <li><a href="/projects/huatuo/">HUATUO, 华佗</a></li>
+                            
+                            
+                            
+                            <li><a href="/projects/go-pcap/">Go-pcap</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-book theme-icon nav-icon nav-menu-icon'></i>Docs <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/en/latest/">Latest</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/en/v2.2.0/">V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    <a href="/blog/"><i class='fas fa-pen-nib theme-icon nav-icon nav-menu-icon'></i>Blog</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/milestone/"><i class='fas fa-rss theme-icon nav-icon nav-menu-icon'></i>News</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/about/"><i class='fas fa-info-circle theme-icon nav-icon nav-menu-icon'></i>About</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" style="display:flex;align-items:center;gap:5px;">
+                      <i class="fas fa-globe theme-icon nav-icon"></i>
+                      English
+                      <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                      
+                      
+                      
+                        
+                        
+                        
+                        
+                          
+                            
+                          
+                        
+                          
+                        
+                        
+                        <li class="active">
+                          <a href="/blog/2025-09-26-some-thoughts-on-non-stacking-network-architecture/" style="display:flex;align-items:center;gap:8px;">
+                            
+                              <i class="fas fa-check" style="font-size:0.8em;"></i>
+                            
+                            English
+                          </a>
+                        </li>
+                      
+                        
+                        
+                        
+                        
+                          
+                        
+                          
+                            
+                          
+                        
+                        
+                        <li >
+                          <a href="/zh/blog/2025-09-26-some-thoughts-on-non-stacking-network-architecture/" style="display:flex;align-items:center;gap:8px;">
+                            
+                              <i style="display:inline-block;width:0.8em;"></i>
+                            
+                            中文
+                          </a>
+                        </li>
+                      
+                    </ul>
+                  </li>
+                  
+                  
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars"
+                         onerror="this.style.display='none'">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        
+        
+        
+        <div class="page-hero">
+    <div class="page-hero-grid"></div>
+    <div class="page-hero-glow"></div>
+    <div class="page-hero-inner">
+        <div class="page-hero-title-row">
+            <div class="page-hero-icon"><i class="fas fa-pen-nib theme-icon"></i></div>
+            <h1 class="page-hero-title">Blog</h1>
+        </div>
+    </div>
+</div>
+
+        
+
+        <div id="content">
+            <div class="container">
+                <div class="row">
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                        <h1 class="post-title">Some Thoughts on a Dual-Uplink Non-Stacking Network Architecture</h1>
+                        <div class="post-meta">
+                            <span class="post-meta-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                2025-09-26
+                            </span>
+                            
+                            <span class="post-meta-authors">
+                                <i class="fas fa-user"></i>
+                                <a href="/authors/hao022">hao022</a>
+                            </span>
+                            
+                            
+                            <span class="post-meta-tags">
+                                <a href="/tags/networking" class="post-meta-tag">networking</a><a href="/tags/observability" class="post-meta-tag">observability</a><a href="/tags/bpf" class="post-meta-tag">BPF</a>
+                            </span>
+                            
+                        </div>
+                        
+
+                        <div id="post-content">
+                          <h3 id="background">Background</h3>
+<p>In a traditional single-uplink architecture, a failure or upgrade of the network adapter, fiber cable, or switch can interrupt network connectivity. In a dual-uplink architecture, two server ports connect to separate switches and are bonded into a single logical interface. If either an uplink or access switch fails, traffic automatically switches to the other port. This allows training jobs to continue and removes the single point of failure in a single-uplink architecture. It also makes the network more resilient. In addition, dual uplinks allow switches to be upgraded independently, simplifying network maintenance and feature updates.</p>
+<h3 id="switch-stacking">Switch Stacking</h3>
+<p>Switch stacking uses physical cables to connect two switches and combines them into a single logical forwarding device. It can increase port capacity and bandwidth while simplifying the network topology. However, stacking also has limitations. A software upgrade may interrupt services, and a stack cable failure may split the stack. A server can connect to the switch through either a single cable or multiple bonded cables.
+<img src="/img/blog/2025-09-26-%e5%a0%86%e5%8f%a0%e7%bd%91%e7%bb%9c%e6%9e%b6%e6%9e%84%e5%9b%be.png" alt="" loading="lazy" />
+</p>
+<h3 id="non-stacking-architecture">Non-Stacking Architecture</h3>
+<ol>
+<li>
+<p>A non-stacking architecture removes the physical connection between the two switches to reduce failure risks. The server connects to two independent switches through separate links and aggregates them with LACP. Both switches must use the same system ID and different port IDs. This configuration presents the switches to the server as a single LACP peer and allows the links to form one aggregation group.
+<img src="/img/blog/2025-09-26-%e5%8e%bb%e5%a0%86%e5%8f%a0%e7%bd%91%e7%bb%9c%e6%9e%b6%e6%9e%84%e5%9b%be.png" alt="" loading="lazy" />
+
+The Linux kernel must also broadcast ARP/ND packets so that both switches receive them and can synchronize their sessions. The Linux kernel already supports this behavior:</p>
+<p><a href="https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git/commit/?id=ce7a381697cb3958ffe0b45e5028ac69444e928">net: bonding: add broadcast_neighbor option for 802.3ad</a></p>
+<p><a href="https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git/commit/?id=3d98ee52659c3f1d3913ae5b97f7743c5247752c">net: bonding: add broadcast_neighbor netlink option</a></p>
+<p><a href="https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git/commit/?id=2f9afffc399d450c68a4dbebd7865b8e631a3cff">net: bonding: send peer notify when failure recovery</a></p>
+<div class="highlight"><pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>net: bonding: add broadcast_neighbor option <span style="color:#81a1c1;font-weight:bold">for</span> 802.3ad
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Stacking technology is a <span style="color:#81a1c1">type</span> of technology used to expand ports on
+</span></span><span style="display:flex;"><span>Ethernet switches. It is widely used as a common access method in
+</span></span><span style="display:flex;"><span>large-scale Internet data center architectures. Years of practice
+</span></span><span style="display:flex;"><span>have proved that stacking technology has advantages and disadvantages
+</span></span><span style="display:flex;"><span>in high-reliability network architecture scenarios. For instance,
+</span></span><span style="display:flex;"><span>in stacking networking arch, conventional switch system upgrades
+</span></span><span style="display:flex;"><span>require multiple stacked devices to restart at the same time.
+</span></span><span style="display:flex;"><span>Therefore, it is inevitable that the business will be interrupted
+</span></span><span style="display:flex;"><span><span style="color:#81a1c1;font-weight:bold">for</span> a <span style="color:#81a1c1;font-weight:bold">while</span>. It is <span style="color:#81a1c1;font-weight:bold">for</span> this reason that <span style="color:#a3be8c">&#34;no-stacking&#34;</span> in data centers
+</span></span><span style="display:flex;"><span>has become a trend. Additionally, when the stacking link connecting
+</span></span><span style="display:flex;"><span>the switches fails or is abnormal, the stack will split. Although it is
+</span></span><span style="display:flex;"><span>not common, it still happens in actual operation. The problem is that
+</span></span><span style="display:flex;"><span>after the split, it is equivalent to two switches with the same
+</span></span><span style="display:flex;"><span>configuration appearing in the network, causing network configuration
+</span></span><span style="display:flex;"><span>conflicts and ultimately interrupting the services carried by the
+</span></span><span style="display:flex;"><span>stacking system.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>To improve network stability, <span style="color:#a3be8c">&#34;non-stacking&#34;</span> solutions have been
+</span></span><span style="display:flex;"><span>increasingly adopted, particularly by public cloud providers and
+</span></span><span style="display:flex;"><span>tech companies like Alibaba, Tencent, and Didi. <span style="color:#a3be8c">&#34;non-stacking&#34;</span> is
+</span></span><span style="display:flex;"><span>a method of mimicing switch stacking that convinces a LACP peer,
+</span></span><span style="display:flex;"><span>bonding in this <span style="color:#81a1c1;font-weight:bold">case</span>, connected to a <span style="color:#81a1c1">set</span> of <span style="color:#a3be8c">&#34;non-stacked&#34;</span> switches
+</span></span><span style="display:flex;"><span>that all of its ports are connected to a single switch
+</span></span><span style="display:flex;"><span><span style="color:#81a1c1">(</span>i.e., LACP aggregator<span style="color:#81a1c1">)</span>, as <span style="color:#81a1c1;font-weight:bold">if</span> those switches were stacked. This
+</span></span><span style="display:flex;"><span>enables the LACP peer<span style="color:#bf616a">&#39;</span>s ports to aggregate together, and requires
+</span></span><span style="display:flex;"><span><span style="color:#81a1c1">(</span>a<span style="color:#81a1c1">)</span> special switch configuration, described in the linked article,
+</span></span><span style="display:flex;"><span>and <span style="color:#81a1c1">(</span>b<span style="color:#81a1c1">)</span> modifications to the bonding 802.3ad <span style="color:#81a1c1">(</span>LACP<span style="color:#81a1c1">)</span> mode to send
+</span></span><span style="display:flex;"><span>all ARP/ND packets across all ports of the active aggregator.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Note that, with multiple aggregators, the current broadcast mode
+</span></span><span style="display:flex;"><span>logic will send only packets to the selected aggregator<span style="color:#81a1c1">(</span>s<span style="color:#81a1c1">)</span>.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span> +-----------+   +-----------+
+</span></span><span style="display:flex;"><span> <span style="color:#eceff4">|</span>  switch1  <span style="color:#eceff4">|</span>   <span style="color:#eceff4">|</span>  switch2  <span style="color:#eceff4">|</span>
+</span></span><span style="display:flex;"><span> +-----------+   +-----------+
+</span></span><span style="display:flex;"><span>         ^           ^
+</span></span><span style="display:flex;"><span>         <span style="color:#eceff4">|</span>           <span style="color:#eceff4">|</span>
+</span></span><span style="display:flex;"><span>      +-----------------+
+</span></span><span style="display:flex;"><span>      <span style="color:#eceff4">|</span>   bond4 lacp    <span style="color:#eceff4">|</span>
+</span></span><span style="display:flex;"><span>      +-----------------+
+</span></span><span style="display:flex;"><span>         <span style="color:#eceff4">|</span>           <span style="color:#eceff4">|</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#eceff4">|</span> NIC1      <span style="color:#eceff4">|</span> NIC2
+</span></span><span style="display:flex;"><span>      +-----------------+
+</span></span><span style="display:flex;"><span>      <span style="color:#eceff4">|</span>     server      <span style="color:#eceff4">|</span>
+</span></span><span style="display:flex;"><span>      +-----------------+
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>- https://www.ruijie.com/fr-fr/support/tech-gallery/de-stack-data-center-network-architecture/
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Cc: Jay Vosburgh &lt;jv@jvosburgh.net&gt;
+</span></span><span style="display:flex;"><span>Cc: <span style="color:#a3be8c">&#34;David S. Miller&#34;</span> &lt;davem@davemloft.net&gt;
+</span></span><span style="display:flex;"><span>Cc: Eric Dumazet &lt;edumazet@google.com&gt;
+</span></span><span style="display:flex;"><span>Cc: Jakub Kicinski &lt;kuba@kernel.org&gt;
+</span></span><span style="display:flex;"><span>Cc: Paolo Abeni &lt;pabeni@redhat.com&gt;
+</span></span><span style="display:flex;"><span>Cc: Simon Horman &lt;horms@kernel.org&gt;
+</span></span><span style="display:flex;"><span>Cc: Jonathan Corbet &lt;corbet@lwn.net&gt;
+</span></span><span style="display:flex;"><span>Cc: Andrew Lunn &lt;andrew+netdev@lunn.ch&gt;
+</span></span><span style="display:flex;"><span>Cc: Steven Rostedt &lt;rostedt@goodmis.org&gt;
+</span></span><span style="display:flex;"><span>Cc: Masami Hiramatsu &lt;mhiramat@kernel.org&gt;
+</span></span><span style="display:flex;"><span>Cc: Mathieu Desnoyers &lt;mathieu.desnoyers@efficios.com&gt;
+</span></span><span style="display:flex;"><span>Cc: Nikolay Aleksandrov &lt;razor@blackwall.org&gt;
+</span></span><span style="display:flex;"><span>Signed-off-by: Tonghao Zhang &lt;tonghao@bamaicloud.com&gt;
+</span></span><span style="display:flex;"><span>Signed-off-by: Zengbing Tu &lt;tuzengbing@didiglobal.com&gt;
+</span></span><span style="display:flex;"><span>Link: https://patch.msgid.link/84d0a044514157bb856a10b6d03a1028c4883561.1751031306.git.tonghao@bamaicloud.com
+</span></span><span style="display:flex;"><span>Signed-off-by: Paolo Abeni &lt;pabeni@redhat.com&gt;
+</span></span></code></pre></div></li>
+<li>
+<p>To prevent traffic black holes, all traffic must be routed through Layer 3. For example, if a physical downlink on a switch fails, the server cannot detect the failure and may continue sending data to that switch. Even communication between servers connected to the same top-of-rack (ToR) switch must traverse Layer 3. This prevents black holes caused by direct Layer 2 forwarding.
+<img src="/img/blog/2025-09-26-%e6%b5%81%e9%87%8f%e6%95%85%e9%9a%9c%e7%a4%ba%e6%84%8f%e5%9b%be.png" alt="" loading="lazy" />
+</p>
+</li>
+<li>
+<p>Layer 3 routing requires ARP/ND proxying. Both switches must also use the same gateway MAC address. Multicast must be disabled on the switches to avoid interference.</p>
+<div class="highlight"><pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>interface Vlanif3
+</span></span><span style="display:flex;"><span> description K8S-Access
+</span></span><span style="display:flex;"><span> ip address 10.0.8.1 255.255.248.0
+</span></span><span style="display:flex;"><span> arp timeout <span style="color:#b48ead">90</span>
+</span></span><span style="display:flex;"><span> arp proxy anyway <span style="color:#81a1c1">enable</span>
+</span></span><span style="display:flex;"><span> mac-address 0000-8989-0001
+</span></span><span style="display:flex;"><span> arp delete trigger link-down <span style="color:#81a1c1">enable</span>
+</span></span><span style="display:flex;"><span> arp direct-route <span style="color:#81a1c1">enable</span>
+</span></span><span style="display:flex;"><span> arp direct-route delay <span style="color:#b48ead">120</span>
+</span></span><span style="display:flex;"><span> arp direct-route preference <span style="color:#b48ead">1</span>
+</span></span></code></pre></div></li>
+<li>
+<p>Each switch converts the server ARP/ND entries that it learns into host routes and advertises them to upstream switches. This ensures that return traffic reaches the correct server.</p>
+</li>
+<li>
+<p>High availability requires uplink interface tracking. If all uplinks on a switch go down, the switch automatically shuts down its downlink interfaces. When an uplink recovers, the switch brings the downlinks back up after a delay. On the server, the bonding driver immediately removes a slave from the transmit set when its link goes down. After the link recovers, the slave is not enabled until LACP negotiation completes.
+<img src="/img/blog/2025-09-26-%e6%95%85%e9%9a%9c%e5%9c%ba%e6%99%af1.png" alt="" loading="lazy" />
+
+<img src="/img/blog/2025-09-26-%e6%95%85%e9%9a%9c%e5%9c%ba%e6%99%af2.png" alt="" loading="lazy" />
+</p>
+</li>
+<li>
+<p>Fault monitoring is also required. HUATUO provides LACP and NETDEV-HW monitoring to detect failures early. In production, we have detected many LACP anomalies caused by unavailable AOCs, as well as network outages caused by packet loss in network hardware.</p>
+<p>An AOC failure does not always produce a persistent Link Down state. The following two types of gray failure require particular attention:</p>
+<ul>
+<li><strong>Marginal optical power</strong>: When the AOC receive power approaches the receiver sensitivity threshold, the physical layer may keep the link up while FEC corrections, CRC/FCS errors, or PCS errors continue to increase. Because the NIC carrier remains up, LACP may keep the member link in the Collecting/Distributing state. The bonding driver also continues to hash some traffic to the link, resulting in intermittent packet loss or a traffic black hole. Even if the other uplink is fully operational, it does not automatically carry traffic assigned to a failed link that is still considered available.</li>
+<li><strong>Intermittent link flapping</strong>: Poor AOC seating, temperature changes, power fluctuations, or internal component failures can cause the link to alternate repeatedly between Up and Down. Each Link Down event removes the member link and moves its traffic. After recovery, the link must complete LACP negotiation before it can rejoin the aggregation group. Frequent flapping causes repeated convergence, transient packet loss, packet reordering, and TCP retransmissions. Latency-sensitive or RDMA workloads may also time out. Very short flaps can be missed when the monitoring interval is too long.</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#616e87;font-style:italic"># git clone https://github.com/ccfos/huatuo.git</span>
+</span></span><span style="display:flex;"><span><span style="color:#616e87;font-style:italic"># ls -l huatuo/bpf/</span>
+</span></span><span style="display:flex;"><span>total <span style="color:#b48ead">84</span>
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#b48ead">1</span> root root <span style="color:#b48ead">1677</span> Aug <span style="color:#b48ead">11</span> 01:44 cgroup_css_events.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#b48ead">1</span> root root <span style="color:#b48ead">1450</span> Aug <span style="color:#b48ead">31</span> 22:24 cgroup_css_gather.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#b48ead">1</span> root root <span style="color:#b48ead">4539</span> Aug <span style="color:#b48ead">11</span> 01:44 dropwatch.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#b48ead">1</span> root root  <span style="color:#b48ead">801</span> Aug <span style="color:#b48ead">29</span> 10:16 hungtask.c
+</span></span><span style="display:flex;"><span>drwxr-xr-x <span style="color:#b48ead">2</span> root root <span style="color:#b48ead">4096</span> Aug <span style="color:#b48ead">29</span> 10:16 include
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#b48ead">1</span> root root  <span style="color:#b48ead">648</span> Aug <span style="color:#b48ead">11</span> 01:44 lacp.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#b48ead">1</span> root root <span style="color:#b48ead">2155</span> Aug <span style="color:#b48ead">11</span> 01:44 memory_free_compact.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#b48ead">1</span> root root <span style="color:#b48ead">1424</span> Aug <span style="color:#b48ead">11</span> 01:44 memory_reclaim.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#b48ead">1</span> root root <span style="color:#b48ead">1421</span> Aug <span style="color:#b48ead">11</span> 01:44 memory_reclaim_events.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#b48ead">1</span> root root <span style="color:#b48ead">1044</span> Sep  <span style="color:#b48ead">6</span> 03:09 netdev_hw.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#b48ead">1</span> root root <span style="color:#b48ead">4219</span> Aug <span style="color:#b48ead">11</span> 01:44 netrecvlat.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#b48ead">1</span> root root <span style="color:#b48ead">1553</span> Sep  <span style="color:#b48ead">5</span> 09:26 oom.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#b48ead">1</span> root root <span style="color:#b48ead">1491</span> Aug <span style="color:#b48ead">18</span> 07:06 perf.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#b48ead">1</span> root root <span style="color:#b48ead">8683</span> Aug <span style="color:#b48ead">11</span> 01:44 runqlat_tracing.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#b48ead">1</span> root root <span style="color:#b48ead">1879</span> Sep <span style="color:#b48ead">26</span> 04:32 softirq.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#b48ead">1</span> root root <span style="color:#b48ead">3429</span> Aug <span style="color:#b48ead">11</span> 01:44 softirq_tracing.c
+</span></span><span style="display:flex;"><span>-rw-r--r-- <span style="color:#b48ead">1</span> root root <span style="color:#b48ead">1117</span> Aug <span style="color:#b48ead">29</span> 10:16 softlockup.c
+</span></span></code></pre></div></li>
+</ol>
+<h3 id="other-considerations">Other Considerations</h3>
+<ol>
+<li>The <a href="https://abouthpnetworking.com/2014/12/13/comware-link-aggregation-lacp-edge-port/">lacp edge-port</a> feature provides a fallback for a dual-uplink network before LACP is available or its initial configuration is complete. This helps maintain network availability.</li>
+<li>When the source of packet loss is unclear—for example, when <code>tcpdump</code> shows that the server transmitted a packet but the switch did not receive it—configure <a href="https://www.h3c.com/en/d_202304/1819749_294551_0.htm">Mirror On Drop (MOD)</a> on the switch to assist with troubleshooting.</li>
+</ol>
+
+                        </div>
+
+                        
+                        <div id="comments">
+                            
+                            <script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="en"
+        crossorigin="anonymous"
+        async>
+</script>
+
+                        </div>
+                        
+
+                    </div>
+
+                    <div class="col-md-3">
+                        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">Tags</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/tags/ai"><i class="fas fa-tags"></i> ai</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ascend"><i class="fas fa-tags"></i> ascend</a>
+            </li>
+            
+            <li >
+                <a href="/tags/blkio"><i class="fas fa-tags"></i> blkio</a>
+            </li>
+            
+            <li >
+                <a href="/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/bpf-foundation"><i class="fas fa-tags"></i> bpf foundation</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ccf"><i class="fas fa-tags"></i> ccf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/containers"><i class="fas fa-tags"></i> containers</a>
+            </li>
+            
+            <li >
+                <a href="/tags/cpuidle"><i class="fas fa-tags"></i> cpuidle</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ebpf"><i class="fas fa-tags"></i> ebpf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/fault-detection"><i class="fas fa-tags"></i> fault detection</a>
+            </li>
+            
+            <li >
+                <a href="/tags/go"><i class="fas fa-tags"></i> go</a>
+            </li>
+            
+            <li >
+                <a href="/tags/hao022"><i class="fas fa-tags"></i> hao022</a>
+            </li>
+            
+            <li >
+                <a href="/tags/k8s"><i class="fas fa-tags"></i> k8s</a>
+            </li>
+            
+            <li >
+                <a href="/tags/linux-%e5%86%85%e6%a0%b8"><i class="fas fa-tags"></i> linux 内核</a>
+            </li>
+            
+            <li >
+                <a href="/tags/loadavg"><i class="fas fa-tags"></i> loadavg</a>
+            </li>
+            
+            <li >
+                <a href="/tags/net"><i class="fas fa-tags"></i> net</a>
+            </li>
+            
+            <li >
+                <a href="/tags/networking"><i class="fas fa-tags"></i> networking</a>
+            </li>
+            
+            <li >
+                <a href="/tags/news"><i class="fas fa-tags"></i> news</a>
+            </li>
+            
+            <li >
+                <a href="/tags/npu"><i class="fas fa-tags"></i> npu</a>
+            </li>
+            
+            <li >
+                <a href="/tags/observability"><i class="fas fa-tags"></i> observability</a>
+            </li>
+            
+            <li >
+                <a href="/tags/rdma"><i class="fas fa-tags"></i> rdma</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8a%a8%e6%80%81"><i class="fas fa-tags"></i> 动态</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7"><i class="fas fa-tags"></i> 可观测性</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%90%88%e4%bd%9c"><i class="fas fa-tags"></i> 合作</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%a4%9c%e8%8e%ba%e7%9b%91%e6%8e%a7"><i class="fas fa-tags"></i> 夜莺监控</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%bc%80%e6%ba%90"><i class="fas fa-tags"></i> 开源</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%81%ab%e7%84%b0%e5%9b%be"><i class="fas fa-tags"></i> 火焰图</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%bd%91%e7%bb%9c%e4%bc%98%e5%8c%96"><i class="fas fa-tags"></i> 网络优化</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e8%8d%a3%e8%aa%89"><i class="fas fa-tags"></i> 荣誉</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <footer id="footer">
+    <div class="container">
+        
+        
+        
+        
+        <div class="row">
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>Official Certifications</h4>
+                <div class="footer-certifications">
+                    
+                    <a href="https://landscape.cncf.io/?item=observability-and-analysis--observability--huatuo" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="CNCF Landscape">
+                        <img src="/img/certifications/cncf.png" alt="CNCF Landscape" />
+                    </a>
+                    
+                    <a href="https://ebpf.foundation/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="eBPF Foundation">
+                        <img src="/img/certifications/ebpf-foundation.png" alt="eBPF Foundation" />
+                    </a>
+                    
+                    <a href="https://prometheus.io/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="prometheus">
+                        <img src="/img/certifications/prometheus-logo.png" alt="prometheus" />
+                    </a>
+                    
+                    <a href="https://www.ccf.org.cn/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="ccf">
+                        <img src="/img/certifications/ccf.png" alt="ccf" />
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>About us</h4>
+                Linux kernel developers, and observability developers.
+            </div>
+            
+            
+        </div>
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026, HUATUO Open Source Community.</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+<script src="/js/front.js"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>HUATUO 社区 on HUATUO 开源社区</title>
+    <link>https://huatuo.tech/zh/authors/huatuo-%E7%A4%BE%E5%8C%BA/</link>
+    <description>Recent content in HUATUO 社区 on HUATUO 开源社区</description>
+    <generator>Hugo</generator>
+    <language>zh</language>
+    <lastBuildDate>Fri, 07 Aug 2026 09:58:03 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/zh/authors/huatuo-%E7%A4%BE%E5%8C%BA/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>再升级！华为昇腾 NPU 进入华佗开源生态</title>
+      <link>https://huatuo.tech/zh/events/2026-07-29-huawei-ascend-npu-monitoring/</link>
+      <pubDate>Wed, 29 Jul 2026 10:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/events/2026-07-29-huawei-ascend-npu-monitoring/</guid>
+      <description>本文介绍华为向 HUATUO 社区贡献的昇腾 NPU 监测功能，包括 DCMI、PCIe 与 HCCN 数据采集、指标设计、容错处理及运行配置。</description>
+    </item>
+    <item>
+      <title>HUATUO 华佗，“直通乌镇”全球互联网大赛</title>
+      <link>https://huatuo.tech/zh/events/2026-07-23-wicwuzhen/</link>
+      <pubDate>Tue, 28 Jul 2026 16:54:14 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/events/2026-07-23-wicwuzhen/</guid>
+      <description>&lt;p&gt;“直通乌镇”全球互联网大赛是世界互联网大会乌镇峰会重要活动之一，通过探索互联网发展的新技术、新模式、新业态，搭建互联网项目、技术、人才和资本合作的重要平台。大赛致力于推动全球互联网合作创新，激发互联网创业活力，集聚互联网青年人才，在全球范围内高质量推动互联网产业精准对接，为全球数字经济蓬勃发展贡献力量。&lt;/p&gt;&#xA;&lt;p&gt;HUATUO（华佗）是由滴滴开源、依托中国计算机学会（CCF）孵化的操作系统内核/Agent 沙箱全景观测项目。已广泛应用于通用计算、AI 计算、Agent 沙箱、云原生和裸金属基础设施。&lt;/p&gt;&#xA;&lt;p&gt;活动现场，大赛组委会为滴滴、阿里云、华为、腾讯云、OpenKylin 等单位颁发开源生态合作伙伴证书。&lt;/p&gt;&#xA;&lt;p&gt;&lt;img src=&#34;https://huatuo.tech/img/events/2026-07-23-wicwuzhen.jpeg&#34; alt=&#34;&#34; loading=&#34;lazy&#34; /&gt;&#xA;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>HUATUO 华佗被 eBPF 基金会列为新兴项目</title>
+      <link>https://huatuo.tech/zh/events/2026-01-22-huatuo-and-ebpf-foundation-work-together/</link>
+      <pubDate>Thu, 22 Jan 2026 05:52:37 -0500</pubDate>
+      <guid>https://huatuo.tech/zh/events/2026-01-22-huatuo-and-ebpf-foundation-work-together/</guid>
+      <description>HUATUO (华佗) 被 eBPF 基金会列为新兴项目，标志着行业对该项目社区实力与生态价值的认可。eBPF 已经被广泛应用于可观测性领域。</description>
+    </item>
+    <item>
+      <title>滴滴出行荣获腾讯操作系统生态OC, 杰出贡献单位</title>
+      <link>https://huatuo.tech/zh/events/2025-12-20-huatuo-and-tencent-outstanding-contribution/</link>
+      <pubDate>Fri, 19 Dec 2025 21:43:17 -0500</pubDate>
+      <guid>https://huatuo.tech/zh/events/2025-12-20-huatuo-and-tencent-outstanding-contribution/</guid>
+      <description>近日，2025 OpenCloudOS 操作系统生态大会在北京成功举办。会上，滴滴出行荣获年度“杰出贡献单位”奖，体现腾讯操作系统社区对滴滴出行所做贡献的高度认可，更彰显了HUATUO（华佗）社区在推动操作系统可观测生态繁荣方面所做的深刻实践</description>
+    </item>
+    <item>
+      <title>腾讯操作系统 OC 和 HUATUO (华佗) 深度集成</title>
+      <link>https://huatuo.tech/zh/events/2025-11-11-opencloudos-and-huatuo-together/</link>
+      <pubDate>Mon, 10 Nov 2025 19:12:53 -0500</pubDate>
+      <guid>https://huatuo.tech/zh/events/2025-11-11-opencloudos-and-huatuo-together/</guid>
+      <description>滴滴 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO（华佗）&lt;/a&gt; 和腾讯操作系统 OC 深度集成，进一步提升 OC 操作系统在云原生环境下内核级深度观测的能力，为云上用户提升内核问题排查效率，保障业务持续性.</description>
+    </item>
+    <item>
+      <title>荣获《OSCAR 尖峰开源项目及开源社区》称号</title>
+      <link>https://huatuo.tech/zh/events/2025-10-28-huatuo-oscar-event/</link>
+      <pubDate>Sun, 26 Oct 2025 10:19:02 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/events/2025-10-28-huatuo-oscar-event/</guid>
+      <description>&lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO（华佗）&lt;/a&gt; 凭借其在技术创新、社区建设等方面的卓越表现，荣获中国信息通信研究院、中国通信标准化协会颁发的《OSCAR 尖峰开源项目及开源社区》 奖项 &amp;hellip;</description>
+    </item>
+  </channel>
+</rss>

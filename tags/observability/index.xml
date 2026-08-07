@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Observability on Linux Kernel, Cloud-native and AI Infra Observability.</title>
+    <link>https://huatuo.tech/tags/observability/</link>
+    <description>Recent content in Observability on Linux Kernel, Cloud-native and AI Infra Observability.</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Fri, 07 Aug 2026 09:58:03 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/tags/observability/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>HUATUO Adds Huawei Ascend NPU Monitoring Support</title>
+      <link>https://huatuo.tech/events/2026-07-29-huawei-ascend-npu-monitoring/</link>
+      <pubDate>Wed, 29 Jul 2026 10:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/events/2026-07-29-huawei-ascend-npu-monitoring/</guid>
+      <description>This article introduces the Ascend NPU monitoring capabilities contributed by Huawei to the HUATUO community, including DCMI, PCIe, and HCCN data collection, metric design, fault tolerance, and runtime configuration.</description>
+    </item>
+    <item>
+      <title>Some Thoughts on a Dual-Uplink Non-Stacking Network Architecture</title>
+      <link>https://huatuo.tech/blog/2025-09-26-some-thoughts-on-non-stacking-network-architecture/</link>
+      <pubDate>Fri, 26 Sep 2025 03:20:47 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2025-09-26-some-thoughts-on-non-stacking-network-architecture/</guid>
+      <description>This article discusses the design of a dual-uplink non-stacking network architecture and issues observed in production, including the challenges of monitoring LACP state and physical links. It also introduces &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; for observing physical link availability.</description>
+    </item>
+  </channel>
+</rss>

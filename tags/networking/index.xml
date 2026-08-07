@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Networking on Linux Kernel, Cloud-native and AI Infra Observability.</title>
+    <link>https://huatuo.tech/tags/networking/</link>
+    <description>Recent content in Networking on Linux Kernel, Cloud-native and AI Infra Observability.</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Fri, 07 Aug 2026 09:58:03 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/tags/networking/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Why We Revived go-pcap for AI Infrastructure</title>
+      <link>https://huatuo.tech/blog/2026-08-04-why-we-revived-go-pcap-for-ai-infrastructure/</link>
+      <pubDate>Tue, 04 Aug 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/blog/2026-08-04-why-we-revived-go-pcap-for-ai-infrastructure/</guid>
+      <description>go-pcap compiles tcpdump-style filters in pure Go for real-time packet filtering across skb, mbuf, and RDMA paths.</description>
+    </item>
+    <item>
+      <title>应用篇：如何使用 HUATUO 解决网卡硬件丢包</title>
+      <link>https://huatuo.tech/blog/2025-09-30-how-to-use-huatuo-to-solve-packets-loss/</link>
+      <pubDate>Tue, 30 Sep 2025 04:33:21 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2025-09-30-how-to-use-huatuo-to-solve-packets-loss/</guid>
+      <description>本文探讨了检测网卡硬件丢包遇到的问题，例如 ethtool 为什么不能应用于常态的硬件丢包检测，并最终给出了 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; 网卡硬件丢包检测解决方案，并提供了一个实际生产环境故障案例 &amp;hellip;</description>
+    </item>
+    <item>
+      <title>Some Thoughts on a Dual-Uplink Non-Stacking Network Architecture</title>
+      <link>https://huatuo.tech/blog/2025-09-26-some-thoughts-on-non-stacking-network-architecture/</link>
+      <pubDate>Fri, 26 Sep 2025 03:20:47 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2025-09-26-some-thoughts-on-non-stacking-network-architecture/</guid>
+      <description>This article discusses the design of a dual-uplink non-stacking network architecture and issues observed in production, including the challenges of monitoring LACP state and physical links. It also introduces &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; for observing physical link availability.</description>
+    </item>
+  </channel>
+</rss>

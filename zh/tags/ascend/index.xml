@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Ascend on HUATUO 开源社区</title>
+    <link>https://huatuo.tech/zh/tags/ascend/</link>
+    <description>Recent content in Ascend on HUATUO 开源社区</description>
+    <generator>Hugo</generator>
+    <language>zh</language>
+    <lastBuildDate>Fri, 07 Aug 2026 09:58:03 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/zh/tags/ascend/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>再升级！华为昇腾 NPU 进入华佗开源生态</title>
+      <link>https://huatuo.tech/zh/events/2026-07-29-huawei-ascend-npu-monitoring/</link>
+      <pubDate>Wed, 29 Jul 2026 10:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/events/2026-07-29-huawei-ascend-npu-monitoring/</guid>
+      <description>本文介绍华为向 HUATUO 社区贡献的昇腾 NPU 监测功能，包括 DCMI、PCIe 与 HCCN 数据采集、指标设计、容错处理及运行配置。</description>
+    </item>
+  </channel>
+</rss>

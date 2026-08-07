@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+
+<title>AI 时代，我们复活了这个开源项目</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, Go, eBPF, 网络, RDMA">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' rel='stylesheet'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1786096693" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+<link rel="android-chrome-icon" href="/img/android-chrome-512x512.png" />
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="HUATUO 开源社区">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="zh">
+<meta property="og:site_name" content="HUATUO 开源社区">
+<meta property="og:title" content="AI 时代，我们复活了这个开源项目">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/zh/blog/2026-08-04-why-we-revived-go-pcap-for-ai-infrastructure/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2026-08-04-gopcap-cover.jpeg">
+<meta property="og:image:type" content="image/jpeg">
+
+
+
+  <meta property="og:image:width" content="300">
+  <meta property="og:image:height" content="200">
+
+
+<meta property="og:updated_time" content="2026-08-07T09:58:03Z">
+
+  
+  
+  
+  <meta property="article:tag" content="Go">
+  <meta property="article:tag" content="eBPF">
+  <meta property="article:tag" content="网络">
+  <meta property="article:tag" content="RDMA">
+  
+  
+  <meta property="article:published_time" content="2026-08-04T12:00:00&#43;0800">
+  <meta property="article:modified_time" content="2026-08-07T09:58:03Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="AI 时代，我们复活了这个开源项目">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2026-08-04-gopcap-cover.jpeg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+  </head>
+
+  <body><div id="all" class="has-page-hero">
+
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+              🚀  2025 年中国信息通信研究院《OSCAR 尖峰开源项目及开源社区》、腾讯科技《杰出贡献奖》、CNCF Landscape。欢迎 <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>  ❤️
+          </p>
+        
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm " role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/zh/">
+                    
+                      <img src="/img/logo.png" alt="AI 时代，我们复活了这个开源项目 logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/logo-small.png" alt="AI 时代，我们复活了这个开源项目 logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">AI 时代，我们复活了这个开源项目 - 跳到主页</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">切换导航</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-cubes theme-icon nav-icon nav-menu-icon'></i>项目 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                            <li><a href="/zh/projects/huatuo/">HUATUO, 华佗</a></li>
+                            
+                            
+                            
+                            <li><a href="/zh/projects/go-pcap/">Go-pcap</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-book theme-icon nav-icon nav-menu-icon'></i>文档 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/latest/">Latest</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/v2.2.0/">V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    <a href="/zh/blog/"><i class='fas fa-pen-nib theme-icon nav-icon nav-menu-icon'></i>博客</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/milestone/"><i class='fas fa-rss theme-icon nav-icon nav-menu-icon'></i>动态</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/about/"><i class='fas fa-info-circle theme-icon nav-icon nav-menu-icon'></i>关于</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" style="display:flex;align-items:center;gap:5px;">
+                      <i class="fas fa-globe theme-icon nav-icon"></i>
+                      中文
+                      <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                      
+                      
+                      
+                        
+                        
+                        
+                        
+                          
+                            
+                          
+                        
+                          
+                        
+                        
+                        <li >
+                          <a href="/blog/2026-08-04-why-we-revived-go-pcap-for-ai-infrastructure/" style="display:flex;align-items:center;gap:8px;">
+                            
+                              <i style="display:inline-block;width:0.8em;"></i>
+                            
+                            English
+                          </a>
+                        </li>
+                      
+                        
+                        
+                        
+                        
+                          
+                        
+                          
+                            
+                          
+                        
+                        
+                        <li class="active">
+                          <a href="/zh/blog/2026-08-04-why-we-revived-go-pcap-for-ai-infrastructure/" style="display:flex;align-items:center;gap:8px;">
+                            
+                              <i class="fas fa-check" style="font-size:0.8em;"></i>
+                            
+                            中文
+                          </a>
+                        </li>
+                      
+                    </ul>
+                  </li>
+                  
+                  
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars"
+                         onerror="this.style.display='none'">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        
+        
+        
+        <div class="page-hero">
+    <div class="page-hero-grid"></div>
+    <div class="page-hero-glow"></div>
+    <div class="page-hero-inner">
+        <div class="page-hero-title-row">
+            <div class="page-hero-icon"><i class="fas fa-pen-nib theme-icon"></i></div>
+            <h1 class="page-hero-title">博客</h1>
+        </div>
+    </div>
+</div>
+
+        
+
+        <div id="content">
+            <div class="container">
+                <div class="row">
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                        <h1 class="post-title">AI 时代，我们复活了这个开源项目</h1>
+                        <div class="post-meta">
+                            <span class="post-meta-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                2026-08-04
+                            </span>
+                            
+                            <span class="post-meta-authors">
+                                <i class="fas fa-user"></i>
+                                <a href="/zh/authors/hao022">HAO022</a>, <a href="/zh/authors/%E8%83%A1%E6%B4%AA">胡洪</a>
+                            </span>
+                            
+                            
+                            <span class="post-meta-tags">
+                                <a href="/zh/tags/go" class="post-meta-tag">Go</a><a href="/zh/tags/ebpf" class="post-meta-tag">eBPF</a><a href="/zh/tags/%E7%BD%91%E7%BB%9C" class="post-meta-tag">网络</a><a href="/zh/tags/rdma" class="post-meta-tag">RDMA</a>
+                            </span>
+                            
+                        </div>
+                        
+
+                        <div id="post-content">
+                          <p>tcpdump 和 libpcap 已经很好地解决了传统抓包问题。但 Go 应用使用 libpcap 需依赖 CGO 和系统库，也增加了静态构建与交叉编译的复杂度。</p>
+<p>AI 基础设施中的报文不只来自网卡。内核丢包观测处理的是 <code>skb</code>，DPDK 应用处理的是 <code>rte_mbuf</code>，RDMA/RoCE 流量还可能经过用户态数据通路。这需要可嵌入不同观测链路的过滤编译能力。</p>
+<p>因此，我们重新维护 <a href="https://github.com/huatuo-ai/go-pcap">go-pcap</a>：用纯 Go 将 tcpdump 表达式编译为 cBPF，无需 libpcap 和 CGO，可用于实时抓包、内核观测和用户态报文过滤。</p>
+<h3 id="解决什么问题">解决什么问题</h3>
+<p>go-pcap 分为两个相对独立的部分：</p>
+<ul>
+<li>根包 <code>pcap</code> 负责打开设备、管理抓包句柄、挂载过滤器和读取报文；</li>
+<li><code>filter</code> 包负责解析表达式，根据链路类型和编译目标生成 cBPF 指令。</li>
+</ul>
+<p>主要执行路径如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>tcpdump 表达式
+</span></span><span style="display:flex;"><span>    ↓
+</span></span><span style="display:flex;"><span>解析器 → AST → LinkType/Target → cBPF
+</span></span><span style="display:flex;"><span>                                  ├─ capture socket
+</span></span><span style="display:flex;"><span>                                  ├─ skb/eBPF
+</span></span><span style="display:flex;"><span>                                  └─ mbuf/eBPF（扩展方向）
+</span></span></code></pre></div><p>过滤编译与采集入口分离后，同一套表达式可以用于不同观测场景，而每个 backend 只需负责定位报文字节、转换指令并注入目标程序。</p>
+<p>go-pcap 不计划完整替代 tcpdump 或 libpcap。当前目标是实现常用、可验证、适合嵌入的过滤能力。</p>
+<h3 id="实时抓包纯-go-编译和挂载过滤器">实时抓包：纯 Go 编译和挂载过滤器</h3>
+<p>常规抓包可以通过 <code>OpenLive</code> 打开设备，再用 <code>SetBPFFilter</code> 设置过滤条件：</p>
+<div class="highlight"><pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>handle<span style="color:#eceff4">,</span> err <span style="color:#81a1c1">:=</span> pcap<span style="color:#eceff4">.</span><span style="color:#88c0d0">OpenLive</span><span style="color:#eceff4">(</span>
+</span></span><span style="display:flex;"><span>	context<span style="color:#eceff4">.</span><span style="color:#88c0d0">Background</span><span style="color:#eceff4">(),</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a3be8c">&#34;eth0&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#b48ead">1600</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#81a1c1;font-weight:bold">true</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>	time<span style="color:#eceff4">.</span>Second<span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>	pcap<span style="color:#eceff4">.</span>DefaultSyscalls<span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span><span style="color:#eceff4">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#81a1c1;font-weight:bold">if</span> err <span style="color:#81a1c1">!=</span> <span style="color:#81a1c1;font-weight:bold">nil</span> <span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#81a1c1;font-weight:bold">return</span> err
+</span></span><span style="display:flex;"><span><span style="color:#eceff4">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#81a1c1;font-weight:bold">defer</span> handle<span style="color:#eceff4">.</span><span style="color:#88c0d0">Close</span><span style="color:#eceff4">()</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#81a1c1;font-weight:bold">if</span> err <span style="color:#81a1c1">:=</span> handle<span style="color:#eceff4">.</span><span style="color:#88c0d0">SetBPFFilter</span><span style="color:#eceff4">(</span><span style="color:#a3be8c">&#34;tcp and port 443&#34;</span><span style="color:#eceff4">);</span> err <span style="color:#81a1c1">!=</span> <span style="color:#81a1c1;font-weight:bold">nil</span> <span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#81a1c1;font-weight:bold">return</span> err
+</span></span><span style="display:flex;"><span><span style="color:#eceff4">}</span>
+</span></span></code></pre></div><p>表达式在 Go 程序中编译为 cBPF，并挂载到 capture socket。未命中的报文在内核侧被过滤，应用只读取匹配结果。</p>
+<p>仓库还提供 <code>pcap</code> 命令行工具，支持 <code>-i</code>、<code>-c</code>、<code>-n/-nn</code>、<code>-q</code>、<code>-v</code>、<code>-e</code>、<code>-X</code>、<code>-A</code>、<code>-s</code>、<code>-p</code> 等常见参数，但目前不支持 pcap 文件读写，也不定位为完整的 tcpdump 替代品。</p>
+<h3 id="skb-丢包过滤">skb 丢包过滤</h3>
+<p>HUATUO dropwatch 监听 <code>tracepoint/skb/kfree_skb</code>。例如，只观察 <code>eth0</code> 上目标端口为 443 的 TCP 丢包：</p>
+<div class="highlight"><pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo dropwatch <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --bpf-path bpf/dropwatch.o <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --device eth0 <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --filter <span style="color:#a3be8c">&#34;tcp dst port 443&#34;</span> <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --duration <span style="color:#b48ead">60</span> <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --output json
+</span></span></code></pre></div><p>加载 eBPF 程序时，HUATUO 使用 go-pcap 为二层和三层输入生成 cBPF，再完成 cBPF 到 eBPF 的转换、verifier 适配和程序注入。</p>
+<p>运行时，dropwatch 根据 <code>skb-&gt;mac_len</code> 判断从 MAC 头还是网络层头开始过滤。未命中的事件在内核侧直接返回，不进入后续限速和用户态输出。</p>
+<p>双方的职责边界如下：</p>
+<ul>
+<li>go-pcap：解析表达式并为指定报文布局生成 cBPF；</li>
+<li>HUATUO：定位 <code>skb</code> 数据、转换和注入 eBPF，以及输出丢包原因、设备、协议和调用栈。</li>
+</ul>
+<p>这是 go-pcap 当前已经落地的非传统抓包场景。</p>
+<h3 id="mbuf-与-rdmaroce-扩展">mbuf 与 RDMA/RoCE 扩展</h3>
+<p>DPDK 场景中的报文位于 <code>rte_mbuf</code>。观测工具可以通过 uprobe 或 USDT 获取 mbuf，定位 packet bytes，并在事件提交到 perf/ringbuf 前完成过滤。</p>
+<p>ByteDance netcap 已支持这种观测方式，但它目前仍使用 gopacket/pcap 和 libpcap 编译表达式，该方式面临着部署依赖问题。当前 go-pcap 完全可以平替 libpcap。</p>
+<table>
+  <thead>
+      <tr>
+          <th>场景</th>
+          <th>当前状态</th>
+          <th>go-pcap 的职责</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>实时抓包</td>
+          <td>已内置</td>
+          <td>打开句柄、编译和挂载过滤器、读取报文</td>
+      </tr>
+      <tr>
+          <td>HUATUO dropwatch</td>
+          <td>已接入</td>
+          <td>为 L2/L3 <code>skb</code> 输入编译 cBPF</td>
+      </tr>
+      <tr>
+          <td>DPDK mbuf / RDMA</td>
+          <td>扩展方向</td>
+          <td>提供过滤编译，不包含 mbuf backend</td>
+      </tr>
+  </tbody>
+</table>
+<h3 id="关键问题">关键问题</h3>
+<p>cBPF 按字节偏移读取字段。编译器必须知道 byte 0 是 Ethernet 头还是 IP 头，否则生成的偏移会出错。</p>
+<p>同一条 <code>tcp and port 443</code>，在两种输入中的布局不同：</p>
+<div class="highlight"><pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>Ethernet：Ethernet 头 | IP 头 | TCP 头 | 数据
+</span></span><span style="display:flex;"><span>RAW：                 IP 头 | TCP 头 | 数据
+</span></span></code></pre></div><p>go-pcap 要求调用方显式指定链路类型：</p>
+<div class="highlight"><pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>ethernet<span style="color:#eceff4">,</span> err <span style="color:#81a1c1">:=</span> filter<span style="color:#eceff4">.</span><span style="color:#88c0d0">Compile</span><span style="color:#eceff4">(</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a3be8c">&#34;tcp and port 443&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>	filter<span style="color:#eceff4">.</span>LinkTypeEthernet<span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span><span style="color:#eceff4">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>raw<span style="color:#eceff4">,</span> err <span style="color:#81a1c1">:=</span> filter<span style="color:#eceff4">.</span><span style="color:#88c0d0">Compile</span><span style="color:#eceff4">(</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a3be8c">&#34;tcp and port 443&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>	filter<span style="color:#eceff4">.</span>LinkTypeRaw<span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span><span style="color:#eceff4">)</span>
+</span></span></code></pre></div><p><code>LinkTypeEthernet</code> 对应 DLT_EN10MB，适用于包含 Ethernet 头的输入；<code>LinkTypeRaw</code> 对应 DLT_RAW，适用于从 IPv4 或 IPv6 头开始的输入。</p>
+<p>这对 <code>skb</code> 和 <code>mbuf</code> 尤其重要。若 <code>rte_mbuf.data</code> 指向 Ethernet header，应按 Ethernet 编译；若观测点传入的是已剥离二层头的 IP packet，则应按 RAW 编译。</p>
+<p>二层规则不能用于 RAW 输入。编译器会返回明确错误，而不是生成结果不确定的程序：</p>
+<div class="highlight"><pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>_<span style="color:#eceff4">,</span> err <span style="color:#81a1c1">:=</span> filter<span style="color:#eceff4">.</span><span style="color:#88c0d0">Compile</span><span style="color:#eceff4">(</span><span style="color:#a3be8c">&#34;arp&#34;</span><span style="color:#eceff4">,</span> filter<span style="color:#eceff4">.</span>LinkTypeRaw<span style="color:#eceff4">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#81a1c1;font-weight:bold">if</span> errors<span style="color:#eceff4">.</span><span style="color:#88c0d0">Is</span><span style="color:#eceff4">(</span>err<span style="color:#eceff4">,</span> filter<span style="color:#eceff4">.</span>ErrL2OnlyLinkType<span style="color:#eceff4">)</span> <span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// 拒绝规则，或切换到 Ethernet 布局。</span>
+</span></span><span style="display:flex;"><span><span style="color:#eceff4">}</span>
+</span></span></code></pre></div><h3 id="几个技术点">几个技术点</h3>
+<p>go-pcap 当前支持 <code>IPv4/IPv6、ARP/RARP、TCP、UDP、SCTP、ICMP/ICMP6、VLAN/QinQ、MPLS</code>，以及 <code>host、net、port、portrange</code>、报文字节访问、算术比较和 <code>len</code> 等常用条件。</p>
+<p>实现难点主要集中在组合语义和安全性。</p>
+<ul>
+<li>
+<p><strong>控制流</strong>：<code>and</code>、<code>or</code>、<code>not</code> 需要保持优先级和短路语义。go-pcap 先生成带符号标签的控制流，再统一解析为 cBPF 相对跳转，避免在递归生成过程中手工维护跳转偏移。</p>
+</li>
+<li>
+<p><strong>可变协议偏移</strong>：VLAN 和 MPLS 会改变后续协议头的位置。编译器使用不可变游标处理表达式分支，避免一个分支推进后的偏移影响另一个分支。Linux 上还需处理 VLAN offload：VLAN tag 可能位于报文内，也可能已被硬件剥离并保存在 metadata。socket 目标同时支持这两条路径。</p>
+</li>
+<li>
+<p><strong>边界检查</strong>：报文字节访问会生成长度检查。遇到截断报文时，过滤结果是不匹配，不能将越界读取当作 0 继续计算。</p>
+</li>
+</ul>
+<h3 id="验证结果">验证结果</h3>
+<p>不同编译器生成的 cBPF 指令不必完全一致，关键是对同一报文给出相同的接受或拒绝结果。</p>
+<p>当前测试包括：</p>
+<ul>
+<li>解析、校验和指令生成单元测试；</li>
+<li>cBPF VM 执行测试；</li>
+<li>IPv4/IPv6、L2/L3/L4、VLAN/MPLS 和组合表达式测试；</li>
+<li>tcpdump 4.99.0 / libpcap 1.10.0 golden fixture 对照；</li>
+<li>loopback 实时抓包集成测试。</li>
+</ul>
+<p>项目还提供解析、编译、VM 命中与未命中的 benchmark，用于重复测量，不作为脱离运行环境的性能结论。</p>
+<h3 id="当前边界">当前边界</h3>
+<p>目前尚未实现的能力包括：</p>
+<ul>
+<li>数字协议号和 <code>protochain</code>；</li>
+<li>IPv6 扩展头遍历；</li>
+<li>依赖接口 netmask 的 <code>broadcast</code>；</li>
+</ul>
+<p>已识别但不支持的特性会返回 <code>ErrUnsupportedFeature</code>。后续会优先补充有真实需求和样本的链路类型。</p>
+<h3 id="结语">结语</h3>
+<p>AI 基础设施把网络观测扩展到了 <code>skb</code>、<code>mbuf</code> 和 <code>RDMA/RoCE</code> 数据通路。而 <code>go-pcap</code>，则提供一项纯 Go、可测试、可嵌入、可编程的报文过滤能力。</p>
+<p>项目地址：<a href="https://github.com/huatuo-ai/go-pcap">github.com/huatuo-ai/go-pcap</a></p>
+<p>华佗项目：<a href="https://github.com/ccfos/huatuo">https://github.com/ccfos/huatuo</a></p>
+
+                        </div>
+
+                        
+                        <div id="comments">
+                            
+                            <script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+                        </div>
+                        
+
+                    </div>
+
+                    <div class="col-md-3">
+                        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">标签</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/zh/tags/ai"><i class="fas fa-tags"></i> ai</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/ascend"><i class="fas fa-tags"></i> ascend</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/blkio"><i class="fas fa-tags"></i> blkio</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/ccf"><i class="fas fa-tags"></i> ccf</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/ebpf"><i class="fas fa-tags"></i> ebpf</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/go"><i class="fas fa-tags"></i> go</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/net"><i class="fas fa-tags"></i> net</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/networking"><i class="fas fa-tags"></i> networking</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/news"><i class="fas fa-tags"></i> news</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/npu"><i class="fas fa-tags"></i> npu</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/rdma"><i class="fas fa-tags"></i> rdma</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e5%8a%a8%e6%80%81"><i class="fas fa-tags"></i> 动态</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7"><i class="fas fa-tags"></i> 可观测性</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e5%90%88%e4%bd%9c"><i class="fas fa-tags"></i> 合作</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e5%bc%80%e6%ba%90"><i class="fas fa-tags"></i> 开源</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e6%95%85%e9%9a%9c%e6%a3%80%e6%b5%8b"><i class="fas fa-tags"></i> 故障检测</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e7%bd%91%e7%bb%9c"><i class="fas fa-tags"></i> 网络</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e8%8d%a3%e8%aa%89"><i class="fas fa-tags"></i> 荣誉</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <footer id="footer">
+    <div class="container">
+        
+        
+        
+        
+        <div class="row">
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>官方认证</h4>
+                <div class="footer-certifications">
+                    
+                    <a href="https://landscape.cncf.io/?item=observability-and-analysis--observability--huatuo" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="CNCF Landscape">
+                        <img src="/img/certifications/cncf.png" alt="CNCF Landscape" />
+                    </a>
+                    
+                    <a href="https://ebpf.foundation/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="eBPF Foundation">
+                        <img src="/img/certifications/ebpf-foundation.png" alt="eBPF Foundation" />
+                    </a>
+                    
+                    <a href="https://prometheus.io/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="prometheus">
+                        <img src="/img/certifications/prometheus-logo.png" alt="prometheus" />
+                    </a>
+                    
+                    <a href="https://www.ccf.org.cn/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="ccf">
+                        <img src="/img/certifications/ccf.png" alt="ccf" />
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>关于我们</h4>
+                基础软件技术研究者，Linux 内核开发者。
+            </div>
+            
+            
+        </div>
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026 HUATUO 开源社区。</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+<script src="/js/front.js"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

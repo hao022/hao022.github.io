@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+
+<title>再升级！华为昇腾 NPU 进入华佗开源生态</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, AI, NPU, Ascend, 故障检测">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' rel='stylesheet'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1786096693" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+<link rel="android-chrome-icon" href="/img/android-chrome-512x512.png" />
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="HUATUO 开源社区">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="zh">
+<meta property="og:site_name" content="HUATUO 开源社区">
+<meta property="og:title" content="再升级！华为昇腾 NPU 进入华佗开源生态">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://huatuo.tech/zh/events/2026-07-29-huawei-ascend-npu-monitoring/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/events/2026-07-29-huawei-ascend-npu-monitoring-cover.jpg">
+<meta property="og:image:type" content="image/jpg">
+
+
+
+  <meta property="og:image:width" content="600">
+  <meta property="og:image:height" content="400">
+
+
+<meta property="og:updated_time" content="2026-08-07T09:58:03Z">
+
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="再升级！华为昇腾 NPU 进入华佗开源生态">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/events/2026-07-29-huawei-ascend-npu-monitoring-cover.jpg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+  </head>
+
+  <body><div id="all" class="has-page-hero">
+
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+              🚀  2025 年中国信息通信研究院《OSCAR 尖峰开源项目及开源社区》、腾讯科技《杰出贡献奖》、CNCF Landscape。欢迎 <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>  ❤️
+          </p>
+        
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm " role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/zh/">
+                    
+                      <img src="/img/logo.png" alt="再升级！华为昇腾 NPU 进入华佗开源生态 logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/logo-small.png" alt="再升级！华为昇腾 NPU 进入华佗开源生态 logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">再升级！华为昇腾 NPU 进入华佗开源生态 - 跳到主页</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">切换导航</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-cubes theme-icon nav-icon nav-menu-icon'></i>项目 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                            <li><a href="/zh/projects/huatuo/">HUATUO, 华佗</a></li>
+                            
+                            
+                            
+                            <li><a href="/zh/projects/go-pcap/">Go-pcap</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-book theme-icon nav-icon nav-menu-icon'></i>文档 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/latest/">Latest</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/v2.2.0/">V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/blog/"><i class='fas fa-pen-nib theme-icon nav-icon nav-menu-icon'></i>博客</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/milestone/"><i class='fas fa-rss theme-icon nav-icon nav-menu-icon'></i>动态</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/about/"><i class='fas fa-info-circle theme-icon nav-icon nav-menu-icon'></i>关于</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false" style="display:flex;align-items:center;gap:5px;">
+                      <i class="fas fa-globe theme-icon nav-icon"></i>
+                      中文
+                      <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                      
+                      
+                      
+                        
+                        
+                        
+                        
+                          
+                            
+                          
+                        
+                          
+                        
+                        
+                        <li >
+                          <a href="/events/2026-07-29-huawei-ascend-npu-monitoring/" style="display:flex;align-items:center;gap:8px;">
+                            
+                              <i style="display:inline-block;width:0.8em;"></i>
+                            
+                            English
+                          </a>
+                        </li>
+                      
+                        
+                        
+                        
+                        
+                          
+                        
+                          
+                            
+                          
+                        
+                        
+                        <li class="active">
+                          <a href="/zh/events/2026-07-29-huawei-ascend-npu-monitoring/" style="display:flex;align-items:center;gap:8px;">
+                            
+                              <i class="fas fa-check" style="font-size:0.8em;"></i>
+                            
+                            中文
+                          </a>
+                        </li>
+                      
+                    </ul>
+                  </li>
+                  
+                  
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars"
+                         onerror="this.style.display='none'">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        
+        
+        
+          
+        
+        <div class="page-hero">
+    <div class="page-hero-grid"></div>
+    <div class="page-hero-glow"></div>
+    <div class="page-hero-inner">
+        <div class="page-hero-title-row">
+            <div class="page-hero-icon"><i class="fas fa-history theme-icon"></i></div>
+            <h1 class="page-hero-title">发展历程</h1>
+        </div>
+    </div>
+</div>
+
+        
+
+        <div id="content">
+            <div class="container">
+                <div class="row">
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                        <h1 class="post-title">再升级！华为昇腾 NPU 进入华佗开源生态</h1>
+                        <div class="post-meta">
+                            <span class="post-meta-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                2026-07-29
+                            </span>
+                            
+                            <span class="post-meta-authors">
+                                <i class="fas fa-user"></i>
+                                <a href="/zh/authors/huatuo-%E7%A4%BE%E5%8C%BA">HUATUO 社区</a>
+                            </span>
+                            
+                            
+                            <span class="post-meta-tags">
+                                <a href="/zh/tags/ai" class="post-meta-tag">AI</a><a href="/zh/tags/npu" class="post-meta-tag">NPU</a><a href="/zh/tags/ascend" class="post-meta-tag">Ascend</a><a href="/zh/tags/%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7" class="post-meta-tag">可观测性</a><a href="/zh/tags/%E6%95%85%E9%9A%9C%E6%A3%80%E6%B5%8B" class="post-meta-tag">故障检测</a>
+                            </span>
+                            
+                        </div>
+                        
+
+                        <div id="post-content">
+                          <p>大规模 AI 训练中，单点硬件异常就可能拖慢甚至中断整个任务。NSDI 2025 论文 Minder 基于生产环境中 7 个月的数据统计发现，部分训练任务规模超过 1 万块 GPU，平均每天遭遇约 2 次意外软硬件故障；机内硬件故障占全部故障的 55.8%，其中 ECC 错误占 38.9%。Meta 对 Llama 3 系列模型训练的统计显示，超过 66% 的中断与硬件故障有关。</p>
+<p><strong>硬件可靠性已成为影响大规模 AI 集群稳定运行的关键因素</strong>。针对这一问题，华为昇腾团队贡献的 <a href="https://github.com/ccfos/huatuo/pull/198">PR #198</a> 已合入 HUATUO（华佗），正式支持华为昇腾 NPU 的深度观测。该功能通过 DCMI、PCIe 和 HCCN 三类采集路径，持续监测设备状态、计算负载、存储可靠性和通信链路，帮助 AI 集群快速发现并定位训练与推理过程中的异常。</p>
+<p><img src="https://raw.githubusercontent.com/ccfos/huatuo/main/docs/img/huatuo-ecosystem.svg" alt="HUATUO 生态全景" loading="lazy" />
+</p>
+<hr>
+<h2 id="支持概览">支持概览</h2>
+<p>HUATUO 是由滴滴发起、中国计算机学会（CCF）孵化的操作系统级深度观测开源项目。项目面向云原生通用计算、AI 计算和基础设施等场景，提供内核级监测、异常事件追踪、自动诊断与持续性能分析能力。</p>
+<p><img src="https://huatuo.tech/img/events/hardware-errors-huatuo-framework.png" alt="HUATUO 硬件故障观测框架" loading="lazy" />
+</p>
+<p>HUATUO 对昇腾 NPU 的支持覆盖设备、内存、链路和通信等关键故障域，有助于缓解异构环境中监控工具链分散、指标口径不一和告警体系割裂等问题，为云原生环境下的 AI 训练与推理提供更统一的观测入口。</p>
+<p><img src="/img/events/2026-07-29-ascend-910-cluster.png" alt="华佗支持昇腾场景示意图" loading="lazy" />
+</p>
+<hr>
+<h2 id="业务价值">业务价值</h2>
+<p>该功能将分散在 DCMI、<code>hccn_tool</code> 和 PCIe sysfs 中的设备数据转换为统一的 Prometheus 指标，使硬件异常能够被持续监测、关联分析和自动告警。</p>
+<table>
+  <thead>
+      <tr>
+          <th>典型现象</th>
+          <th>可关联信号</th>
+          <th>可能的排查方向</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>单卡算力下降</td>
+          <td>利用率、AI Core 频率、功耗、温度</td>
+          <td>过热、降频、负载不均</td>
+      </tr>
+      <tr>
+          <td>任务间歇性失败</td>
+          <td>HBM 单/双比特 ECC、隔离页计数</td>
+          <td>HBM 可靠性与坏页增长</td>
+      </tr>
+      <tr>
+          <td>多卡通信变慢</td>
+          <td>PCIe 当前 speed/width 与最大能力不一致</td>
+          <td>链路协商降级、插槽或硬件问题</td>
+      </tr>
+      <tr>
+          <td>集合通信超时</td>
+          <td>HCCN Link、RoCE 错包/重试/乱序、CNP</td>
+          <td>拥塞、丢包或链路异常</td>
+      </tr>
+      <tr>
+          <td>跨机性能抖动</td>
+          <td>光模块温度、电压、收发功率、LOS、SNR</td>
+          <td>光模块或光链路质量退化</td>
+      </tr>
+  </tbody>
+</table>
+<hr>
+<h2 id="新增观测能力">新增观测能力</h2>
+<p>在华为昇腾团队的贡献下，HUATUO 已支持通过 DCMI、PCIe 和 HCCN 三类路径采集昇腾 NPU 的关键指标。</p>
+<p><img src="https://huatuo.tech/img/events/2026-07-29-huatuo-ascend-architecture.svg" alt="HUATUO 昇腾 NPU 采集架构" loading="lazy" />
+</p>
+<p>从实现层面看，DCMI 采集模块会在启动时动态加载 <code>/usr/local/dcmi/libdcmi.so</code>（Linux 默认路径），加载成功后注册以下核心接口，并通过统一的初始化、关闭和重试机制管理采集生命周期：</p>
+<div class="highlight"><pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span>dcmi_init
+</span></span><span style="display:flex;"><span>dcmi_get_device_health
+</span></span><span style="display:flex;"><span>dcmi_get_device_power_info
+</span></span><span style="display:flex;"><span>dcmi_get_device_temperature
+</span></span><span style="display:flex;"><span>dcmi_get_device_voltage
+</span></span><span style="display:flex;"><span>dcmi_get_device_utilization_rate
+</span></span><span style="display:flex;"><span>dcmi_get_device_frequency
+</span></span><span style="display:flex;"><span>dcmi_get_device_network_health
+</span></span><span style="display:flex;"><span>dcmi_get_device_hbm_info
+</span></span><span style="display:flex;"><span>dcmi_get_device_ecc_info
+</span></span><span style="display:flex;"><span>dcmi_get_device_pcie_info_v2
+</span></span><span style="display:flex;"><span>dcmi_get_device_logic_id
+</span></span><span style="display:flex;"><span>dcmi_get_device_phyid_from_logicid
+</span></span></code></pre></div><p>启用后，可在 HUATUO 中查询以下数据：</p>
+<table>
+  <thead>
+      <tr>
+          <th>采集路径</th>
+          <th>观测范围</th>
+          <th>关键指标</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>DCMI</td>
+          <td>设备状态与计算负载</td>
+          <td>健康度、功耗、温度、电压、利用率、时钟频率</td>
+      </tr>
+      <tr>
+          <td>DCMI</td>
+          <td>HBM 状态与可靠性</td>
+          <td>容量、使用量、温度、带宽利用率、ECC 错误、隔离页计数</td>
+      </tr>
+      <tr>
+          <td>PCIe</td>
+          <td>主机侧链路</td>
+          <td>最大与当前链路速度、最大与当前链路宽度</td>
+      </tr>
+      <tr>
+          <td>HCCN</td>
+          <td>卡间网络与 RoCE 通信</td>
+          <td>链路状态、收发速率、错包、重试、乱序、CNP 及光模块信息</td>
+      </tr>
+  </tbody>
+</table>
+<hr>
+<h2 id="配置与部署">配置与部署</h2>
+<h3 id="启用采集">启用采集</h3>
+<p><code>ascend_npu</code> 默认位于全局 <code>BlackList</code> 中。启用前，需要先将其从黑名单中移除，再按需开启对应的采集能力：</p>
+<div class="highlight"><pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-toml" data-lang="toml"><span style="display:flex;"><span><span style="color:#616e87;font-style:italic"># 从全局 BlackList 中移除 &#34;ascend_npu&#34;</span>
+</span></span><span style="display:flex;"><span>BlackList <span style="color:#eceff4">=</span> <span style="color:#eceff4">[</span><span style="color:#a3be8c">&#34;netdev_hw&#34;</span><span style="color:#eceff4">,</span> <span style="color:#a3be8c">&#34;metax_gpu&#34;</span><span style="color:#eceff4">]</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#eceff4">[</span>MetricCollector<span style="color:#eceff4">.</span>AscendNPU<span style="color:#eceff4">]</span>
+</span></span><span style="display:flex;"><span>    EnableDCMI <span style="color:#eceff4">=</span> <span style="color:#81a1c1;font-weight:bold">true</span>
+</span></span><span style="display:flex;"><span>    EnablePCIe <span style="color:#eceff4">=</span> <span style="color:#81a1c1;font-weight:bold">true</span>
+</span></span><span style="display:flex;"><span>    EnableHCCN <span style="color:#eceff4">=</span> <span style="color:#81a1c1;font-weight:bold">true</span>
+</span></span></code></pre></div><p>其中，<code>EnableDCMI</code>、<code>EnablePCIe</code> 和 <code>EnableHCCN</code> 可独立配置，便于根据设备型号、驱动能力和部署环境按需启用。</p>
+<h3 id="容器部署">容器部署</h3>
+<p>如果通过容器运行 HUATUO，需要将宿主机上的昇腾驱动和 DCMI 库挂载到容器中。以下命令仅作示例，具体路径请以实际安装环境为准：</p>
+<div class="highlight"><pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker run --privileged --pid<span style="color:#81a1c1">=</span>host --cgroupns<span style="color:#81a1c1">=</span>host --network<span style="color:#81a1c1">=</span>host <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>        -v /sys:/sys <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>        -v /proc:/proc <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>        -v /run:/run <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>        -v /usr/local/Ascend/driver:/usr/local/Ascend/driver:ro <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>        -v /usr/local/dcmi:/usr/local/dcmi:ro <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>        huatuo/huatuo-bamai:latest
+</span></span></code></pre></div><hr>
+<h2 id="结语">结语</h2>
+<p>HUATUO 对华为昇腾 NPU 的支持，进一步完善了面向 AI 基础设施的可观测体系，也为异构算力环境提供了更统一的故障分析入口。</p>
+<p>从事后排查走向全生命周期监测、持续告警与根因定位，是提升 AI 集群稳定性的关键一步。后续，HUATUO 将继续完善指标说明、告警阈值建议和场景化排障流程，帮助更多团队将深度观测能力高效落地到生产环境。</p>
+<hr>
+<h2 id="相关链接">相关链接</h2>
+<ul>
+<li>HUATUO GitHub：<a href="https://github.com/ccfos/huatuo">https://github.com/ccfos/huatuo</a></li>
+<li>昇腾 NPU 支持 PR：<a href="https://github.com/ccfos/huatuo/pull/198">https://github.com/ccfos/huatuo/pull/198</a></li>
+<li>官方动态：<a href="https://huatuo.tech/zh/events/2026-07-29-huawei-ascend-npu-monitoring/">https://huatuo.tech/zh/events/2026-07-29-huawei-ascend-npu-monitoring/</a></li>
+<li>NSDI 2025 论文 Minder：<a href="https://www.usenix.org/conference/nsdi25/presentation/deng">https://www.usenix.org/conference/nsdi25/presentation/deng</a></li>
+<li>Meta AI 硬件可靠性实践：<a href="https://engineering.fb.com/2025/07/22/data-infrastructure/how-meta-keeps-its-ai-hardware-reliable/">https://engineering.fb.com/2025/07/22/data-infrastructure/how-meta-keeps-its-ai-hardware-reliable/</a></li>
+<li>华为昇腾介绍：<a href="https://e.huawei.com/cn/products/computing/ascend">https://e.huawei.com/cn/products/computing/ascend</a></li>
+<li>DCMI / npu-smi / hccn_tool：<a href="https://www.hiascend.com/document/detail/zh/Atlas%20200I%20A2/260RC1/re/npu/npusmi_135.html">https://www.hiascend.com/document/detail/zh/Atlas%20200I%20A2/260RC1/re/npu/npusmi_135.html</a></li>
+</ul>
+
+                        </div>
+
+                        
+                        <div id="comments">
+                            
+                            <script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+                        </div>
+                        
+
+                    </div>
+
+                    <div class="col-md-3">
+                        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">标签</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/zh/tags/ai"><i class="fas fa-tags"></i> ai</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/ascend"><i class="fas fa-tags"></i> ascend</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/blkio"><i class="fas fa-tags"></i> blkio</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/ccf"><i class="fas fa-tags"></i> ccf</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/ebpf"><i class="fas fa-tags"></i> ebpf</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/go"><i class="fas fa-tags"></i> go</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/net"><i class="fas fa-tags"></i> net</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/networking"><i class="fas fa-tags"></i> networking</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/news"><i class="fas fa-tags"></i> news</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/npu"><i class="fas fa-tags"></i> npu</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/rdma"><i class="fas fa-tags"></i> rdma</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e5%8a%a8%e6%80%81"><i class="fas fa-tags"></i> 动态</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7"><i class="fas fa-tags"></i> 可观测性</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e5%90%88%e4%bd%9c"><i class="fas fa-tags"></i> 合作</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e5%bc%80%e6%ba%90"><i class="fas fa-tags"></i> 开源</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e6%95%85%e9%9a%9c%e6%a3%80%e6%b5%8b"><i class="fas fa-tags"></i> 故障检测</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e7%bd%91%e7%bb%9c"><i class="fas fa-tags"></i> 网络</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e8%8d%a3%e8%aa%89"><i class="fas fa-tags"></i> 荣誉</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <footer id="footer">
+    <div class="container">
+        
+        
+        
+        
+        <div class="row">
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>官方认证</h4>
+                <div class="footer-certifications">
+                    
+                    <a href="https://landscape.cncf.io/?item=observability-and-analysis--observability--huatuo" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="CNCF Landscape">
+                        <img src="/img/certifications/cncf.png" alt="CNCF Landscape" />
+                    </a>
+                    
+                    <a href="https://ebpf.foundation/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="eBPF Foundation">
+                        <img src="/img/certifications/ebpf-foundation.png" alt="eBPF Foundation" />
+                    </a>
+                    
+                    <a href="https://prometheus.io/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="prometheus">
+                        <img src="/img/certifications/prometheus-logo.png" alt="prometheus" />
+                    </a>
+                    
+                    <a href="https://www.ccf.org.cn/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="ccf">
+                        <img src="/img/certifications/ccf.png" alt="ccf" />
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>关于我们</h4>
+                基础软件技术研究者，Linux 内核开发者。
+            </div>
+            
+            
+        </div>
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026 HUATUO 开源社区。</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+<script src="/js/front.js"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>
