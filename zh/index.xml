@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>HUATUO 开源社区</title>
+    <link>https://huatuo.tech/zh/</link>
+    <description>Recent content on HUATUO 开源社区</description>
+    <generator>Hugo</generator>
+    <language>zh</language>
+    <lastBuildDate>Thu, 20 Aug 2026 08:55:55 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/zh/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>HUATUO 获评 CCF-光华青年开源专项基金种子计划重点项目</title>
+      <link>https://huatuo.tech/zh/events/2026-08-18-huatuo-wins-ccf-guanghua-seed-key-award/</link>
+      <pubDate>Tue, 18 Aug 2026 16:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/events/2026-08-18-huatuo-wins-ccf-guanghua-seed-key-award/</guid>
+      <description>HUATUO 入选 CCF-光华青年开源专项基金种子计划首批获奖名单，获评重点级项目。</description>
+    </item>
+    <item>
+      <title>V2.3.0 发布</title>
+      <link>https://huatuo.tech/zh/events/2026-08-14-release-v230/</link>
+      <pubDate>Thu, 13 Aug 2026 17:56:19 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/events/2026-08-14-release-v230/</guid>
+      <description>&lt;h3 id=&#34;总览&#34;&gt;总览&lt;/h3&gt;&#xA;&lt;p&gt;HUATUO v2.3.0 将节点级内核观测能力扩展为覆盖异常发现、实时取证、性能剖析和集中查询的诊断链路。&lt;/p&gt;&#xA;&lt;p&gt;&lt;img src=&#34;https://huatuo.tech/img/events/2026-08-14-release-v230-overview.png&#34; alt=&#34;HUATUO v2.3.0 核心能力总览&#34; loading=&#34;lazy&#34; /&gt;&#xA;&lt;/p&gt;&#xA;&lt;p&gt;下文介绍主要变化。完整配置和使用方法见 &lt;a href=&#34;https://docs.huatuo.tech/zh/&#34;&gt;HUATUO 中文文档&lt;/a&gt;。&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://docs.huatuo.tech/zh/latest/key-feature/continuous-profiling/&#34;&gt;持续性能剖析&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://docs.huatuo.tech/zh/latest/key-feature/instant-observability/&#34;&gt;异常事件诊断&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://docs.huatuo.tech/zh/latest/best-practice/events-watch/&#34;&gt;内核事件订阅&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://docs.huatuo.tech/zh/latest/best-practice/dropwatch/&#34;&gt;网络丢包&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://docs.huatuo.tech/zh/latest/best-practice/tcpshark/&#34;&gt;TCP 重传追踪&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://docs.huatuo.tech/zh/latest/key-feature/hardware-events/&#34;&gt;硬件故障&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://docs.huatuo.tech/zh/latest/best-practice/storage/&#34;&gt;存储服务&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://docs.huatuo.tech/zh/latest/deployment/kubernetes/&#34;&gt;集群部署&lt;/a&gt;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;1-性能剖析&#34;&gt;1. 性能剖析&lt;/h3&gt;&#xA;&lt;h4 id=&#34;11-统一剖析工具&#34;&gt;1.1 统一剖析工具&lt;/h4&gt;&#xA;&lt;p&gt;新增独立的 profiler 工具，以统一命令行剖析原生程序、Java 和 Python：&lt;/p&gt;&#xA;&lt;p&gt;&lt;img src=&#34;https://huatuo.tech/img/events/2026-08-14-release-v230-profiling-matrix.png&#34; alt=&#34;HUATUO v2.3.0 统一剖析能力矩阵&#34; loading=&#34;lazy&#34; /&gt;&#xA;&lt;/p&gt;&#xA;&lt;p&gt;profiler 支持宿主机、PID 和容器三类目标：&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;Java 和 Python 支持同时采集多个 PID；&lt;/li&gt;&#xA;&lt;li&gt;原生程序支持按线程组采集；&lt;/li&gt;&#xA;&lt;li&gt;支持按 CPU 列表或范围限制采样；&lt;/li&gt;&#xA;&lt;li&gt;容器进程通过本机 cgroup 解析，无需依赖 kubelet；&lt;/li&gt;&#xA;&lt;li&gt;支持 collapsed、交互式 SVG 火焰图和远端 pprof 输出。&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h4 id=&#34;12-off-cpu-剖析&#34;&gt;1.2 Off-CPU 剖析&lt;/h4&gt;&#xA;&lt;p&gt;Off-CPU 剖析通过 sched_switch、sched_wakeup 等调度 tracepoint，记录任务离开 CPU 到再次运行的时间，并按等待原因分类：&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&lt;strong&gt;blocked：&lt;/strong&gt; 等待锁、I/O 或其他事件；&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;runqueue：&lt;/strong&gt; 任务已经可运行，但仍在运行队列中等待 CPU；&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;runqueue_preempted、runqueue_yielded：&lt;/strong&gt; 标识任务进入运行队列的原因；&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;runqueue_missed_wakeup：&lt;/strong&gt; 未观测到唤醒事件时的保守分类。&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;采集时可限定 blocked 或 runqueue、设置最小时长，并按 CPU 集合缩小范围。用于排查 BPF 采集质量的诊断统计默认关闭，可按需启用。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>AI 时代，我们复活了这个开源项目</title>
+      <link>https://huatuo.tech/zh/blog/2026-08-04-why-we-revived-go-pcap-for-ai-infrastructure/</link>
+      <pubDate>Tue, 04 Aug 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-08-04-why-we-revived-go-pcap-for-ai-infrastructure/</guid>
+      <description>Go-pcap 基于 Go 将过滤表达式生成 eBPF 用于 skb、mbuf、RDMA 实时报文过滤。</description>
+    </item>
+    <item>
+      <title>再升级！华为昇腾 NPU 进入华佗开源生态</title>
+      <link>https://huatuo.tech/zh/events/2026-07-29-huawei-ascend-npu-monitoring/</link>
+      <pubDate>Wed, 29 Jul 2026 10:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/events/2026-07-29-huawei-ascend-npu-monitoring/</guid>
+      <description>本文介绍华为向 HUATUO 社区贡献的昇腾 NPU 监测功能，包括 DCMI、PCIe 与 HCCN 数据采集、指标设计、容错处理及运行配置。</description>
+    </item>
+    <item>
+      <title>HUATUO 华佗，“直通乌镇”全球互联网大赛</title>
+      <link>https://huatuo.tech/zh/events/2026-07-23-wicwuzhen/</link>
+      <pubDate>Tue, 28 Jul 2026 16:54:14 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/events/2026-07-23-wicwuzhen/</guid>
+      <description>&lt;p&gt;“直通乌镇”全球互联网大赛是世界互联网大会乌镇峰会重要活动之一，通过探索互联网发展的新技术、新模式、新业态，搭建互联网项目、技术、人才和资本合作的重要平台。大赛致力于推动全球互联网合作创新，激发互联网创业活力，集聚互联网青年人才，在全球范围内高质量推动互联网产业精准对接，为全球数字经济蓬勃发展贡献力量。&lt;/p&gt;&#xA;&lt;p&gt;HUATUO（华佗）是由滴滴开源、依托中国计算机学会（CCF）孵化的操作系统内核/Agent 沙箱全景观测项目。已广泛应用于通用计算、AI 计算、Agent 沙箱、云原生和裸金属基础设施。&lt;/p&gt;&#xA;&lt;p&gt;活动现场，大赛组委会为滴滴、阿里云、华为、腾讯云、OpenKylin 等单位颁发开源生态合作伙伴证书。&lt;/p&gt;&#xA;&lt;p&gt;&lt;img src=&#34;https://huatuo.tech/img/events/2026-07-23-wicwuzhen.jpeg&#34; alt=&#34;&#34; loading=&#34;lazy&#34; /&gt;&#xA;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>新特性！基于 eBPF 的 Linux 内核全栈丢包检测</title>
+      <link>https://huatuo.tech/zh/blog/2026-07-01-full-stack-packet-loss-detection-of-the-linux-kernel-based-on-ebpf/</link>
+      <pubDate>Wed, 01 Jul 2026 12:04:44 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-07-01-full-stack-packet-loss-detection-of-the-linux-kernel-based-on-ebpf/</guid>
+      <description>本文重点介绍， HUATUO 华佗如何基于 eBPF 实现对 Linux 内核的协议全栈丢包观测。</description>
+    </item>
+    <item>
+      <title>新特性！基于 eBPF 的容器级块设备 IO 延迟检测</title>
+      <link>https://huatuo.tech/zh/blog/2026-05-06-container-level-block-device-io-delay-based-on-ebpf/</link>
+      <pubDate>Tue, 05 May 2026 23:17:00 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-05-06-container-level-block-device-io-delay-based-on-ebpf/</guid>
+      <description>本文重点介绍， HUATUO 华佗如何基于 eBPF 对容器级块 IO 实现延迟检测，定位存储瓶颈。</description>
+    </item>
+    <item>
+      <title>RDMA 关键技术研究：Doorbell, UAR</title>
+      <link>https://huatuo.tech/zh/blog/2026-04-14-rdma-key-technology-research-doorbell-uar-user-access-region/</link>
+      <pubDate>Tue, 14 Apr 2026 06:36:13 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-04-14-rdma-key-technology-research-doorbell-uar-user-access-region/</guid>
+      <description>该文重点分析 UAR, User Access Region 的内存布局，分配时机，映射方式，用户态和内核态代码实现等。</description>
+    </item>
+    <item>
+      <title>RDMA 关键技术研究：Memory Window</title>
+      <link>https://huatuo.tech/zh/blog/2026-04-09-rdma-key-technology-research-memory-window/</link>
+      <pubDate>Thu, 09 Apr 2026 08:27:32 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-04-09-rdma-key-technology-research-memory-window/</guid>
+      <description>该文主要分析 Memory window 作用，用户态和内核态代码实现方式，硬件原理，和一些思考。</description>
+    </item>
+    <item>
+      <title>RDMA 关键技术研究：Queue Pairs</title>
+      <link>https://huatuo.tech/zh/blog/2026-04-08-rdma-key-technology-research-queue-pairs/</link>
+      <pubDate>Wed, 08 Apr 2026 09:19:43 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-04-08-rdma-key-technology-research-queue-pairs/</guid>
+      <description>该文主要分析 QPs, SQ, RQ 作用，用户态接口，内核实现方式，硬件原理，一些思考。</description>
+    </item>
+    <item>
+      <title>RDMA 关键技术研究：MR Memory Region</title>
+      <link>https://huatuo.tech/zh/blog/2026-04-07-rdma-key-technology-research-memory-region/</link>
+      <pubDate>Tue, 07 Apr 2026 10:34:48 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-04-07-rdma-key-technology-research-memory-region/</guid>
+      <description>该文主要分析 Memory Region 作用，内核实现原理，锁页避免内存交换的原因，硬件原理。</description>
+    </item>
+    <item>
+      <title>官宣！HUATUO 华佗 v2.2.0 正式发布</title>
+      <link>https://huatuo.tech/zh/events/2026-03-30-release-v220/</link>
+      <pubDate>Mon, 30 Mar 2026 08:25:49 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/events/2026-03-30-release-v220/</guid>
+      <description>&lt;p&gt;经过一段时间的开发测试，HUATUO 华佗 v2.2.0 今日正式发版！&lt;/p&gt;&#xA;&lt;p&gt;本次版本以“更强能力、更广场景、更易使用”为目标，重点优化了核心功能、扩展了部署兼容性，并对代码架构进行了大规模重构与精简，为大规模生产环境提供更稳定、更强的支撑。&lt;/p&gt;&#xA;&lt;h3 id=&#34;主要功能特性&#34;&gt;主要功能特性&lt;/h3&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&lt;strong&gt;智能故障诊断能力升级&lt;/strong&gt;：新增 AI 计算与通用计算场景下的硬件故障检测，支持 RDMA PFC 拥塞检测、物理链路状态实时监控等能力，帮助用户快速定位底层问题。&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;多云与混合云部署支持&lt;/strong&gt;：新增对阿里云 ACK、谷歌云（GKE）、AWS 等主流云平台的原生适配，满足更多企业的混合云与公有云部署需求。&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;MetaX 沐曦股份深度贡献&lt;/strong&gt;：感谢 MetaX 沐曦股份向社区贡献的 GPU 硬件故障检测能力，进一步增强了华佗在异构计算环境下的诊断实力。&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;Kubernetes 适配能力增强&lt;/strong&gt;：支持更多 cgroup driver 类型，并新增自动化检测机制，提升在容器化环境中的易用性和兼容性。&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;ioTracing 工具正式开源&lt;/strong&gt;：全新开源的 iotracing 工具支持命令行快速运行与自动化追踪，可有效应对 IO 突发性能问题，为存储诊断提供强大助力。&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;配置全面标准化&lt;/strong&gt;：所有配置选项实现规范化管理，大幅提升部署与运维的便利性。&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;测试全面升级&lt;/strong&gt;：新增大量单元测试、集成测试与端到端测试，显著提升项目整体稳定性和可靠性。&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;具体变化如下：https://huatuo.tech/docs/zh/v2.2.0/changelog/&lt;/p&gt;&#xA;&lt;p&gt;&lt;img src=&#34;https://huatuo.tech/img/events/2026-03-30-release-changelog.png&#34; alt=&#34;&#34; loading=&#34;lazy&#34; /&gt;&#xA;&lt;/p&gt;&#xA;&lt;h3 id=&#34;文档全面升级&#34;&gt;文档全面升级&lt;/h3&gt;&#xA;&lt;p&gt;针对此前使用门槛较高的问题，v2.2.0 版本对文档体系进行了系统性重构与大幅扩充，特别加强了指标、事件、自动化追踪以及硬件故障相关模块的说明，帮助用户更快上手并充分发挥华佗的价值。&lt;/p&gt;&#xA;&lt;p&gt;&lt;img src=&#34;https://huatuo.tech/img/events/2026-03-30-release-docs.png&#34; alt=&#34;&#34; loading=&#34;lazy&#34; /&gt;&#xA;&lt;/p&gt;&#xA;&lt;h4 id=&#34;配置全面优化&#34;&gt;配置全面优化&lt;/h4&gt;&#xA;&lt;p&gt;新增详细配置参数说明与最佳实践，极大降低了部署与调优难度。&#xA;&lt;img src=&#34;https://huatuo.tech/img/events/2026-03-30-release-config.png&#34; alt=&#34;&#34; loading=&#34;lazy&#34; /&gt;&#xA;&lt;/p&gt;&#xA;&lt;h4 id=&#34;指标文档&#34;&gt;指标文档&lt;/h4&gt;&#xA;&lt;p&gt;对所有监控指标进行清晰分类与专业解读，帮助用户精准理解每个指标的含义与实际意义。 → 详见：https://huatuo.tech/docs/zh/v2.2.0/key-feature/metrics/&lt;/p&gt;&#xA;&lt;p&gt;&lt;img src=&#34;https://huatuo.tech/img/events/2026-03-30-release-metrics.png&#34; alt=&#34;&#34; loading=&#34;lazy&#34; /&gt;&#xA;&lt;/p&gt;&#xA;&lt;h4 id=&#34;事件文档&#34;&gt;事件文档&lt;/h4&gt;&#xA;&lt;p&gt;HUATUO 华佗依托 eBPF 技术，实时捕获 Linux 内核中的各类异常事件，涵盖系统、应用及硬件多个维度，为问题定位提供第一手精准信息。 → 详见：https://huatuo.tech/docs/zh/v2.2.0/key-feature/events/&lt;/p&gt;&#xA;&lt;p&gt;&lt;img src=&#34;https://huatuo.tech/img/events/2026-03-30-release-events.png&#34; alt=&#34;&#34; loading=&#34;lazy&#34; /&gt;&#xA;&lt;/p&gt;&#xA;&lt;h4 id=&#34;自动追踪autotracing文档&#34;&gt;自动追踪（AutoTracing）文档&lt;/h4&gt;&#xA;&lt;p&gt;新增自动追踪功能详细说明，包括支持的追踪类型、核心功能特点及使用建议。&lt;/p&gt;&#xA;&lt;p&gt;&lt;strong&gt;自动追踪（AutoTracing）&lt;/strong&gt; 是华佗内核监控系统的智能诊断利器。当系统出现特定性能异常或资源突变时，AutoTracing 可自动触发，实时采集火焰图、进程上下文、调用栈、资源状态等丰富现场数据，帮助运维与开发人员在无需手动干预的情况下，快速定位并分析问题。&lt;/p&gt;&#xA;&lt;p&gt;该功能基于 eBPF 技术实现，具有极低开销与高实时性特点，适用于物理机与容器环境的各类异常诊断场景。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Linux 内核 RAS 原理剖析与实践案例</title>
+      <link>https://huatuo.tech/zh/blog/2026-03-26-the-linux-kernel-ras-practical/</link>
+      <pubDate>Thu, 26 Mar 2026 03:39:25 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-03-26-the-linux-kernel-ras-practical/</guid>
+      <description>本篇介绍 Linux 内核 RAS, MCE, AER 等硬件故障检查原理。HUATUO 华佗项目依赖该检测机制实现了通用硬件故障监控。</description>
+    </item>
+    <item>
+      <title>再升级！沐曦科技 GPU 接入华佗开源生态！</title>
+      <link>https://huatuo.tech/zh/events/2026-03-10-metax-works-together-with-huatuo-opensource/</link>
+      <pubDate>Mon, 09 Mar 2026 03:44:45 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/events/2026-03-10-metax-works-together-with-huatuo-opensource/</guid>
+      <description>&lt;p&gt;&lt;img src=&#34;https://huatuo.tech/img/events/2026-03-10-metax-and-huatuo.png&#34; alt=&#34;&#34; loading=&#34;lazy&#34; /&gt;&#xA;&lt;/p&gt;&#xA;&lt;h3 id=&#34;沐曦股份开源生态介绍&#34;&gt;沐曦股份开源生态介绍&lt;/h3&gt;&#xA;&lt;p&gt;沐曦股份坚持“自主创新与开放兼容”双轨战略，以自研MXMACA软件栈为核心，构建硬件与应用的桥梁，并承载开源核心使命。该栈于2025年2月正式开源，致力于打造开放的GPU编程接口标准，大幅降低开发门槛，有效破解跨平台兼容难题，驱动AI算力生态协同创新。&lt;/p&gt;&#xA;&lt;p&gt;技术落地方面，沐曦深度融入全球开源社区：成为vLLM官方支持的中国GPU厂商，与红帽联合推出MXAIE优化方案，实现对龙蜥、OpenCloudOS、麒麟、RHEL等主流OS的适配，并深度参与vLLM、PaddlePaddle、OpenXLA、BigDL等上游项目，确保主流框架和大模型的“Day 0”级支持。截至2025年底，已发布30余个开源项目，MXMACA用户超25万，支持超4500个模型“即插即用”。通过技术赛事、高校推广及算力服务平台建设，沐曦正加速构建覆盖开发者、产业与科研的开放生态，目标是铸就AI时代的“Android式”开放共赢算力基础。&lt;/p&gt;&#xA;&lt;h3 id=&#34;huatuo-华佗&#34;&gt;HUATUO 华佗&lt;/h3&gt;&#xA;&lt;p&gt;HUATUO（华佗）是由滴滴开源并依托 CCF （中国计算机学会）孵化的操作系统深度观测项目，专注为云原生通用计算，AI 计算，云服务，基础服务等提供操作系统内核级深度观测能力，&lt;a href=&#34;https://mp.weixin.qq.com/s/aFKdCiXIHKFKBFdSf58buQ&#34;&gt;《滴滴操作系统可观测 HUATUO 项目正式入驻 CCF》&lt;/a&gt;。&lt;/p&gt;&#xA;&lt;p&gt;&lt;img src=&#34;https://huatuo.tech/img/events/2026-03-10-metax-huatuo-ccf.png&#34; alt=&#34;&#34; loading=&#34;lazy&#34; /&gt;&#xA;&lt;/p&gt;&#xA;&lt;h3 id=&#34;适配介绍&#34;&gt;适配介绍&lt;/h3&gt;&#xA;&lt;p&gt;&lt;img src=&#34;https://huatuo.tech/img/events/huatuo-fullstack-with-component.png&#34; alt=&#34;&#34; loading=&#34;lazy&#34; /&gt;&#xA;&lt;/p&gt;&#xA;&lt;p&gt;HUATUO 通过调用 MetaX libmxsml 获取实时的 GPU 数据，在开启了 MetaX GPU 监控后，可以在华佗中查询到 GPU 相关的数据，如：&lt;/p&gt;&#xA;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;1. GPU 基础信息：如 GPU 型号、GPU 标识、驱动版本等&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;2. GPU 状态：如 GPU 功耗、温度、利用率、时钟频率等&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;3. GPU 通信：如 PCIe 速度、带宽，MetaXLink 速度、带宽等&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;这些数据可以帮助我们更加清晰地定位生产环境中的各种问题。有关指标的详细说明，请见后续的&amp;quot;指标介绍&amp;quot;章节。如果想要启用 MetaX GPU 的监控，需要将以下内容挂载到容器中的对应位置：&lt;/p&gt;&#xA;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;1. /opt/maca:/opt/maca&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;2. /opt/mxdriver:/opt/mxdriver&#xA;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;3. /dev/dri:/dev/dri&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Docker 容器的启动命令为：&lt;/p&gt;&#xA;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;docker run --privileged --cgroupns&lt;span style=&#34;color:#81a1c1&#34;&gt;=&lt;/span&gt;host --network&lt;span style=&#34;color:#81a1c1&#34;&gt;=&lt;/span&gt;host &lt;span style=&#34;color:#ebcb8b&#34;&gt;\&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ebcb8b&#34;&gt;&lt;/span&gt;        -v /sys:/sys &lt;span style=&#34;color:#ebcb8b&#34;&gt;\&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ebcb8b&#34;&gt;&lt;/span&gt;        -v /proc:/proc &lt;span style=&#34;color:#ebcb8b&#34;&gt;\&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ebcb8b&#34;&gt;&lt;/span&gt;        -v /run:/run &lt;span style=&#34;color:#ebcb8b&#34;&gt;\&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ebcb8b&#34;&gt;&lt;/span&gt;        -v /opt/maca:/opt/maca &lt;span style=&#34;color:#ebcb8b&#34;&gt;\&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ebcb8b&#34;&gt;&lt;/span&gt;        -v /opt/mxdriver:/opt/mxdriver &lt;span style=&#34;color:#ebcb8b&#34;&gt;\&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ebcb8b&#34;&gt;&lt;/span&gt;        -v /dev/dri:/dev/dri &lt;span style=&#34;color:#ebcb8b&#34;&gt;\&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ebcb8b&#34;&gt;&lt;/span&gt;        huatuo/huatuo-bamai:latest&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;如果是在 K8s 中使用，则创建相应的 PV 与 PVC 即可。在容器启动完毕后，访问其服务地址的 &lt;code&gt;/metrics&lt;/code&gt; endpoint，如果输出中包含带有 metax 字样的指标，则成功采集了 GPU 数据。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>新特性！支持 AI 计算硬件故障检测</title>
+      <link>https://huatuo.tech/zh/blog/2026-03-09-support-hardware-fault-detection-for-ai-computing/</link>
+      <pubDate>Sun, 08 Mar 2026 09:56:26 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-03-09-support-hardware-fault-detection-for-ai-computing/</guid>
+      <description>本篇介绍了 HUATUO 项目的新特性，支持 AI 计算场景下硬件故障检测能力，包括故障指标，实际案例，原理分析等。</description>
+    </item>
+    <item>
+      <title>HUATUO 华佗被 eBPF 基金会列为新兴项目</title>
+      <link>https://huatuo.tech/zh/events/2026-01-22-huatuo-and-ebpf-foundation-work-together/</link>
+      <pubDate>Thu, 22 Jan 2026 05:52:37 -0500</pubDate>
+      <guid>https://huatuo.tech/zh/events/2026-01-22-huatuo-and-ebpf-foundation-work-together/</guid>
+      <description>HUATUO (华佗) 被 eBPF 基金会列为新兴项目，标志着行业对该项目社区实力与生态价值的认可。eBPF 已经被广泛应用于可观测性领域。</description>
+    </item>
+    <item>
+      <title>滴滴出行荣获腾讯操作系统生态OC, 杰出贡献单位</title>
+      <link>https://huatuo.tech/zh/events/2025-12-20-huatuo-and-tencent-outstanding-contribution/</link>
+      <pubDate>Fri, 19 Dec 2025 21:43:17 -0500</pubDate>
+      <guid>https://huatuo.tech/zh/events/2025-12-20-huatuo-and-tencent-outstanding-contribution/</guid>
+      <description>近日，2025 OpenCloudOS 操作系统生态大会在北京成功举办。会上，滴滴出行荣获年度“杰出贡献单位”奖，体现腾讯操作系统社区对滴滴出行所做贡献的高度认可，更彰显了HUATUO（华佗）社区在推动操作系统可观测生态繁荣方面所做的深刻实践</description>
+    </item>
+    <item>
+      <title>腾讯操作系统 OC 和 HUATUO (华佗) 深度集成</title>
+      <link>https://huatuo.tech/zh/events/2025-11-11-opencloudos-and-huatuo-together/</link>
+      <pubDate>Mon, 10 Nov 2025 19:12:53 -0500</pubDate>
+      <guid>https://huatuo.tech/zh/events/2025-11-11-opencloudos-and-huatuo-together/</guid>
+      <description>滴滴 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO（华佗）&lt;/a&gt; 和腾讯操作系统 OC 深度集成，进一步提升 OC 操作系统在云原生环境下内核级深度观测的能力，为云上用户提升内核问题排查效率，保障业务持续性.</description>
+    </item>
+    <item>
+      <title>HUATUO 华佗走进浙江大学｜共话开源实践与高校共建</title>
+      <link>https://huatuo.tech/zh/events/2025-11-07-share-huatuo-practices-to-zhejiang-university/</link>
+      <pubDate>Fri, 07 Nov 2025 08:25:49 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/events/2025-11-07-share-huatuo-practices-to-zhejiang-university/</guid>
+      <description>&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;&lt;img src=&#34;https://huatuo.tech/img/events/2025-11-07-huatuo-zhejiang-01.png&#34; alt=&#34;&#34; loading=&#34;lazy&#34; /&gt;&#xA;&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;滴滴基础产品事业部高级软件开发工程师涂曾兵分享了《HUATUO在滴滴的规模化应用实践和开源社区建设》。在云原生与AI技术快速发展的今天，操作系统级可观测性成为保障复杂系统稳定性的关键。滴滴开源与CCF（中国计算机学会）重点孵化的HUATUO项目基于eBPF技术实现低损耗、零侵扰的内核数据采集，覆盖TCP/IP协议栈、CPU调度、内存管理等核心模块，并构建异常事件驱动诊断与全自动化追踪（AutoTracing）两大核心引擎，能够自动捕获softlockup、oom、网络延迟等关键事件，精准定位云原生场景下的偶发与突发故障。&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;在持续性能剖析层面，HUATUO突破传统工具局限，提供多语言、全栈、可回溯的剖析能力，结合Grafana等开源生态输出可视化分析，助力企业从“被动救火”转向“主动预防”。目前该项目已在多家企业落地，覆盖出行、金融等多类场景，推动可观测技术领域操作系统基础设施向标准化、自动化、智能化演进。&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;原文：https://mp.weixin.qq.com/s/sJmRbTfhKofLP2AAOx0u6w&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ul&gt;</description>
+    </item>
+    <item>
+      <title>荣获《OSCAR 尖峰开源项目及开源社区》称号</title>
+      <link>https://huatuo.tech/zh/events/2025-10-28-huatuo-oscar-event/</link>
+      <pubDate>Sun, 26 Oct 2025 10:19:02 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/events/2025-10-28-huatuo-oscar-event/</guid>
+      <description>&lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO（华佗）&lt;/a&gt; 凭借其在技术创新、社区建设等方面的卓越表现，荣获中国信息通信研究院、中国通信标准化协会颁发的《OSCAR 尖峰开源项目及开源社区》 奖项 &amp;hellip;</description>
+    </item>
+    <item>
+      <title>关于双上联去堆叠网络架构的一点总结</title>
+      <link>https://huatuo.tech/zh/blog/2025-09-26-some-thoughts-on-non-stacking-network-architecture/</link>
+      <pubDate>Fri, 26 Sep 2025 03:20:47 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2025-09-26-some-thoughts-on-non-stacking-network-architecture/</guid>
+      <description>本文探讨了双上联去堆叠网络架构的设计思路与生产环境中遇到的实际问题（如LACP协议状态与物理链路的监控难点），并引入 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; 解决方案，以实现对物理链路可用性的有效观测 &amp;hellip;</description>
+    </item>
+    <item>
+      <title>滴滴操作系统可观测项目 HUATUO 正式入驻 CCF</title>
+      <link>https://huatuo.tech/zh/events/2025-08-07-huatuo-open-source-project-has-entered-the-ccf-incubation-phase/</link>
+      <pubDate>Fri, 08 Aug 2025 03:19:58 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/events/2025-08-07-huatuo-open-source-project-has-entered-the-ccf-incubation-phase/</guid>
+      <description>8月2日，滴滴宣布其开源云原生操作系统可观测性项目 HUATUO 正式入驻中国计算机学会，加入其重点孵化项目序列。本次入驻不仅体现了滴滴长期践行开源共建共享的理念，也希望通过行业协作，共同推动可观测领域操作系统基础设施的高效标准化发展。</description>
+    </item>
+    <item>
+      <title>快速开始</title>
+      <link>https://huatuo.tech/zh/quickstart/</link>
+      <pubDate>Wed, 04 Jun 2025 05:18:49 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/quickstart/</guid>
+      <description>&lt;blockquote&gt;&#xA;&lt;p&gt;为帮助大家快速体验、部署 HUATUO, 该文档分别从 &lt;a href=&#34;https://huatuo.tech/zh/quickstart/#1-%e6%9e%81%e9%80%9f%e4%bd%93%e9%aa%8c&#34;&gt;极速体验&lt;/a&gt;，&lt;a href=&#34;https://huatuo.tech/zh/quickstart/#2-%e5%ae%b9%e5%99%a8%e5%90%af%e5%8a%a8&#34;&gt;容器启动&lt;/a&gt;，&lt;a href=&#34;https://huatuo.tech/zh/quickstart/#3-%e7%bc%96%e8%af%91%e9%83%a8%e7%bd%b2&#34;&gt;编译部署&lt;/a&gt; 三部分说明。&lt;/p&gt;&lt;/blockquote&gt;&#xA;&lt;h3 id=&#34;1-极速体验&#34;&gt;1. 极速体验&lt;/h3&gt;&#xA;&lt;p&gt;你可以直接登陆&lt;a href=&#34;http://console.huatuo.tech&#34;&gt;示例网站&lt;/a&gt;访问前端监控大盘示例，如内核指标、异常事件、火焰图等(账户：huatuo 密码：huatuo1024)。&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;&lt;a href=&#34;http://console.huatuo.tech/d/autotracing-event&#34;&gt;Events, AutoTracing 大盘（持续完善）&lt;/a&gt;:&lt;/p&gt;&#xA;&lt;p&gt;&lt;img src=&#34;https://huatuo.tech/img/quickstart-autotrcing-event.png&#34; alt=&#34;autotrcing-event demo diagram​&#34; loading=&#34;lazy&#34; /&gt;&#xA;&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;&lt;a href=&#34;http://console.huatuo.tech/d/metrics-host&#34;&gt;宿主机 Metrics 大盘（持续完善）&lt;/a&gt;&lt;/p&gt;&#xA;&lt;p&gt;&lt;img src=&#34;https://huatuo.tech/img/quickstart-metrics-host.png&#34; alt=&#34;metrics-host demo diagram&#34; loading=&#34;lazy&#34; /&gt;&#xA;&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;&lt;a href=&#34;http://console.huatuo.tech/d/metrics-container&#34;&gt;容器 Metrics 大盘（持续完善）&lt;/a&gt;&lt;/p&gt;&#xA;&lt;p&gt;&lt;img src=&#34;https://huatuo.tech/img/quickstart-metrics-container.png&#34; alt=&#34;metrics-container demo diagram&#34; loading=&#34;lazy&#34; /&gt;&#xA;&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;2-容器启动&#34;&gt;2. 容器启动&lt;/h3&gt;&#xA;&lt;p&gt;&lt;img src=&#34;https://huatuo.tech/img/quickstart-data-flow.png&#34; alt=&#34;HUATUO 组件数据流示意图&#34; loading=&#34;lazy&#34; /&gt;&#xA;&lt;/p&gt;&#xA;&lt;h4 id=&#34;21-docker-启动&#34;&gt;2.1 Docker 启动&lt;/h4&gt;&#xA;&lt;p&gt;通过 docker 启动已经编译好的容器镜像（注意：该方式默认关闭了获取容器信息功能，和 ES 存储功能）。&lt;/p&gt;&#xA;&lt;ol&gt;&#xA;&lt;li&gt;启动容器：&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ docker run --privileged --cgroupns&lt;span style=&#34;color:#81a1c1&#34;&gt;=&lt;/span&gt;host --network&lt;span style=&#34;color:#81a1c1&#34;&gt;=&lt;/span&gt;host -v /sys:/sys -v /proc:/proc -v /run:/run huatuo/huatuo-bamai:latest&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ol start=&#34;2&#34;&gt;&#xA;&lt;li&gt;获取指标：打开另外一个终端，通过 curl 获取。&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ curl -s localhost:19704/metrics&#xA;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ol start=&#34;3&#34;&gt;&#xA;&lt;li&gt;查看异常事件 (Events, AutoTracing)：HUATUO 会将采集到的内核异常事件信息在 ES （已关闭），和本地目录 &lt;code&gt;huatuo-local&lt;/code&gt; 分别存储。注意：通常该路径下没有任何文件（正常状态的系统不会触发事件采集），你可以通过构造异常场景或者修改配置文件阈值产生事件。&lt;/li&gt;&#xA;&lt;/ol&gt;&#xA;&lt;h4 id=&#34;22-docker-compose-启动&#34;&gt;2.2 Docker Compose 启动&lt;/h4&gt;&#xA;&lt;p&gt;通过 docker compose，可以快速地在本地搭建部署一套完整的环境。该命令拉取最新镜像，启动 &lt;a href=&#34;https://www.elastic.co&#34;&gt;elasticsearch&lt;/a&gt;, &lt;a href=&#34;https://prometheus.io&#34;&gt;prometheus&lt;/a&gt;, &lt;a href=&#34;https://grafana.com&#34;&gt;grafana&lt;/a&gt;，huatuo-bamai 等组件。命令执行成功后，打开浏览器访问 &lt;a href=&#34;http://localhost:3000&#34;&gt;http://localhost:3000&lt;/a&gt; 即可浏览监控大盘（grafana 默认管理员账户：admin 密码：admin； 系统正常状态不会触发 Events, AutoTracing）。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>发展历程</title>
+      <link>https://huatuo.tech/zh/milestone/</link>
+      <pubDate>Wed, 04 Jun 2025 03:11:31 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/milestone/</guid>
+      <description>&lt;ul&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://huatuo.tech/events/2026-03-10-metax-works-together-with-huatuo-opensource/&#34;&gt;2026-03-10 HUATUO（华佗）再升级！沐曦科技 GPU 接入华佗生态！&lt;/a&gt;&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://www.pku.edu.cn/&#34;&gt;2026-03-02 HUATUO（华佗）走进北京大学，分享企业级开源应用实践&lt;/a&gt;&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://ebpf.io/&#34;&gt;2026-01-22 HUATUO（华佗）被 eBPF 基金会列为新兴项目&lt;/a&gt;&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://prometheus.io/docs/instrumenting/exporters/&#34;&gt;2026-01-02 HUATUO（华佗）进入 Prometheus 官网列表&lt;/a&gt;&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://mp.weixin.qq.com/s/jr48eddSEs0__Y7Uf31LZQ&#34;&gt;2025-12-06 HUATUO（华佗）社区获腾讯操作系统 OC, 《杰出贡献单位奖》&lt;/a&gt;&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://mp.weixin.qq.com/s/up0vdnSu9ibR2KPyTjtfdA&#34;&gt;2025-11-11 HUATUO（华佗）和腾讯操作系统 OC 深度集成&lt;/a&gt;&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://mp.weixin.qq.com/s/sJmRbTfhKofLP2AAOx0u6w&#34;&gt;2025-11-03 HUATUO（华佗）走进浙江大学，共话开源实践与高校共建&lt;/a&gt;&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://huatuo.tech/blog/2025-10-28-huatuo-oscar-event/&#34;&gt;2025-10-28 HUATUO（华佗）荣获《OSCAR 尖峰开源项目及开源社区》称号&lt;/a&gt;&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://mp.weixin.qq.com/s/nAxSG6HCqYMRoA-G1ak1Bw&#34;&gt;2025-09-19 HUATUO（华佗）走进星巴克，研讨 AI 加速可观测&lt;/a&gt;&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;li&gt;&#xA;&lt;p&gt;&lt;a href=&#34;https://mp.weixin.qq.com/s/aFKdCiXIHKFKBFdSf58buQ&#34;&gt;2025-08-02 滴滴操作系统可观测开源项目 HUATUO（华佗）正式入驻 CCF&lt;/a&gt;&lt;/p&gt;&#xA;&lt;/li&gt;&#xA;&lt;/ul&gt;</description>
+    </item>
+    <item>
+      <title>关于</title>
+      <link>https://huatuo.tech/zh/about/</link>
+      <pubDate>Wed, 04 Jun 2025 03:11:31 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/about/</guid>
+      <description>&lt;p&gt;HUATUO 是一个面向基础软件领域的开源技术社区，聚焦 Linux 内核、云原生、AI 基础设施与 Agent 沙箱等方向，致力于推动系统级可观测、性能分析与故障诊断技术的创新和落地。社区欢迎开发者、企业及生态伙伴共同参与建设，并欢迎各方通过资金或 Token 等资源支持社区的持续发展。&lt;/p&gt;&#xA;&lt;h3 id=&#34;加入社区&#34;&gt;加入社区&lt;/h3&gt;&#xA;&lt;div class=&#34;project-community about-community&#34;&gt;&#xA;  &lt;div class=&#34;project-community-item&#34;&gt;&#xA;    &lt;div class=&#34;project-channel-card&#34;&gt;&#xA;      &lt;div class=&#34;project-channel-header&#34;&gt;&#xA;        &lt;div class=&#34;project-channel-icon&#34;&gt;&lt;i class=&#34;fab fa-weixin theme-icon&#34;&gt;&lt;/i&gt;&lt;/div&gt;&#xA;        &lt;h3 class=&#34;project-channel-title&#34;&gt;微信用户群&lt;/h3&gt;&#xA;      &lt;/div&gt;&#xA;      &lt;p class=&#34;project-channel-desc&#34;&gt;添加微信 &lt;strong&gt;HAO022&lt;/strong&gt;，备注姓名 + 单位，申请加入技术交流群。&lt;/p&gt;&#xA;      &lt;img src=&#34;https://huatuo.tech/img/weixin-hao022.jpg&#34; alt=&#34;微信用户群二维码&#34; class=&#34;project-channel-qr&#34; loading=&#34;lazy&#34;&gt;&#xA;    &lt;/div&gt;&#xA;  &lt;/div&gt;&#xA;  &lt;div class=&#34;project-community-item&#34;&gt;&#xA;    &lt;div class=&#34;project-channel-card&#34;&gt;&#xA;      &lt;div class=&#34;project-channel-header&#34;&gt;&#xA;        &lt;div class=&#34;project-channel-icon&#34;&gt;&lt;i class=&#34;fas fa-rss theme-icon&#34;&gt;&lt;/i&gt;&lt;/div&gt;&#xA;        &lt;h3 class=&#34;project-channel-title&#34;&gt;微信公众号&lt;/h3&gt;&#xA;      &lt;/div&gt;&#xA;      &lt;p class=&#34;project-channel-desc&#34;&gt;关注 HUATUO 公众号，获取项目最新动态、技术分享与社区活动。&lt;/p&gt;&#xA;      &lt;img src=&#34;https://huatuo.tech/img/weixin-huatuo.jpg&#34; alt=&#34;HUATUO 微信公众号二维码&#34; class=&#34;project-channel-qr&#34; loading=&#34;lazy&#34;&gt;&#xA;    &lt;/div&gt;&#xA;  &lt;/div&gt;&#xA;&lt;/div&gt;</description>
+    </item>
+    <item>
+      <title>Go-pcap</title>
+      <link>https://huatuo.tech/zh/projects/go-pcap/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://huatuo.tech/zh/projects/go-pcap/</guid>
+      <description>&lt;p&gt;Go-pcap 是一个纯 Go 数据包捕获库和 tcpdump 风格的 cBPF 过滤器编译器。它提供类似 libpcap 的抓包接口，但不依赖 CGO，因此可以使用 &lt;code&gt;CGO_ENABLED=0&lt;/code&gt; 构建，并能更方便地进行跨平台交叉编译。&lt;/p&gt;&#xA;&lt;div class=&#34;project-actions&#34;&gt;&#xA;  &lt;a class=&#34;btn btn-template-main&#34; href=&#34;https://github.com/huatuo-ai/go-pcap&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;&lt;i class=&#34;fab fa-github&#34;&gt;&lt;/i&gt; GitHub 仓库&lt;/a&gt;&#xA;  &lt;a class=&#34;btn btn-template-transparent-primary&#34; href=&#34;https://github.com/huatuo-ai/go-pcap/tree/master/docs&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;&lt;i class=&#34;fas fa-book&#34;&gt;&lt;/i&gt; 项目文档&lt;/a&gt;&#xA;&lt;/div&gt;&#xA;&lt;h3 id=&#34;核心特点&#34;&gt;核心特点&lt;/h3&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&lt;strong&gt;纯 Go 实现&lt;/strong&gt;：无需 libpcap 和 CGO，支持静态构建及便捷的跨平台编译。&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;实时数据包捕获&lt;/strong&gt;：为 Linux 和 macOS/Darwin 提供类似 libpcap 的实时抓包接口。&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;cBPF 过滤器编译&lt;/strong&gt;：将常用 tcpdump 风格表达式编译为 classic BPF 指令。&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;链路层感知&lt;/strong&gt;：同一套过滤器语法可面向 Ethernet（EN10MB）或 Raw IP（L3）数据布局生成指令。&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;命令行工具&lt;/strong&gt;：附带 &lt;code&gt;pcap&lt;/code&gt; CLI，可进行实时抓包并输出兼容 tcpdump 风格的数据包摘要。&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;使用场景&#34;&gt;使用场景&lt;/h3&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&lt;strong&gt;网络观测工具开发&lt;/strong&gt;：为流量采集、协议分析和故障诊断工具提供纯 Go 抓包能力。&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;无 CGO 部署环境&lt;/strong&gt;：适用于静态二进制、精简容器和需要跨平台交叉编译的项目。&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;流量过滤&lt;/strong&gt;：通过 tcpdump 风格表达式生成 cBPF 指令，过滤 IPv4、IPv6、ARP、TCP、UDP、ICMP 等常见协议流量。&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;命令行诊断&lt;/strong&gt;：使用配套 &lt;code&gt;pcap&lt;/code&gt; CLI 实时捕获流量并输出数据包摘要。&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;参与项目&#34;&gt;参与项目&lt;/h3&gt;&#xA;&lt;p&gt;使用方法、过滤语法和开发指南请参阅 &lt;a href=&#34;https://github.com/huatuo-ai/go-pcap/tree/master/docs&#34;&gt;Go-pcap 项目文档&lt;/a&gt;。欢迎通过 &lt;a href=&#34;https://github.com/huatuo-ai/go-pcap/issues&#34;&gt;Issues&lt;/a&gt; 和 &lt;a href=&#34;https://github.com/huatuo-ai/go-pcap/pulls&#34;&gt;Pull Requests&lt;/a&gt; 参与协议、链路类型、兼容性或性能方面的改进。项目采用 Apache License 2.0。&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>HUATUO, 华佗</title>
+      <link>https://huatuo.tech/zh/projects/huatuo/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://huatuo.tech/zh/projects/huatuo/</guid>
+      <description>&lt;p&gt;HUATUO 华佗，由滴滴开源并依托中国计算机学会（CCF）孵化的操作系统内核/Agent 沙箱全景观测项目。广泛应用于AI 沙箱、AI 计算、通用计算、云原生、智驾系统等基础设施服务。&lt;/p&gt;&#xA;&lt;div class=&#34;project-actions&#34;&gt;&#xA;  &lt;a class=&#34;btn btn-template-main&#34; href=&#34;https://github.com/ccfos/huatuo&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;&lt;i class=&#34;fab fa-github&#34;&gt;&lt;/i&gt; GitHub 仓库&lt;/a&gt;&#xA;  &lt;a class=&#34;btn btn-template-transparent-primary&#34; href=&#34;https://docs.huatuo.tech/zh/latest/&#34; target=&#34;_blank&#34; rel=&#34;noopener noreferrer&#34;&gt;&lt;i class=&#34;fas fa-book&#34;&gt;&lt;/i&gt; 项目文档&lt;/a&gt;&#xA;&lt;/div&gt;&#xA;&lt;h3 id=&#34;核心特点&#34;&gt;核心特点&lt;/h3&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&lt;strong&gt;内核全景观测&lt;/strong&gt;：覆盖内存管理、CPU 调度、网络和块 I/O 等 Linux 内核子系统，以较低性能开销提供细粒度观测数据。&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;异常事件诊断&lt;/strong&gt;：在缺页、调度延迟等慢路径事件发生时，自动采集内核运行上下文，帮助快速定位问题。&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;全自动化追踪&lt;/strong&gt;：通过自动快照留存捕获偶发性能抖动，辅助分析 CPU idle 降低、sys 使用率突增、I/O 或 Load Average 突增等问题。&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;持续性能剖析&lt;/strong&gt;：持续分析操作系统及应用的 CPU、内存、I/O 和锁，为高可用、稳定性工程与性能优化提供依据。&lt;/li&gt;&#xA;&lt;li&gt;&lt;strong&gt;异构硬件观测&lt;/strong&gt;：全面覆盖 CPU、内存、PCIe、网卡、存储等通用基础设施，并深度扩展至 GPU、NPU 等 AI 加速器。&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;生态集成&#34;&gt;生态集成&lt;/h3&gt;&#xA;&lt;p&gt;HUATUO 可与 Prometheus、Grafana、Pyroscope 和 Elasticsearch 等主流可观测组件集成，并自动关联 Kubernetes 容器标签与注解。基于内核级 eBPF 编程，无需修改业务代码即可获得跨硬件平台和 Linux 发行版的系统观测数据。&lt;/p&gt;&#xA;&lt;h3 id=&#34;落地场景&#34;&gt;落地场景&lt;/h3&gt;&#xA;&lt;ul class=&#34;project-scenarios&#34;&gt;&#xA;  &lt;li class=&#34;project-scenario&#34;&gt;&lt;i class=&#34;fas fa-brain theme-icon&#34;&gt;&lt;/i&gt;AI 计算&lt;/li&gt;&#xA;  &lt;li class=&#34;project-scenario&#34;&gt;&lt;i class=&#34;fas fa-box theme-icon&#34;&gt;&lt;/i&gt;智能沙箱&lt;/li&gt;&#xA;  &lt;li class=&#34;project-scenario&#34;&gt;&lt;i class=&#34;fas fa-microchip theme-icon&#34;&gt;&lt;/i&gt;通用计算&lt;/li&gt;&#xA;  &lt;li class=&#34;project-scenario&#34;&gt;&lt;i class=&#34;fas fa-layer-group theme-icon&#34;&gt;&lt;/i&gt;云原生&lt;/li&gt;&#xA;  &lt;li class=&#34;project-scenario&#34;&gt;&lt;i class=&#34;fas fa-cloud theme-icon&#34;&gt;&lt;/i&gt;云计算&lt;/li&gt;&#xA;  &lt;li class=&#34;project-scenario&#34;&gt;&lt;i class=&#34;fas fa-server theme-icon&#34;&gt;&lt;/i&gt;基础架构&lt;/li&gt;&#xA;  &lt;li class=&#34;project-scenario&#34;&gt;&lt;i class=&#34;fas fa-life-ring theme-icon&#34;&gt;&lt;/i&gt;容灾演练&lt;/li&gt;&#xA;  &lt;li class=&#34;project-scenario&#34;&gt;&lt;i class=&#34;fas fa-car theme-icon&#34;&gt;&lt;/i&gt;自动驾驶&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;参与项目&#34;&gt;参与项目&lt;/h3&gt;&#xA;&lt;p&gt;部署、配置及开发说明请参阅 &lt;a href=&#34;https://docs.huatuo.tech/zh/latest/&#34;&gt;HUATUO 项目文档&lt;/a&gt;。我们欢迎所有形式的参与，无论是提交 Issue、贡献代码，还是加入技术讨论。项目主体采用 Apache License 2.0，BPF 代码采用 GPL 许可证。&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

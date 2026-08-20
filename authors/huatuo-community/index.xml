@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>HUATUO Community on Linux Kernel, Cloud-native and AI Infra Observability.</title>
+    <link>https://huatuo.tech/authors/huatuo-community/</link>
+    <description>Recent content in HUATUO Community on Linux Kernel, Cloud-native and AI Infra Observability.</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Thu, 20 Aug 2026 08:55:55 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/authors/huatuo-community/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>HUATUO Selected as a Key Project in the CCF-Guanghua Youth Open Source Special Fund Seed Program</title>
+      <link>https://huatuo.tech/events/2026-08-18-huatuo-wins-ccf-guanghua-seed-key-award/</link>
+      <pubDate>Tue, 18 Aug 2026 16:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/events/2026-08-18-huatuo-wins-ccf-guanghua-seed-key-award/</guid>
+      <description>HUATUO joins the first cohort of the CCF-Guanghua Youth Open Source Special Fund Seed Program as a Key Project.</description>
+    </item>
+    <item>
+      <title>V2.3.0 Released</title>
+      <link>https://huatuo.tech/events/2026-08-14-release-v230/</link>
+      <pubDate>Thu, 13 Aug 2026 17:56:19 +0800</pubDate>
+      <guid>https://huatuo.tech/events/2026-08-14-release-v230/</guid>
+      <description>&lt;h3 id=&#34;overview&#34;&gt;Overview&lt;/h3&gt;&#xA;&lt;p&gt;HUATUO v2.3.0 expands node-level kernel observability into a diagnostic workflow that covers anomaly detection, real-time forensics, performance profiling, and centralized queries.&lt;/p&gt;&#xA;&lt;p&gt;&lt;img src=&#34;https://huatuo.tech/img/events/2026-08-14-release-v230-overview-en.png&#34; alt=&#34;HUATUO v2.3.0 capability overview&#34; loading=&#34;lazy&#34; /&gt;&#xA;&lt;/p&gt;&#xA;&lt;p&gt;The sections below describe the main changes. For configuration and usage details, see the &lt;a href=&#34;https://docs.huatuo.tech/en/&#34;&gt;HUATUO documentation&lt;/a&gt;.&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://docs.huatuo.tech/en/latest/key-feature/continuous-profiling/&#34;&gt;Continuous profiling&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://docs.huatuo.tech/en/latest/key-feature/instant-observability/&#34;&gt;Anomaly diagnostics&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://docs.huatuo.tech/en/latest/best-practice/events-watch/&#34;&gt;Kernel event subscriptions&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://docs.huatuo.tech/en/latest/best-practice/dropwatch/&#34;&gt;Network packet drops&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://docs.huatuo.tech/en/latest/best-practice/tcpshark/&#34;&gt;TCP retransmission tracing&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://docs.huatuo.tech/en/latest/key-feature/hardware-events/&#34;&gt;Hardware failures&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://docs.huatuo.tech/en/latest/best-practice/storage/&#34;&gt;Storage service&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://docs.huatuo.tech/en/latest/deployment/kubernetes/&#34;&gt;Cluster deployment&lt;/a&gt;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;1-performance-profiling&#34;&gt;1. Performance Profiling&lt;/h3&gt;&#xA;&lt;h4 id=&#34;11-unified-profiler&#34;&gt;1.1 Unified Profiler&lt;/h4&gt;&#xA;&lt;p&gt;The new standalone profiler tool provides a single command-line interface for profiling native applications, Java, and Python:&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>HUATUO Adds Huawei Ascend NPU Monitoring Support</title>
+      <link>https://huatuo.tech/events/2026-07-29-huawei-ascend-npu-monitoring/</link>
+      <pubDate>Wed, 29 Jul 2026 10:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/events/2026-07-29-huawei-ascend-npu-monitoring/</guid>
+      <description>This article introduces the Ascend NPU monitoring capabilities contributed by Huawei to the HUATUO community, including DCMI, PCIe, and HCCN data collection, metric design, fault tolerance, and runtime configuration.</description>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Open Source on Linux Kernel, Cloud-native and AI Infra Observability.</title>
+    <link>https://huatuo.tech/tags/open-source/</link>
+    <description>Recent content in Open Source on Linux Kernel, Cloud-native and AI Infra Observability.</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Thu, 20 Aug 2026 08:55:55 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/tags/open-source/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>HUATUO Selected as a Key Project in the CCF-Guanghua Youth Open Source Special Fund Seed Program</title>
+      <link>https://huatuo.tech/events/2026-08-18-huatuo-wins-ccf-guanghua-seed-key-award/</link>
+      <pubDate>Tue, 18 Aug 2026 16:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/events/2026-08-18-huatuo-wins-ccf-guanghua-seed-key-award/</guid>
+      <description>HUATUO joins the first cohort of the CCF-Guanghua Youth Open Source Special Fund Seed Program as a Key Project.</description>
+    </item>
+  </channel>
+</rss>

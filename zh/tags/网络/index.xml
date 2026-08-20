@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>网络 on HUATUO 开源社区</title>
+    <link>https://huatuo.tech/zh/tags/%E7%BD%91%E7%BB%9C/</link>
+    <description>Recent content in 网络 on HUATUO 开源社区</description>
+    <generator>Hugo</generator>
+    <language>zh</language>
+    <lastBuildDate>Thu, 20 Aug 2026 08:55:55 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/zh/tags/%E7%BD%91%E7%BB%9C/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>AI 时代，我们复活了这个开源项目</title>
+      <link>https://huatuo.tech/zh/blog/2026-08-04-why-we-revived-go-pcap-for-ai-infrastructure/</link>
+      <pubDate>Tue, 04 Aug 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-08-04-why-we-revived-go-pcap-for-ai-infrastructure/</guid>
+      <description>Go-pcap 基于 Go 将过滤表达式生成 eBPF 用于 skb、mbuf、RDMA 实时报文过滤。</description>
+    </item>
+  </channel>
+</rss>

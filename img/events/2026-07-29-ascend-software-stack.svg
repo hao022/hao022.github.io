@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img" aria-labelledby="title desc">
+  <title id="title">昇腾 NPU 软硬件栈与可观测接口</title>
+  <desc id="desc">从 AI 应用、框架、CANN、驱动管理工具到昇腾 NPU 硬件的分层示意图，并突出 DCMI、hccn_tool 与 PCIe sysfs 三类观测入口。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f7f9fc"/>
+      <stop offset="1" stop-color="#eef3f8"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="7" flood-color="#172b4d" flood-opacity=".12"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#52677d"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="680" rx="26" fill="url(#bg)"/>
+  <text x="60" y="66" font-family="Arial, PingFang SC, Microsoft YaHei, sans-serif" font-size="31" font-weight="700" fill="#172b4d">昇腾 NPU：从算力底座到设备观测接口</text>
+  <text x="60" y="101" font-family="Arial, PingFang SC, Microsoft YaHei, sans-serif" font-size="17" fill="#52677d">HUATUO 本次接入位于驱动管理层，将硬件状态转换为统一的 Prometheus 指标</text>
+
+  <g filter="url(#shadow)" font-family="Arial, PingFang SC, Microsoft YaHei, sans-serif">
+    <rect x="70" y="138" width="680" height="76" rx="14" fill="#ffffff"/>
+    <text x="105" y="174" font-size="21" font-weight="700" fill="#253858">AI 应用与模型</text>
+    <text x="105" y="199" font-size="16" fill="#6b778c">训练 · 推理 · 行业解决方案</text>
+
+    <rect x="70" y="232" width="680" height="76" rx="14" fill="#ffffff"/>
+    <text x="105" y="268" font-size="21" font-weight="700" fill="#253858">AI 框架</text>
+    <text x="105" y="293" font-size="16" fill="#6b778c">MindSpore 及主流 AI 框架</text>
+
+    <rect x="70" y="326" width="680" height="76" rx="14" fill="#e8f1ff"/>
+    <text x="105" y="362" font-size="21" font-weight="700" fill="#0747a6">CANN 异构计算架构</text>
+    <text x="105" y="387" font-size="16" fill="#3567a7">运行时 · 算子库 · 图引擎 · AscendCL</text>
+
+    <rect x="70" y="420" width="680" height="96" rx="14" fill="#fff3e6"/>
+    <text x="105" y="456" font-size="21" font-weight="700" fill="#974f0c">驱动与设备管理</text>
+    <text x="105" y="484" font-size="16" fill="#8a5b2d">NPU 驱动 · DCMI · npu-smi · hccn_tool</text>
+
+    <rect x="70" y="534" width="680" height="84" rx="14" fill="#deebff"/>
+    <text x="105" y="571" font-size="21" font-weight="700" fill="#0747a6">昇腾 NPU / Atlas 硬件</text>
+    <text x="105" y="598" font-size="16" fill="#3567a7">AI Core · HBM · PCIe · RoCE / HCCN · 光模块</text>
+  </g>
+
+  <g font-family="Arial, PingFang SC, Microsoft YaHei, sans-serif">
+    <rect x="820" y="174" width="300" height="344" rx="20" fill="#172b4d"/>
+    <text x="858" y="222" font-size="24" font-weight="700" fill="#ffffff">HUATUO 观测入口</text>
+
+    <rect x="850" y="254" width="240" height="68" rx="12" fill="#36b37e"/>
+    <text x="878" y="283" font-size="19" font-weight="700" fill="#ffffff">DCMI API</text>
+    <text x="878" y="307" font-size="14" fill="#e3fcef">健康、功耗、温度、HBM、ECC</text>
+
+    <rect x="850" y="340" width="240" height="68" rx="12" fill="#ffab00"/>
+    <text x="878" y="369" font-size="19" font-weight="700" fill="#172b4d">PCIe sysfs</text>
+    <text x="878" y="393" font-size="14" fill="#3d3425">链路能力与实时速率 / 宽度</text>
+
+    <rect x="850" y="426" width="240" height="68" rx="12" fill="#00b8d9"/>
+    <text x="878" y="455" font-size="19" font-weight="700" fill="#172b4d">hccn_tool</text>
+    <text x="878" y="479" font-size="14" fill="#163f49">RoCE、端口、报文与光模块</text>
+  </g>
+
+  <path d="M750 468 C790 468 790 288 840 288" fill="none" stroke="#52677d" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M750 576 C790 576 790 374 840 374" fill="none" stroke="#52677d" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M750 478 C795 478 800 460 840 460" fill="none" stroke="#52677d" stroke-width="3" marker-end="url(#arrow)"/>
+</svg>
