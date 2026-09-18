@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>社区 on Linux Kernel, Cloud-native and AI Infra Observability.</title>
+    <link>https://huatuo.tech/tags/%E7%A4%BE%E5%8C%BA/</link>
+    <description>Recent content in 社区 on Linux Kernel, Cloud-native and AI Infra Observability.</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Fri, 18 Sep 2026 04:51:26 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/tags/%E7%A4%BE%E5%8C%BA/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Linux Kernel Observability for Agent Sandbox</title>
+      <link>https://huatuo.tech/blog/2026-08-31-agent-sandbox-kernel-observation/</link>
+      <pubDate>Mon, 31 Aug 2026 19:58:00 +0800</pubDate>
+      <guid>https://huatuo.tech/blog/2026-08-31-agent-sandbox-kernel-observation/</guid>
+      <description>Building full-stack kernel observability for AI agent sandbox.</description>
+    </item>
+  </channel>
+</rss>

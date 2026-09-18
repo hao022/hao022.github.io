@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>HUATUO OSC on Linux Kernel, Cloud-native and AI Infra Observability.</title>
+    <link>https://huatuo.tech/authors/huatuo-osc/</link>
+    <description>Recent content in HUATUO OSC on Linux Kernel, Cloud-native and AI Infra Observability.</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Fri, 18 Sep 2026 04:51:26 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/authors/huatuo-osc/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Linux Kernel Observability for Agent Sandbox</title>
+      <link>https://huatuo.tech/blog/2026-08-31-agent-sandbox-kernel-observation/</link>
+      <pubDate>Mon, 31 Aug 2026 19:58:00 +0800</pubDate>
+      <guid>https://huatuo.tech/blog/2026-08-31-agent-sandbox-kernel-observation/</guid>
+      <description>Building full-stack kernel observability for AI agent sandbox.</description>
+    </item>
+    <item>
+      <title>HUATUO Selected as a Key Project in the CCF-Guanghua Youth Open Source Special Fund Seed Program</title>
+      <link>https://huatuo.tech/events/2026-08-18-huatuo-wins-ccf-guanghua-seed-key-award/</link>
+      <pubDate>Tue, 18 Aug 2026 16:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/events/2026-08-18-huatuo-wins-ccf-guanghua-seed-key-award/</guid>
+      <description>HUATUO joins the first cohort of the CCF-Guanghua Youth Open Source Special Fund Seed Program as a Key Project.</description>
+    </item>
+    <item>
+      <title>V2.3.0 Released</title>
+      <link>https://huatuo.tech/events/2026-08-14-release-v230/</link>
+      <pubDate>Thu, 13 Aug 2026 17:56:19 +0800</pubDate>
+      <guid>https://huatuo.tech/events/2026-08-14-release-v230/</guid>
+      <description>&lt;h3 id=&#34;overview&#34;&gt;Overview&lt;/h3&gt;&#xA;&lt;p&gt;HUATUO v2.3.0 expands node-level kernel observability into a diagnostic workflow that covers anomaly detection, real-time forensics, performance profiling, and centralized queries.&lt;/p&gt;&#xA;&lt;p&gt;&lt;img src=&#34;https://huatuo.tech/img/events/2026-08-14-release-v230-overview-en.png&#34; alt=&#34;HUATUO v2.3.0 capability overview&#34; loading=&#34;lazy&#34; /&gt;&#xA;&lt;/p&gt;&#xA;&lt;p&gt;The sections below describe the main changes. For configuration and usage details, see the &lt;a href=&#34;https://docs.huatuo.tech/en/&#34;&gt;HUATUO documentation&lt;/a&gt;.&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://docs.huatuo.tech/en/latest/key-feature/continuous-profiling/&#34;&gt;Continuous profiling&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://docs.huatuo.tech/en/latest/key-feature/instant-observability/&#34;&gt;Anomaly diagnostics&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://docs.huatuo.tech/en/latest/best-practice/events-watch/&#34;&gt;Kernel event subscriptions&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://docs.huatuo.tech/en/latest/best-practice/dropwatch/&#34;&gt;Network packet drops&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://docs.huatuo.tech/en/latest/best-practice/tcpshark/&#34;&gt;TCP retransmission tracing&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://docs.huatuo.tech/en/latest/key-feature/hardware-events/&#34;&gt;Hardware failures&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://docs.huatuo.tech/en/latest/best-practice/storage/&#34;&gt;Storage service&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://docs.huatuo.tech/en/latest/deployment/kubernetes/&#34;&gt;Cluster deployment&lt;/a&gt;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;h3 id=&#34;1-performance-profiling&#34;&gt;1. Performance Profiling&lt;/h3&gt;&#xA;&lt;h4 id=&#34;11-unified-profiler&#34;&gt;1.1 Unified Profiler&lt;/h4&gt;&#xA;&lt;p&gt;The new standalone profiler tool provides a single command-line interface for profiling native applications, Java, and Python:&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>HUATUO Adds Huawei Ascend NPU Monitoring Support</title>
+      <link>https://huatuo.tech/events/2026-07-29-huawei-ascend-npu-monitoring/</link>
+      <pubDate>Wed, 29 Jul 2026 10:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/events/2026-07-29-huawei-ascend-npu-monitoring/</guid>
+      <description>This article introduces the Ascend NPU monitoring capabilities contributed by Huawei to the HUATUO community, including DCMI, PCIe, and HCCN data collection, metric design, fault tolerance, and runtime configuration.</description>
+    </item>
+    <item>
+      <title>Global Internet Competition of &#34;Straight to Wuzhen”</title>
+      <link>https://huatuo.tech/events/2026-07-23-wicwuzhen/</link>
+      <pubDate>Tue, 28 Jul 2026 16:54:14 +0800</pubDate>
+      <guid>https://huatuo.tech/events/2026-07-23-wicwuzhen/</guid>
+      <description>&lt;p&gt;Global Internet Competition of &amp;ldquo;Straight to Wuzhen”is one of the important events of the World Internet Conference Wuzhen Summit. By exploring new technologies, new models, and new formats of Internet development, it builds an important platform for Internet project, technology, talent, and capital cooperation. The competition is committed to promoting global internet cooperation and innovation, stimulating the vitality of internet entrepreneurship, gathering young internet talents, and promoting precise matchmaking of the internet industry in a high-quality manner globally, contributing to the vigorous development of the global digital economy.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>腾讯操作系统 OC 和 HUATUO (华佗) 深度集成</title>
+      <link>https://huatuo.tech/events/2025-11-11-opencloudos-and-huatuo-together/</link>
+      <pubDate>Mon, 10 Nov 2025 19:12:53 -0500</pubDate>
+      <guid>https://huatuo.tech/events/2025-11-11-opencloudos-and-huatuo-together/</guid>
+      <description>滴滴 &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO（华佗）&lt;/a&gt; 和腾讯操作系统 OC 深度集成，进一步提升 OC 操作系统在云原生环境下内核级深度观测的能力，为云上用户提升内核问题排查效率，保障业务持续性.</description>
+    </item>
+    <item>
+      <title>荣获《OSCAR 尖峰开源项目及开源社区》称号</title>
+      <link>https://huatuo.tech/events/2025-10-28-huatuo-oscar-event/</link>
+      <pubDate>Sun, 26 Oct 2025 10:19:02 -0400</pubDate>
+      <guid>https://huatuo.tech/events/2025-10-28-huatuo-oscar-event/</guid>
+      <description>&lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO（华佗）&lt;/a&gt; 凭借其在技术创新、社区建设等方面的卓越表现，荣获中国信息通信研究院、中国通信标准化协会颁发的《OSCAR 尖峰开源项目及开源社区》 奖项 &amp;hellip;</description>
+    </item>
+  </channel>
+</rss>
