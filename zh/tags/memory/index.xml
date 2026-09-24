@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Memory on HUATUO 开源社区</title>
+    <link>https://huatuo.tech/zh/tags/memory/</link>
+    <description>Recent content in Memory on HUATUO 开源社区</description>
+    <generator>Hugo</generator>
+    <language>zh</language>
+    <lastBuildDate>Thu, 24 Sep 2026 12:03:52 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/zh/tags/memory/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>OOM 之前，留下现场：HUATUO 的多语言内存快照方案</title>
+      <link>https://huatuo.tech/zh/blog/2026-09-24-container-memory-threshold-snapshot/</link>
+      <pubDate>Thu, 24 Sep 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-09-24-container-memory-threshold-snapshot/</guid>
+      <description>从进程外采集多语言内存快照，保留分配栈与对象类型线索，辅助排查内存增长。</description>
+    </item>
+  </channel>
+</rss>

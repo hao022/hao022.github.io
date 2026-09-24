@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<script>
+  (function (root) {
+    var theme
+    try { theme = localStorage.getItem('huatuo-theme') } catch {}
+    root.dataset.theme = theme === 'light' || theme === 'dark'
+      ? theme
+      : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+  }(document.documentElement))
+</script>
+
+<title>Building Kernel Observability for AI Agent Sandboxes</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, AI, 社区">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' rel='stylesheet'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1790251448" rel="stylesheet">
+<link href="/css/theme.css?1790251448" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+<link rel="android-chrome-icon" href="/img/android-chrome-512x512.png" />
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="Linux Kernel, Cloud-native and AI Infra Observability.">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en">
+<meta property="og:site_name" content="Linux Kernel, Cloud-native and AI Infra Observability.">
+<meta property="og:title" content="Building Kernel Observability for AI Agent Sandboxes">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/blog/2026-08-31-agent-sandbox-kernel-observation/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2026-08-31-agent-sandbox-observation-cover.jpg">
+<meta property="og:image:type" content="image/jpg">
+
+
+
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="543">
+
+
+<meta property="og:updated_time" content="2026-09-24T12:03:52Z">
+
+  
+  
+  
+  <meta property="article:tag" content="AI">
+  <meta property="article:tag" content="社区">
+  
+  
+  <meta property="article:published_time" content="2026-08-31T19:58:00&#43;0800">
+  <meta property="article:modified_time" content="2026-09-24T12:03:52Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="Building Kernel Observability for AI Agent Sandboxes">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2026-08-31-agent-sandbox-observation-cover.jpg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+  </head>
+
+  <body><div id="all" class="has-page-hero">
+
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+              🚀  Listed in the CNCF Landscape and eBPF Foundation Emerging Project. If you like this project, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>!  ❤️
+          </p>
+        
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/huatuo-logo-v4.png" alt="Building Kernel Observability for AI Agent Sandboxes logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/huatuo-logo-v4.png" alt="Building Kernel Observability for AI Agent Sandboxes logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">Building Kernel Observability for AI Agent Sandboxes - go to homepage</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">Toggle Navigation</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-cubes theme-icon nav-icon nav-menu-icon'></i>Projects <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                            <li><a href="/projects/huatuo/">HUATUO（华佗）</a></li>
+                            
+                            
+                            
+                            <li><a href="/projects/go-pcap/">Go-pcap</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-book theme-icon nav-icon nav-menu-icon'></i>Docs <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/en/latest/" data-theme-link>Latest</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/en/v2.3.0/" data-theme-link>V2.3.0</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/en/v2.2.0/" data-theme-link>V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    <a href="/blog/"><i class='fas fa-pen-nib theme-icon nav-icon nav-menu-icon'></i>Blog</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/milestone/"><i class='fas fa-rss theme-icon nav-icon nav-menu-icon'></i>News</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/about/"><i class='fas fa-info-circle theme-icon nav-icon nav-menu-icon'></i>About</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <button type="button"
+                            class="dropdown-toggle nav-control"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                      <i class="fas fa-globe theme-icon nav-icon"></i>
+                      English
+                      <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                      
+                      
+                      
+                        
+                        
+                        
+                          
+                            
+                          
+                        
+                          
+                        
+                        
+                        
+                        <li class="active">
+                          <a href="/blog/2026-08-31-agent-sandbox-kernel-observation/" class="language-option" aria-current="page">
+                            <i class="language-check fas fa-check" aria-hidden="true"></i>
+                            English
+                          </a>
+                        </li>
+                      
+                        
+                        
+                        
+                          
+                        
+                          
+                            
+                          
+                        
+                        
+                        
+                        <li>
+                          <a href="/zh/blog/2026-08-31-agent-sandbox-kernel-observation/" class="language-option">
+                            <i class="language-check" aria-hidden="true"></i>
+                            中文
+                          </a>
+                        </li>
+                      
+                    </ul>
+                  </li>
+                  
+                  
+
+                  
+                  
+                  
+                  <li class="theme-toggle-item">
+                    <button type="button"
+                            class="nav-control theme-toggle"
+                            data-theme-toggle
+                            data-light-label="Switch to light theme"
+                            data-dark-label="Switch to dark theme"
+                            aria-label="Switch to dark theme"
+                            aria-pressed="false">
+                      <span class="theme-toggle-track" aria-hidden="true">
+                        <span class="theme-toggle-thumb">
+                          <i class="theme-toggle-icon fas fa-sun"></i>
+                        </span>
+                      </span>
+                      <span class="sr-only theme-toggle-text">Switch to dark theme</span>
+                    </button>
+                  </li>
+                  
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars"
+                         onerror="this.style.display='none'">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        
+        
+        
+        <div class="page-hero">
+    <div class="page-hero-grid"></div>
+    <div class="page-hero-glow"></div>
+    <div class="page-hero-inner">
+        <div class="page-hero-title-row">
+            <div class="page-hero-icon"><i class="fas fa-pen-nib theme-icon"></i></div>
+            <h1 class="page-hero-title">Blog</h1>
+        </div>
+    </div>
+</div>
+
+        
+
+        <div id="content">
+            <div class="container">
+                <div class="row">
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                        <h1 class="post-title">Building Kernel Observability for AI Agent Sandboxes</h1>
+                        <div class="post-meta">
+                            <span class="post-meta-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                2026-08-31
+                            </span>
+                            
+                            <span class="post-meta-authors">
+                                <i class="fas fa-user"></i>
+                                <a href="/authors/hao022">HAO022</a>
+                            </span>
+                            
+                            
+                            <span class="post-meta-tags">
+                                <a href="/tags/ai" class="post-meta-tag">AI</a><a href="/tags/%E7%A4%BE%E5%8C%BA" class="post-meta-tag">社区</a>
+                            </span>
+                            
+                        </div>
+                        
+
+                        <div id="post-content">
+                          <p>Recently, the CCF China Open Source Conference (CCF ChinaOSC) opened at the Chongqing Shancheng International Convention Center. Under the conference theme of “渝见开源，数智启新” (“Meet open source, ignite digital intelligence”), the event delivered technical insights on frontier topics such as ubiquitous operating systems, embodied intelligence, and open-source supply-chain security.</p>
+<p>At the conference, Zhang Tonghao, lead of the open-source HUATUO project at Didi, presented <em>Full-Stack Kernel Observability for Agent Sandboxes</em>, sharing HUATUO&rsquo;s work on kernel observation, anomaly capture, and performance analysis. This article starts from the observability challenges of the AI era and explains how HUATUO builds full-stack kernel observability for agent sandboxes.</p>
+<p><strong>Project repository</strong>: <a href="https://github.com/ccfos/huatuo">https://github.com/ccfos/huatuo</a></p>
+<p><strong>Project website</strong>: <a href="https://huatuo.tech/">https://huatuo.tech/</a></p>
+<p><img src="/img/blog/2026-08-31-agent-sandbox-observation-01.png" alt="" loading="lazy" />
+</p>
+<p><img src="/img/blog/2026-08-31-agent-sandbox-observation-02.jpg" alt="" loading="lazy" />
+</p>
+<h2 id="background-and-challenges">Background and Challenges</h2>
+<p><img src="/img/blog/2026-08-31-agent-sandbox-observation-03.png" alt="" loading="lazy" />
+</p>
+<h3 id="cloud-native-era">Cloud-Native Era</h3>
+<ul>
+<li>Container virtualization, shared kernels, resource co-location, and service mesh increase infrastructure complexity, which in turn makes system fault localization harder.</li>
+<li>In production, when a problem occurs, services often have to be degraded, scaled down, migrated, or rebuilt. These actions erase the failure scene. Offline reproduction, on the other hand, is expensive and often fails; even when it succeeds, there is no guarantee that the reproduced root cause matches production.</li>
+<li>Moreover, the problems we face today are more complex. What used to be periodic, reproducible issues have evolved into intermittent, non-reproducible ones with very short symptom windows and strict trigger conditions.</li>
+<li>Most importantly, when these business pains emerged, the industry had no effective tool for observing microscopic kernel anomalies.</li>
+</ul>
+<h3 id="ai-era">AI Era</h3>
+<p>The AI era brings additional challenges. Agent sandbox workloads are highly concurrent and bursty, and their resource profiles are difficult to predict. In AI training, hardware has become a critical resource: any single hardware anomaly can slow down the entire training job or even abort it.</p>
+<h2 id="solution">Solution</h2>
+<p><strong>What is our approach to these challenges?</strong> Before failures can be analyzed, the system must be observable, the scene must be traceable, and the failure must be analyzable.</p>
+<p><img src="/img/blog/2026-08-31-agent-sandbox-observation-04.png" alt="" loading="lazy" />
+</p>
+<ul>
+<li>How do we solve kernel version compatibility and stability? eBPF makes the kernel programmable and allows user-defined code to run safely. With eBPF, problem analysis no longer depends on traditional kernel modules. Combined with kernel dynamic tracing, eBPF provides non-intrusive, low-overhead, and safe observation probes.</li>
+<li>How do we correlate system data with business data? System-level and application-level data are naturally isolated, but true fault localization requires connecting them. HUATUO observes cgroup creation events in the kernel, associates each container ID with its kernel cgroup address, and tags every kernel event with that address. The final correlation is resolved in userspace.</li>
+<li>How do we achieve system-level observability? The HUATUO project combines kprobe, tracepoint, ftrace, perf events, and eBPF to collect metrics, events, and call stacks from the host kernel without modifying business code. These capabilities are organized into five layers:
+<ul>
+<li>Kernel-wide metrics: fine-grained kernel metric collection with eBPF, narrowing “system slowness” down to specific subsystems such as scheduling, the network protocol stack, or block I/O.</li>
+<li>Anomaly event awareness: probes on key abnormal and slow paths that preserve memory, scheduling, and network evidence before it is lost after recovery.</li>
+<li>AutoTracing: fully automatic tracing that uses sliding windows and threshold triggers to capture flame graphs, kernel stacks, and process and file snapshots, balancing low overhead with deep observability.</li>
+<li>Continuous profiling: adds a time dimension to conventional flame graphs so hotspots can be traced back across history, addressing performance jitter.</li>
+<li>Heterogeneous hardware awareness: failure detection for AI hardware (ECC, AER, PCIe, GPU/NPU, RoCE, etc.), improving effective AI training time.</li>
+</ul>
+</li>
+</ul>
+<h2 id="full-stack-observability-foundation">Full-Stack Observability Foundation</h2>
+<p>With the top-level design in place, concrete observability capabilities are needed. This is what the full-stack observability foundation delivers.</p>
+<h3 id="full-stack-observability-with-end-to-end-coverage">Full-Stack Observability with End-to-End Coverage</h3>
+<p><img src="/img/blog/2026-08-31-agent-sandbox-observation-05.png" alt="" loading="lazy" />
+</p>
+<ul>
+<li>Full network protocol-stack observability: end-to-end coverage from physical links, drivers, and the protocol stack to userspace, including RX/TX latency, hardware- and software-level packet drop detection, retransmission, and TCP queue state.</li>
+<li>Full-stack I/O observability: inode-centric, end-to-end tracing of the process-level I/O lifecycle across VFS, filesystem, page cache, block queue, and drivers down to physical devices. Rich context is correlated to locate the root cause of slow I/O.</li>
+<li>CPU contention detection: on dense sandbox nodes, CPU utilization alone cannot reflect resource contention. HUATUO focuses on both intra-container and external contention—especially important for agent sandboxes, where a task&rsquo;s latency may come from its own concurrency or from “noisy neighbors”:
+<ul>
+<li>Intra-container contention: threads in one container exceed the available CPUs;</li>
+<li>External contention: the container competes with other workloads on the node for the runqueue;</li>
+<li>Scheduling latency: a runnable task waits too long to acquire a CPU;</li>
+</ul>
+</li>
+<li>General system observability: HungTask, softlockup, IRQ/softirq latency, and memory reclaim jointly cover system-level stalls. They expose transient anomalies that average utilization cannot describe, such as long interrupt-disabled windows on a CPU, accumulation of D-state tasks, or direct memory reclaim blocking in a container.</li>
+</ul>
+<h3 id="capture-anomalies-when-they-occur-rather-than-guessing-later">Capture Anomalies When They Occur, Rather Than Guessing Later</h3>
+<p>Metrics are suitable for observing trends; events are better for preserving anomaly scenes with clear boundaries. HUATUO attaches eBPF programs to abnormal and slow kernel paths. When an event fires, process, call stack, network, or hardware context is collected in the kernel and delivered to userspace through the perf event buffer, where it is filtered, correlated with containers, and persisted.</p>
+<p><img src="/img/blog/2026-08-31-agent-sandbox-observation-06.png" alt="" loading="lazy" />
+</p>
+<h3 id="autotracing-automatically-captures-spikes">AutoTracing Automatically Captures Spikes</h3>
+<p>Many performance issues are neither clear kernel anomalies nor reproducible through average metrics—for example, a container CPU spike for ten seconds, continuous disk <code>await</code> jitter, or rapidly growing anonymous memory. By the time an engineer intervenes, the issue has already recovered.</p>
+<p>AutoTracing continuously monitors the system for anomalies and detects them through sliding windows, EMA, incremental thresholds, or consecutive threshold violations. Thresholds are not immutable constants: the project ships production-tested defaults, but they should be calibrated against the baseline for different CPU quotas, disk media, and task densities.</p>
+<p><img src="/img/blog/2026-08-31-agent-sandbox-observation-07.png" alt="" loading="lazy" />
+</p>
+<p><img src="/img/blog/2026-08-31-agent-sandbox-observation-08.jpg" alt="" loading="lazy" />
+</p>
+<p>Flame graphs further translate “high CPU” into functions and call paths. The Top Table on the left is convenient for locating hot symbols, while the flame graph on the right is suitable for analyzing call relationships. On sandbox nodes, targets can be restricted to the corresponding VMM PID, thread group, or cgroup so that whole-machine aggregation does not hide the hotspots of an individual sandbox.</p>
+<h3 id="continuous-profiling-keeps-the-scene-replayable">Continuous Profiling Keeps the Scene Replayable</h3>
+<p><img src="/img/blog/2026-08-31-agent-sandbox-observation-09.png" alt="" loading="lazy" />
+</p>
+<p>AutoTracing captures the system at the moment an anomaly occurs; continuous profiling answers how a problem evolves over time. Conventional ad-hoc sampling aggregates all data into a single graph with no timeline. Continuous profiling retains results per window, turning intermittent slowdowns into searchable, comparable, and replayable historical scenes. HUATUO&rsquo;s unified profiler currently covers:</p>
+<p><img src="/img/blog/2026-08-31-agent-sandbox-observation-10.png" alt="" loading="lazy" />
+</p>
+<p>Off-CPU profiling is especially useful for “low CPU but slow requests.” It attributes the time a thread spends off the CPU to the call path at switch-out and distinguishes blocked waits from runqueue scheduling waits: the former points more often to I/O, locks, or condition variables, while the latter points more often to CPU contention.</p>
+<p>Native memory profiling clarifies three concepts that are often conflated:</p>
+<ul>
+<li>virtual_alloc: how much virtual address space was requested;</li>
+<li>physical_alloc: how many physical pages were actually allocated during the window;</li>
+<li>physical_usage: how many physical pages remain resident at collection time.</li>
+</ul>
+<p><img src="/img/blog/2026-08-31-agent-sandbox-observation-11.jpg" alt="" loading="lazy" />
+</p>
+<p><em>Figure: Physical memory residency aggregated by process and call path, allowing drill-down from “high node memory” to specific allocation paths.</em></p>
+<p><strong>On a single host, you can use the CLI directly:</strong></p>
+<p><img src="/img/blog/2026-08-31-agent-sandbox-observation-12.png" alt="" loading="lazy" />
+</p>
+<p>On the platform side (huatuo-apiserver), the Profiling API supports capability discovery, task creation, status and result queries, raw data retrieval, and task stop and deletion. In this way, ad-hoc commands evolve into service-oriented, task-based continuous profiling.</p>
+<h3 id="from-ras-to-gpunpu">From RAS to GPU/NPU</h3>
+<p>In AI infrastructure, hardware problems do not always appear as a device going offline. Continuously rising correctable ECC errors, PCIe link width degradation, AER errors, GPU downclocking, or RoCE retries can first show up as throughput drops or tail latency.</p>
+<p>HUATUO captures structured hardware events through the Linux RAS stack—MCE, EDAC, ACPI GHES, and PCIe AER—and feeds them into alerting and audit pipelines:</p>
+<p><img src="/img/blog/2026-08-31-agent-sandbox-observation-13.png" alt="" loading="lazy" />
+</p>
+<p>Figure 3: Hardware errors enter the kernel RAS subsystem from CPUs, memory, the platform, and PCIe devices.</p>
+<p><img src="/img/blog/2026-08-31-agent-sandbox-observation-14.png" alt="" loading="lazy" />
+</p>
+<p><strong>This capability mainly serves four goals:</strong></p>
+<ul>
+<li>Early warning: proactively replace a DIMM when the ECC CE frequency on the same module keeps rising;</li>
+<li>Fault isolation: isolate nodes and migrate tasks when GPU, HCA, PCIe, or NIC links are abnormal;</li>
+<li>Performance degradation localization: correlate NVMe/HBA AER events with I/O latency to distinguish software, device, and link problems;</li>
+<li>Audit and review: retain timestamps, device BDF, severity levels, and raw fields as traceable evidence.</li>
+</ul>
+<p>The key is not adding isolated hardware metrics, but correlating hardware events with scheduling, network, I/O, and profiling data in the same time window. Only then can the platform determine whether an agent stall comes from the software call path or from underlying device degradation.</p>
+<p><img src="/img/blog/2026-08-31-agent-sandbox-observation-15.png" alt="" loading="lazy" />
+</p>
+<h3 id="agent-sandbox-hierarchical-correlation">Agent Sandbox Hierarchical Correlation</h3>
+<p><img src="/img/blog/2026-08-31-agent-sandbox-observation-16.png" alt="" loading="lazy" />
+</p>
+<p>After probes collect kernel stacks, the remaining question is “whose scene is this?” Container environments can be correlated through cgroup CSS, network namespaces, and container runtime metadata. MicroVM sandboxes additionally require a mapping between the Sandbox and its VMM.</p>
+<p><img src="/img/blog/2026-08-31-agent-sandbox-observation-17.png" alt="" loading="lazy" />
+</p>
+<h2 id="community">Community</h2>
+<p>HUATUO was open sourced by Didi in 2025 and is incubated within the China Computer Federation (CCF). Through continued development, the project has grown from internal practice at Didi into a broader open-source community.</p>
+<p>As of August 2026, HUATUO has released v2.3.0 with approximately 1.1k GitHub stars, 51 contributors, and 1,310 commits, more than 15k image pulls, and deployments in over 20 enterprises. At the same time, MetaX and the Huawei Ascend community, among others, have been contributing GPU/NPU capabilities to HUATUO, helping the project expand further into AI infrastructure scenarios.</p>
+<p><img src="/img/blog/2026-08-31-agent-sandbox-observation-18.png" alt="" loading="lazy" />
+</p>
+<p><img src="/img/blog/2026-08-31-agent-sandbox-observation-19.png" alt="" loading="lazy" />
+</p>
+<p>HUATUO has also received recognition from industry and the community for its open-source community building and technical innovation. The project was selected as a Key Project in the CCF-Guanghua Youth Open Source Special Fund Seed Program, has entered the CNCF Landscape, and is listed by the eBPF Foundation as an emerging project.</p>
+<p><img src="/img/blog/2026-08-31-agent-sandbox-observation-20.jpg" alt="" loading="lazy" />
+</p>
+<p>For agent and AI infrastructure, the HUATUO community will continue to build in the following directions, and contributions are welcome:</p>
+<ul>
+<li>MCP-based fault analysis: expose diagnostic capabilities to Copilots and agents through standard tool interfaces;</li>
+<li>Distributed trace analysis: extend single-node kernel scene analysis across nodes, networks, and task chains;</li>
+<li>AI-scenario performance analysis: deepen software–hardware co-analysis for GPU/NPU training and inference.</li>
+</ul>
+<p><img src="/img/blog/2026-08-31-agent-sandbox-observation-21.png" alt="" loading="lazy" />
+</p>
+
+                        </div>
+
+                        
+                        <div id="comments">
+                            
+                            <script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="en"
+        crossorigin="anonymous"
+        async>
+</script>
+
+                        </div>
+                        
+
+                    </div>
+
+                    <div class="col-md-3">
+                        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">Tags</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/tags/ai"><i class="fas fa-tags"></i> ai</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ascend"><i class="fas fa-tags"></i> ascend</a>
+            </li>
+            
+            <li >
+                <a href="/tags/blkio"><i class="fas fa-tags"></i> blkio</a>
+            </li>
+            
+            <li >
+                <a href="/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/bpf-foundation"><i class="fas fa-tags"></i> bpf foundation</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ccf"><i class="fas fa-tags"></i> ccf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/containers"><i class="fas fa-tags"></i> containers</a>
+            </li>
+            
+            <li >
+                <a href="/tags/cpuidle"><i class="fas fa-tags"></i> cpuidle</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ebpf"><i class="fas fa-tags"></i> ebpf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/fault-detection"><i class="fas fa-tags"></i> fault detection</a>
+            </li>
+            
+            <li >
+                <a href="/tags/go"><i class="fas fa-tags"></i> go</a>
+            </li>
+            
+            <li >
+                <a href="/tags/gpu"><i class="fas fa-tags"></i> gpu</a>
+            </li>
+            
+            <li >
+                <a href="/tags/hao022"><i class="fas fa-tags"></i> hao022</a>
+            </li>
+            
+            <li >
+                <a href="/tags/k8s"><i class="fas fa-tags"></i> k8s</a>
+            </li>
+            
+            <li >
+                <a href="/tags/linux-%e5%86%85%e6%a0%b8"><i class="fas fa-tags"></i> linux 内核</a>
+            </li>
+            
+            <li >
+                <a href="/tags/loadavg"><i class="fas fa-tags"></i> loadavg</a>
+            </li>
+            
+            <li >
+                <a href="/tags/memory"><i class="fas fa-tags"></i> memory</a>
+            </li>
+            
+            <li >
+                <a href="/tags/moore-threads"><i class="fas fa-tags"></i> moore threads</a>
+            </li>
+            
+            <li >
+                <a href="/tags/net"><i class="fas fa-tags"></i> net</a>
+            </li>
+            
+            <li >
+                <a href="/tags/networking"><i class="fas fa-tags"></i> networking</a>
+            </li>
+            
+            <li >
+                <a href="/tags/news"><i class="fas fa-tags"></i> news</a>
+            </li>
+            
+            <li >
+                <a href="/tags/npu"><i class="fas fa-tags"></i> npu</a>
+            </li>
+            
+            <li >
+                <a href="/tags/observability"><i class="fas fa-tags"></i> observability</a>
+            </li>
+            
+            <li >
+                <a href="/tags/open-source"><i class="fas fa-tags"></i> open source</a>
+            </li>
+            
+            <li >
+                <a href="/tags/rdma"><i class="fas fa-tags"></i> rdma</a>
+            </li>
+            
+            <li >
+                <a href="/tags/recognition"><i class="fas fa-tags"></i> recognition</a>
+            </li>
+            
+            <li >
+                <a href="/tags/tcp"><i class="fas fa-tags"></i> tcp</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8a%a8%e6%80%81"><i class="fas fa-tags"></i> 动态</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7"><i class="fas fa-tags"></i> 可观测性</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%90%88%e4%bd%9c"><i class="fas fa-tags"></i> 合作</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%a4%9c%e8%8e%ba%e7%9b%91%e6%8e%a7"><i class="fas fa-tags"></i> 夜莺监控</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%bc%80%e6%ba%90"><i class="fas fa-tags"></i> 开源</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%81%ab%e7%84%b0%e5%9b%be"><i class="fas fa-tags"></i> 火焰图</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%a4%be%e5%8c%ba"><i class="fas fa-tags"></i> 社区</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%bd%91%e7%bb%9c%e4%bc%98%e5%8c%96"><i class="fas fa-tags"></i> 网络优化</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e8%8d%a3%e8%aa%89"><i class="fas fa-tags"></i> 荣誉</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <footer id="footer">
+    <div class="container">
+        
+        
+        
+        
+        <div class="row">
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>Official Certifications</h4>
+                <div class="footer-certifications">
+                    
+                    <a href="https://landscape.cncf.io/?item=observability-and-analysis--observability--huatuo" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="CNCF Landscape">
+                        <img src="/img/certifications/cncf.png" alt="CNCF Landscape" />
+                    </a>
+                    
+                    <a href="https://ebpf.foundation/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="eBPF Foundation">
+                        <img src="/img/certifications/ebpf-foundation.png" alt="eBPF Foundation" />
+                    </a>
+                    
+                    <a href="https://prometheus.io/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="prometheus">
+                        <img src="/img/certifications/prometheus-logo.png" alt="prometheus" />
+                    </a>
+                    
+                    <a href="https://www.ccf.org.cn/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="ccf">
+                        <img src="/img/certifications/ccf.png" alt="ccf" />
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>About us</h4>
+                Linux kernel developers, and observability developers.
+            </div>
+            
+            
+        </div>
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026, HUATUO Open Source Community.</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+<script src="/js/front.js?1790251448"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

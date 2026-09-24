@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>AI on HUATUO 开源社区</title>
+    <link>https://huatuo.tech/zh/tags/ai/</link>
+    <description>Recent content in AI on HUATUO 开源社区</description>
+    <generator>Hugo</generator>
+    <language>zh</language>
+    <lastBuildDate>Thu, 24 Sep 2026 12:03:52 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/zh/tags/ai/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>摩尔线程深度接入 HUATUO 开源生态，实现 GPU 全栈可观测</title>
+      <link>https://huatuo.tech/zh/events/2026-09-18-mthread-gpu-works-together-with-huatuo/</link>
+      <pubDate>Fri, 18 Sep 2026 15:30:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/events/2026-09-18-mthread-gpu-works-together-with-huatuo/</guid>
+      <description>摩尔线程 GPU 通过 MTML 接入 HUATUO，统一采集设备健康、PCIe 与 MTLink 指标，关联主机侧数据，支持智算集群监控与故障排查。</description>
+    </item>
+    <item>
+      <title>面向 Agent 沙箱的内核全景观测｜滴滴开源 CCF 中国开源大会分享回顾</title>
+      <link>https://huatuo.tech/zh/blog/2026-08-31-agent-sandbox-kernel-observation/</link>
+      <pubDate>Mon, 31 Aug 2026 19:58:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-08-31-agent-sandbox-kernel-observation/</guid>
+      <description>在 CCF 中国开源大会上，分享项目实践与社区进展。</description>
+    </item>
+    <item>
+      <title>再升级！华为昇腾 NPU 进入华佗开源生态</title>
+      <link>https://huatuo.tech/zh/events/2026-07-29-huawei-ascend-npu-monitoring/</link>
+      <pubDate>Wed, 29 Jul 2026 10:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/events/2026-07-29-huawei-ascend-npu-monitoring/</guid>
+      <description>本文介绍华为向 HUATUO 社区贡献的昇腾 NPU 监测功能，包括 DCMI、PCIe 与 HCCN 数据采集、指标设计、容错处理及运行配置。</description>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<script>
+  (function (root) {
+    var theme
+    try { theme = localStorage.getItem('huatuo-theme') } catch {}
+    root.dataset.theme = theme === 'light' || theme === 'dark'
+      ? theme
+      : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+  }(document.documentElement))
+</script>
+
+<title>TCP 重传如何排查？用 HUATUO 追踪连接、关联内核丢包</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, eBPF, TCP">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' rel='stylesheet'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1790251448" rel="stylesheet">
+<link href="/css/theme.css?1790251448" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+<link rel="android-chrome-icon" href="/img/android-chrome-512x512.png" />
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="HUATUO 开源社区">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="zh">
+<meta property="og:site_name" content="HUATUO 开源社区">
+<meta property="og:title" content="TCP 重传如何排查？用 HUATUO 追踪连接、关联内核丢包">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/zh/blog/2026-09-11-trace-tcp-retransmissions-with-tcpshark/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2026-09-11-tcpshark-cover.jpg">
+<meta property="og:image:type" content="image/jpg">
+
+
+
+  <meta property="og:image:width" content="300">
+  <meta property="og:image:height" content="200">
+
+
+<meta property="og:updated_time" content="2026-09-24T12:03:52Z">
+
+  
+  
+  
+  <meta property="article:tag" content="eBPF">
+  <meta property="article:tag" content="TCP">
+  <meta property="article:tag" content="可观测性">
+  
+  
+  <meta property="article:published_time" content="2026-09-11T12:00:00&#43;0800">
+  <meta property="article:modified_time" content="2026-09-24T12:03:52Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="TCP 重传如何排查？用 HUATUO 追踪连接、关联内核丢包">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2026-09-11-tcpshark-cover.jpg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+  </head>
+
+  <body><div id="all" class="has-page-hero">
+
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+              🚀  2025 年中国信息通信研究院《OSCAR 尖峰开源项目及开源社区》、腾讯科技《杰出贡献奖》、CNCF Landscape。欢迎 <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>  ❤️
+          </p>
+        
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/zh/">
+                    
+                      <img src="/img/huatuo-logo-v4.png" alt="TCP 重传如何排查？用 HUATUO 追踪连接、关联内核丢包 logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/huatuo-logo-v4.png" alt="TCP 重传如何排查？用 HUATUO 追踪连接、关联内核丢包 logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">TCP 重传如何排查？用 HUATUO 追踪连接、关联内核丢包 - 跳到主页</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">切换导航</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-cubes theme-icon nav-icon nav-menu-icon'></i>项目 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                            <li><a href="/zh/projects/huatuo/">HUATUO（华佗）</a></li>
+                            
+                            
+                            
+                            <li><a href="/zh/projects/go-pcap/">Go-pcap</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-book theme-icon nav-icon nav-menu-icon'></i>文档 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/latest/" data-theme-link>Latest</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/v2.3.0/" data-theme-link>V2.3.0</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/v2.2.0/" data-theme-link>V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    <a href="/zh/blog/"><i class='fas fa-pen-nib theme-icon nav-icon nav-menu-icon'></i>博客</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/milestone/"><i class='fas fa-rss theme-icon nav-icon nav-menu-icon'></i>动态</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/about/"><i class='fas fa-info-circle theme-icon nav-icon nav-menu-icon'></i>关于</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <button type="button"
+                            class="dropdown-toggle nav-control"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                      <i class="fas fa-globe theme-icon nav-icon"></i>
+                      中文
+                      <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                      
+                      
+                      
+                        
+                        
+                        
+                          
+                            
+                          
+                        
+                          
+                        
+                        
+                        
+                        <li>
+                          <a href="/blog/2026-09-11-trace-tcp-retransmissions-with-tcpshark/" class="language-option">
+                            <i class="language-check" aria-hidden="true"></i>
+                            English
+                          </a>
+                        </li>
+                      
+                        
+                        
+                        
+                          
+                        
+                          
+                            
+                          
+                        
+                        
+                        
+                        <li class="active">
+                          <a href="/zh/blog/2026-09-11-trace-tcp-retransmissions-with-tcpshark/" class="language-option" aria-current="page">
+                            <i class="language-check fas fa-check" aria-hidden="true"></i>
+                            中文
+                          </a>
+                        </li>
+                      
+                    </ul>
+                  </li>
+                  
+                  
+
+                  
+                  
+                  
+                  <li class="theme-toggle-item">
+                    <button type="button"
+                            class="nav-control theme-toggle"
+                            data-theme-toggle
+                            data-light-label="切换至浅色主题"
+                            data-dark-label="切换至深色主题"
+                            aria-label="切换至深色主题"
+                            aria-pressed="false">
+                      <span class="theme-toggle-track" aria-hidden="true">
+                        <span class="theme-toggle-thumb">
+                          <i class="theme-toggle-icon fas fa-sun"></i>
+                        </span>
+                      </span>
+                      <span class="sr-only theme-toggle-text">切换至深色主题</span>
+                    </button>
+                  </li>
+                  
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars"
+                         onerror="this.style.display='none'">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        
+        
+        
+        <div class="page-hero">
+    <div class="page-hero-grid"></div>
+    <div class="page-hero-glow"></div>
+    <div class="page-hero-inner">
+        <div class="page-hero-title-row">
+            <div class="page-hero-icon"><i class="fas fa-pen-nib theme-icon"></i></div>
+            <h1 class="page-hero-title">博客</h1>
+        </div>
+    </div>
+</div>
+
+        
+
+        <div id="content">
+            <div class="container">
+                <div class="row">
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                        <h1 class="post-title">TCP 重传如何排查？用 HUATUO 追踪连接、关联内核丢包</h1>
+                        <div class="post-meta">
+                            <span class="post-meta-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                2026-09-11
+                            </span>
+                            
+                            <span class="post-meta-authors">
+                                <i class="fas fa-user"></i>
+                                <a href="/zh/authors/hao022">HAO022</a>, <a href="/zh/authors/%E8%83%A1%E6%B4%AA">胡洪</a>
+                            </span>
+                            
+                            
+                            <span class="post-meta-tags">
+                                <a href="/zh/tags/ebpf" class="post-meta-tag">eBPF</a><a href="/zh/tags/tcp" class="post-meta-tag">TCP</a><a href="/zh/tags/%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7" class="post-meta-tag">可观测性</a>
+                            </span>
+                            
+                        </div>
+                        
+
+                        <div id="post-content">
+                          <h3 id="概要">概要</h3>
+<p>接口超时，TCP 重传计数上涨：究竟是哪条连接、哪个容器出了问题？仅凭节点级指标，很难确定下一步该查哪里。HUATUO tcpshark 捕获内核重传事件，定位连接、阶段和容器，并自动结合 dropwatch 查找本机丢包证据。本文通过实际命令和案例，介绍如何从重传告警逐步缩小故障范围。</p>
+<h3 id="为什么需要-tcpshark">为什么需要 tcpshark</h3>
+<table>
+  <thead>
+      <tr>
+          <th>工具</th>
+          <th>能回答的问题</th>
+          <th>主要局限</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>nstat</code>、<code>netstat -s</code></td>
+          <td>节点重传计数是否增长</td>
+          <td>无法定位连接、方向和容器</td>
+      </tr>
+      <tr>
+          <td><code>ss -ti</code></td>
+          <td>当前 socket 的 RTT、拥塞和重传快照</td>
+          <td>难以捕获短连接，不提供逐次事件</td>
+      </tr>
+      <tr>
+          <td>BCC <code>tcpretrans</code></td>
+          <td>哪条流发生了重传或 TLP</td>
+          <td>缺少 tcpshark 提供的阶段分类、容器解析和丢包关联</td>
+      </tr>
+      <tr>
+          <td><code>tcpdump</code>、Wireshark</td>
+          <td>报文时序、ACK/SACK 和疑似重传</td>
+          <td>需要选择抓包点并保存、重组流量，繁忙节点上开销较高</td>
+      </tr>
+  </tbody>
+</table>
+<p>tcpshark 观测以下内核路径：</p>
+<ul>
+<li><code>tcp/tcp_retransmit_skb</code>：观测常规重传队列中的 SKB 重传；</li>
+<li><code>tcp/tcp_retransmit_synack</code>：观测服务端建连时的 SYN-ACK 重传；</li>
+<li><code>tcp_send_loss_probe</code>：观测 Tail Loss Probe。</li>
+</ul>
+<p>输出的事件包含四元组、TCP 状态、序列号、拥塞控制状态、重传计数器和 socket 元数据，并在用户态生成 <code>phase</code> 与 <code>tcp_reason</code>。这些信息支撑三层下钻：</p>
+<ol>
+<li>从主机网络命名空间下钻到容器节点。</li>
+<li>从容器节点下钻到具体连接和方向。</li>
+<li>从连接下钻到建连、数据传输或关闭阶段等阶段；</li>
+</ol>
+<h3 id="如何使用-tcpshark">如何使用 tcpshark</h3>
+<p>tcpshark 指定 <code>--mode retransmit</code> 和 <code>tcp_retransmit.o</code> 的实际路径。以下命令采集 60 秒，以 <code>10.0.0.1:443-444</code> 过滤常规重传，同时启用 TLP，并以 NDJSON 格式输出：</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo ./tcpshark --mode retransmit <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --enable-tlp <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --bpf-path bpf/tcp_retransmit.o <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --filter <span style="color:#a3be8c">&#34;tcp and host 10.0.0.1 and portrange 443-444&#34;</span> <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --duration <span style="color:#b48ead">60</span> <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --output json
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="/img/blog/2026-09-11-tcpshark-tcp-filter.png" alt="观察目标连接的 TCP 重传和 TLP 事件" loading="lazy" />
+</p>
+<p>以下参数直接影响采集范围和结果完整性：</p>
+<ul>
+<li><code>--duration 60</code> 将采集限制在业务异常窗口内；设为 <code>0</code> 时持续运行，直至收到退出信号；</li>
+<li><code>--enable-tlp</code> 默认关闭，启用后额外挂载 <code>tcp_send_loss_probe</code> 并输出 TLP 事件；</li>
+<li><code>--filter</code> 使用 tcpdump 风格表达式；</li>
+<li><code>--max-events-per-second 100</code> 在 BPF 侧限制事件速率。</li>
+</ul>
+<p>独立运行 tcpshark 时，不会包含 <code>container_id</code>。通过 huatuo-bamai 运行时，系统会依次根据 socket 的内存 cgroup、网络命名空间 cookie 和 inum 解析容器归属。下图中的重传连接来自容器 <code>tcpshark-container-demo</code>。</p>
+<p><img src="/img/blog/2026-09-11-tcpshark-container-cmd.png" alt="TCP 重传事件的容器归属" loading="lazy" />
+</p>
+<p><img src="/img/blog/2026-09-11-tcpshark-container-v1.png" alt="TCP 重传事件的容器归属" loading="lazy" />
+</p>
+<h3 id="如何分析故障">如何分析故障</h3>
+<p>不能仅凭 <code>tcp_reason=&quot;RTO&quot;</code> 判断网络丢包。建议依次确认连接、阶段、重传路径、关联容器以及丢包位置等。</p>
+<h4 id="第一步确认连接">第一步：确认连接</h4>
+<p>以第一张图的第一条事件为例：</p>
+<ol>
+<li><code>10.0.0.2:33342 &gt; 10.0.0.1:443</code>：<code>tcp_saddr</code>、<code>tcp_sport</code>、<code>tcp_daddr</code> 和 <code>tcp_dport</code> 共同标识连接与方向；</li>
+<li><code>phase=&quot;connect&quot;</code>、<code>tcp_state=&quot;SYN_SENT&quot;</code>、<code>tcp_flags=&quot;SYN&quot;</code>表明正在建立连接；</li>
+<li><code>tcp_reason=&quot;RTO&quot;</code>，前两条事件的 <code>icsk_retransmits</code> 依次为 <code>1</code>、<code>2</code>，且 <code>tcp_seq</code> 相同：同一个 SYN 连续重试，直接影响建连延迟；</li>
+<li><code>net_namespace_inum=4026532512</code>：事件来自该网络命名空间。</li>
+</ol>
+<h4 id="第二步判断连接阶段和路径">第二步：判断连接阶段和路径</h4>
+<p><code>phase</code> 将重传分为 <code>connect</code>、<code>data</code> 和 <code>close</code>。<code>tcp_reason</code> 根据事件类型、<code>sk_state</code>、<code>ca_state</code> 和乱序计数器进一步分类。</p>
+<table>
+  <thead>
+      <tr>
+          <th>观测信号</th>
+          <th>直接含义</th>
+          <th>优先检查</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>connect/RTO</code> 且 <code>SYN</code></td>
+          <td>主动端发起 SYN 重传</td>
+          <td>路由、ACL/防火墙、负载均衡、对端监听和 SYN 队列</td>
+      </tr>
+      <tr>
+          <td><code>tcp_retransmit_synack</code></td>
+          <td>服务端发起 SYN-ACK 重传</td>
+          <td>回程链路、客户端状态、防火墙和握手队列</td>
+      </tr>
+      <tr>
+          <td><code>data/RTO</code></td>
+          <td>已建立连接进入 Loss 状态或命中 RTO 回退分类</td>
+          <td>主机丢包、网卡、链路拥塞、对端处理和 ACK 返回路径</td>
+      </tr>
+      <tr>
+          <td><code>data/fast_retransmit</code></td>
+          <td>探针触发时 socket 处于 Recovery 状态</td>
+          <td>丢包、乱序、ECMP 路径差异及 SACK/RACK 行为</td>
+      </tr>
+      <tr>
+          <td><code>TLP</code></td>
+          <td>内核正在执行尾部丢包探测</td>
+          <td>结合后续 ACK、RTO 和业务延迟判断，不能直接认定已经丢包</td>
+      </tr>
+      <tr>
+          <td><code>close/RTO</code></td>
+          <td>关闭阶段报文没有按期确认</td>
+          <td>对端退出、连接回收、FIN 路径和中间设备超时策略</td>
+      </tr>
+  </tbody>
+</table>
+<p>使用分类结果时需结合上下文：</p>
+<ul>
+<li><code>RTO</code> 通常对延迟影响较大。优先关注持续出现、相同序列号反复出现或与业务毛刺对齐的事件；</li>
+<li><code>fast_retransmit</code> 表示 socket 处于 Recovery 状态，不代表 tcpshark 已还原完整的重复 ACK、SACK 或 RACK 决策过程；</li>
+<li><code>unknown</code> 表示当前快照不足以分类，不能作为无效事件丢弃。</li>
+</ul>
+<p>如需只查看 RTO，可过滤 JSON 输出：</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo ./tcpshark --mode retransmit <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --enable-tlp <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --bpf-path bpf/tcp_retransmit.o <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --filter <span style="color:#a3be8c">&#34;tcp and host 10.0.0.1 and portrange 443-444&#34;</span> <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --duration <span style="color:#b48ead">60</span> <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --output json <span style="color:#eceff4">|</span>
+</span></span><span style="display:flex;"><span>  jq --unbuffered -cC <span style="color:#a3be8c">&#39;select(.tcp_reason == &#34;RTO&#34;)&#39;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="/img/blog/2026-09-11-tcpshark-filter-rto.png" alt="只查看 RTO 重传事件" loading="lazy" />
+</p>
+<h4 id="第三步判断是否持续">第三步：判断是否持续</h4>
+<p>出现以下信号时，应提高排查优先级：</p>
+<ul>
+<li><code>icsk_retransmits</code> 持续增长；</li>
+<li>多条连接集中访问同一目的地址、端口或工作负载；</li>
+<li>RTO 与应用延迟、超时或吞吐下降出现在同一时间窗。</li>
+</ul>
+<p>对保存的 NDJSON 按目标、阶段和分类聚合，可快速识别主要异常方向：</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">13
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>./_output/bin/tcpshark <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --mode retransmit <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --enable-tlp <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --bpf-path ./_output/bpf/tcp_retransmit.o <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --filter <span style="color:#a3be8c">&#39;tcp and portrange 19991-19998&#39;</span> <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --duration <span style="color:#b48ead">90</span> <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --output json <span style="color:#eceff4">|</span>
+</span></span><span style="display:flex;"><span>  tee tcpshark.ndjson <span style="color:#eceff4">|</span>
+</span></span><span style="display:flex;"><span>  jq -r <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>    <span style="color:#a3be8c">&#39;[.phase, .tcp_reason, .event_type] | @tsv&#39;</span> <span style="color:#eceff4">|</span>
+</span></span><span style="display:flex;"><span>  sort <span style="color:#eceff4">|</span>
+</span></span><span style="display:flex;"><span>  uniq -c <span style="color:#eceff4">|</span>
+</span></span><span style="display:flex;"><span>  sort -nr
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="/img/blog/2026-09-11-tcpshark-statistic.png" alt="TCP 重传分类聚合" loading="lazy" />
+</p>
+<h4 id="第四步开启丢包检测">第四步：开启丢包检测</h4>
+<p>指定 <code>--with-dropwatch</code> 后，tcpshark 会加载本机丢包检测功能并自动关联，当前丢包是否由于丢包引起。</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>./_output/bin/tcpshark <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --mode retransmit <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --with-dropwatch <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --bpf-path-dir ./_output/bpf <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --filter <span style="color:#a3be8c">&#39;tcp and port 19997&#39;</span> <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --output json <span style="color:#eceff4">|</span> jq --unbuffered -cC <span style="color:#a3be8c">&#39;select(.drop_location == &#34;host_software&#34;)&#39;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><img src="/img/blog/2026-09-11-tcpshark-correlation.png" alt="TCP 重传与 dropwatch 关联结果及本机软件丢包调用栈" style="zoom:150%;" />
+<h3 id="接入-huatuo">接入 huatuo</h3>
+<p>除命令行临时采集外，还可通过 huatuo-bamai 持续观测物理机和容器中的 TCP 重传。在 huatuo-bamai 中配置过滤条件、TLP 采集和事件限速：</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-toml" data-lang="toml"><span style="display:flex;"><span><span style="color:#eceff4">[</span>EventTracing<span style="color:#eceff4">.</span>TCPRetransmit<span style="color:#eceff4">]</span>
+</span></span><span style="display:flex;"><span>Filter <span style="color:#eceff4">=</span> <span style="color:#a3be8c">&#34;tcp and port 443&#34;</span>
+</span></span><span style="display:flex;"><span>EnableTLP <span style="color:#eceff4">=</span> <span style="color:#81a1c1;font-weight:bold">true</span>
+</span></span><span style="display:flex;"><span>MaxEventsPerSecond <span style="color:#eceff4">=</span> <span style="color:#b48ead">100</span>
+</span></span><span style="display:flex;"><span>EnableDropwatchCorrelation <span style="color:#eceff4">=</span> <span style="color:#81a1c1;font-weight:bold">true</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>tcp_retransmit</code> tracer 默认位于全局 <code>BlackList</code>。启用前需将其移出并重启 huatuo-bamai。关联分析使用 tcpshark 内置的 dropwatch source，独立的 <code>dropwatch</code> 可继续保留在 <code>BlackList</code> 中；仅在需要单独保存原始丢包事件时启用。</p>
+<p>详细参数、字段和分类规则见 <a href="https://docs.huatuo.tech/zh/latest/best-practice/tcpshark/">tcpshark 使用文档</a>。</p>
+<p>项目地址：<a href="https://github.com/ccfos/huatuo">github.com/ccfos/huatuo</a></p>
+
+                        </div>
+
+                        
+                        <div id="comments">
+                            
+                            <script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+                        </div>
+                        
+
+                    </div>
+
+                    <div class="col-md-3">
+                        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">标签</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/zh/tags/ai"><i class="fas fa-tags"></i> ai</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/ascend"><i class="fas fa-tags"></i> ascend</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/blkio"><i class="fas fa-tags"></i> blkio</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/ccf"><i class="fas fa-tags"></i> ccf</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/ebpf"><i class="fas fa-tags"></i> ebpf</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/go"><i class="fas fa-tags"></i> go</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/gpu"><i class="fas fa-tags"></i> gpu</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/hao022"><i class="fas fa-tags"></i> hao022</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/k8s"><i class="fas fa-tags"></i> k8s</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/linux-%e5%86%85%e6%a0%b8"><i class="fas fa-tags"></i> linux 内核</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/memory"><i class="fas fa-tags"></i> memory</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/net"><i class="fas fa-tags"></i> net</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/networking"><i class="fas fa-tags"></i> networking</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/news"><i class="fas fa-tags"></i> news</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/npu"><i class="fas fa-tags"></i> npu</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/rdma"><i class="fas fa-tags"></i> rdma</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/tcp"><i class="fas fa-tags"></i> tcp</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e5%8a%a8%e6%80%81"><i class="fas fa-tags"></i> 动态</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7"><i class="fas fa-tags"></i> 可观测性</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e5%90%88%e4%bd%9c"><i class="fas fa-tags"></i> 合作</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e5%bc%80%e6%ba%90"><i class="fas fa-tags"></i> 开源</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e6%91%a9%e5%b0%94%e7%ba%bf%e7%a8%8b"><i class="fas fa-tags"></i> 摩尔线程</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e6%95%85%e9%9a%9c%e6%a3%80%e6%b5%8b"><i class="fas fa-tags"></i> 故障检测</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e7%a4%be%e5%8c%ba"><i class="fas fa-tags"></i> 社区</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e7%bd%91%e7%bb%9c"><i class="fas fa-tags"></i> 网络</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e8%8d%a3%e8%aa%89"><i class="fas fa-tags"></i> 荣誉</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <footer id="footer">
+    <div class="container">
+        
+        
+        
+        
+        <div class="row">
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>官方认证</h4>
+                <div class="footer-certifications">
+                    
+                    <a href="https://landscape.cncf.io/?item=observability-and-analysis--observability--huatuo" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="CNCF Landscape">
+                        <img src="/img/certifications/cncf.png" alt="CNCF Landscape" />
+                    </a>
+                    
+                    <a href="https://ebpf.foundation/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="eBPF Foundation">
+                        <img src="/img/certifications/ebpf-foundation.png" alt="eBPF Foundation" />
+                    </a>
+                    
+                    <a href="https://prometheus.io/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="prometheus">
+                        <img src="/img/certifications/prometheus-logo.png" alt="prometheus" />
+                    </a>
+                    
+                    <a href="https://www.ccf.org.cn/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="ccf">
+                        <img src="/img/certifications/ccf.png" alt="ccf" />
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>关于我们</h4>
+                基础软件技术研究者，Linux 内核开发者。
+            </div>
+            
+            
+        </div>
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026 HUATUO 开源社区。</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+<script src="/js/front.js?1790251448"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

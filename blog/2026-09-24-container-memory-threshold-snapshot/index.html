@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<script>
+  (function (root) {
+    var theme
+    try { theme = localStorage.getItem('huatuo-theme') } catch {}
+    root.dataset.theme = theme === 'light' || theme === 'dark'
+      ? theme
+      : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+  }(document.documentElement))
+</script>
+
+<title>Before OOM: Capturing Memory Evidence Across Runtimes with HUATUO</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, eBPF, Memory, Observability">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' rel='stylesheet'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1790251448" rel="stylesheet">
+<link href="/css/theme.css?1790251448" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+<link rel="android-chrome-icon" href="/img/android-chrome-512x512.png" />
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="Linux Kernel, Cloud-native and AI Infra Observability.">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en">
+<meta property="og:site_name" content="Linux Kernel, Cloud-native and AI Infra Observability.">
+<meta property="og:title" content="Before OOM: Capturing Memory Evidence Across Runtimes with HUATUO">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/blog/2026-09-24-container-memory-threshold-snapshot/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2026-09-24-container-memory-threshold-snapshot-cover.jpg">
+<meta property="og:image:type" content="image/jpg">
+
+
+
+  <meta property="og:image:width" content="300">
+  <meta property="og:image:height" content="200">
+
+
+<meta property="og:updated_time" content="2026-09-24T12:03:52Z">
+
+  
+  
+  
+  <meta property="article:tag" content="eBPF">
+  <meta property="article:tag" content="Memory">
+  <meta property="article:tag" content="Observability">
+  
+  
+  <meta property="article:published_time" content="2026-09-24T12:00:00&#43;0800">
+  <meta property="article:modified_time" content="2026-09-24T12:03:52Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="Before OOM: Capturing Memory Evidence Across Runtimes with HUATUO">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2026-09-24-container-memory-threshold-snapshot-cover.jpg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+  </head>
+
+  <body><div id="all" class="has-page-hero">
+
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+              🚀  Listed in the CNCF Landscape and eBPF Foundation Emerging Project. If you like this project, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>!  ❤️
+          </p>
+        
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/huatuo-logo-v4.png" alt="Before OOM: Capturing Memory Evidence Across Runtimes with HUATUO logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/huatuo-logo-v4.png" alt="Before OOM: Capturing Memory Evidence Across Runtimes with HUATUO logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">Before OOM: Capturing Memory Evidence Across Runtimes with HUATUO - go to homepage</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">Toggle Navigation</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-cubes theme-icon nav-icon nav-menu-icon'></i>Projects <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                            <li><a href="/projects/huatuo/">HUATUO（华佗）</a></li>
+                            
+                            
+                            
+                            <li><a href="/projects/go-pcap/">Go-pcap</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-book theme-icon nav-icon nav-menu-icon'></i>Docs <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/en/latest/" data-theme-link>Latest</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/en/v2.3.0/" data-theme-link>V2.3.0</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/en/v2.2.0/" data-theme-link>V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    <a href="/blog/"><i class='fas fa-pen-nib theme-icon nav-icon nav-menu-icon'></i>Blog</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/milestone/"><i class='fas fa-rss theme-icon nav-icon nav-menu-icon'></i>News</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/about/"><i class='fas fa-info-circle theme-icon nav-icon nav-menu-icon'></i>About</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <button type="button"
+                            class="dropdown-toggle nav-control"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                      <i class="fas fa-globe theme-icon nav-icon"></i>
+                      English
+                      <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                      
+                      
+                      
+                        
+                        
+                        
+                          
+                            
+                          
+                        
+                          
+                        
+                        
+                        
+                        <li class="active">
+                          <a href="/blog/2026-09-24-container-memory-threshold-snapshot/" class="language-option" aria-current="page">
+                            <i class="language-check fas fa-check" aria-hidden="true"></i>
+                            English
+                          </a>
+                        </li>
+                      
+                        
+                        
+                        
+                          
+                        
+                          
+                            
+                          
+                        
+                        
+                        
+                        <li>
+                          <a href="/zh/blog/2026-09-24-container-memory-threshold-snapshot/" class="language-option">
+                            <i class="language-check" aria-hidden="true"></i>
+                            中文
+                          </a>
+                        </li>
+                      
+                    </ul>
+                  </li>
+                  
+                  
+
+                  
+                  
+                  
+                  <li class="theme-toggle-item">
+                    <button type="button"
+                            class="nav-control theme-toggle"
+                            data-theme-toggle
+                            data-light-label="Switch to light theme"
+                            data-dark-label="Switch to dark theme"
+                            aria-label="Switch to dark theme"
+                            aria-pressed="false">
+                      <span class="theme-toggle-track" aria-hidden="true">
+                        <span class="theme-toggle-thumb">
+                          <i class="theme-toggle-icon fas fa-sun"></i>
+                        </span>
+                      </span>
+                      <span class="sr-only theme-toggle-text">Switch to dark theme</span>
+                    </button>
+                  </li>
+                  
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars"
+                         onerror="this.style.display='none'">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        
+        
+        
+        <div class="page-hero">
+    <div class="page-hero-grid"></div>
+    <div class="page-hero-glow"></div>
+    <div class="page-hero-inner">
+        <div class="page-hero-title-row">
+            <div class="page-hero-icon"><i class="fas fa-pen-nib theme-icon"></i></div>
+            <h1 class="page-hero-title">Blog</h1>
+        </div>
+    </div>
+</div>
+
+        
+
+        <div id="content">
+            <div class="container">
+                <div class="row">
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                        <h1 class="post-title">Before OOM: Capturing Memory Evidence Across Runtimes with HUATUO</h1>
+                        <div class="post-meta">
+                            <span class="post-meta-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                2026-09-24
+                            </span>
+                            
+                            <span class="post-meta-authors">
+                                <i class="fas fa-user"></i>
+                                <a href="/authors/%E4%BB%89%E9%B9%8F">仉鹏</a>
+                            </span>
+                            
+                            
+                            <span class="post-meta-tags">
+                                <a href="/tags/ebpf" class="post-meta-tag">eBPF</a><a href="/tags/memory" class="post-meta-tag">Memory</a><a href="/tags/observability" class="post-meta-tag">Observability</a>
+                            </span>
+                            
+                        </div>
+                        
+
+                        <div id="post-content">
+                          <h3 id="the-container-recovered-but-the-problem-remains">The Container Recovered, but the Problem Remains</h3>
+<p>A service&rsquo;s memory usage keeps climbing until the OOM killer terminates it. After the container restarts, traffic returns to normal and the memory graph drops. The engineer investigating the alert has the container name, the timestamp, and the peak memory usage. The missing detail is what was in memory at that moment.</p>
+<p>In a service that handles requests, an expanding cache, a queue backing up behind a slow downstream service, and unintentionally retained objects can all produce similar graphs. The first response is often to raise the memory limit or wait for the problem to recur and then capture a heap dump.</p>
+<p>If the limit is simply below the normal working set, raising it can solve the problem. If memory is leaking, adding capacity usually just buys time. Heap dumps can also be triggered automatically, but this requires advance configuration and accounting for the pauses, CPU usage, and storage overhead of generating them.</p>
+<p>Knowing which process the OOM killer ultimately selected does not tell you which object types or allocation paths caused the growth. When a container contains multiple processes, connecting container memory usage to one process&rsquo;s runtime memory also requires selecting a target and interpreting the measurements.</p>
+<p>HUATUO&rsquo;s memsnapshot aims to collect evidence before the process exits, while memory pressure is building: <strong>after receiving a memory notification, it rechecks usage and, if the threshold is met, reads the running process to save a memory summary that can guide the investigation.</strong> The saved evidence remains available even if the process later restarts. Notification timing, the rate of memory growth, and the collection cooldown all affect whether collection happens in time, so a snapshot before every OOM event is not guaranteed.</p>
+<h3 id="select-a-container-then-a-process">Select a Container, Then a Process</h3>
+<p>Collection starts with container memory usage. HUATUO obtains the memory cgroup paths of running containers and watches for memory notifications. It rereads usage and limits after receiving a notification, registering a watch, or detecting a change to the hard limit. A container becomes eligible for collection only when its usage ratio reaches the configured threshold, which defaults to 90%. Containers without a memory limit are excluded from this ratio check.</p>
+<p>This threshold determines whether to collect when usage is checked. It does not mean that the kernel will send a notification at that level.</p>
+<p><strong>Select a container, then a process.</strong> When several containers trigger at once, the scheduler consolidates the candidates, rechecks their usage, and ranks them by usage ratio. Each batch attempts collection for only the highest-ranked candidate. Collection runs serially and is subject to a cooldown shared across the node, so a single trigger does not scan every container on the node.</p>
+<p>Once a container is selected, HUATUO chooses a process from the direct members of its cgroup. The selection follows the scoring approach used by memcg OOM: it adds RSS, swap usage, and page table memory, then adds an <code>oom_score_adj</code> contribution scaled by the container&rsquo;s memory limit. It selects the candidate with the highest score, excluding processes with <code>oom_score_adj = -1000</code>.</p>
+<p>This score selects a diagnostic target; it does not guarantee that the kernel will eventually kill the same process. Before and after collection, HUATUO also checks the container instance, the identity of the cgroup directory, the PID, and the process start time. If the target exits or its identity changes, collection is canceled or the result is discarded.</p>
+<h3 id="what-evidence-does-a-snapshot-preserve">What Evidence Does a Snapshot Preserve?</h3>
+<p>After selecting a target process, autotracing passes its PID and start time to memsnapshot to begin collecting process memory information. memsnapshot reads a process summary, identifies the language runtime, and invokes the corresponding collector, returning results in a common format.</p>
+<p><strong>Start with the process&rsquo;s memory usage.</strong> memsnapshot reads RSS, resident anonymous memory, resident file mappings, resident shared memory, swap usage, and page table memory from <code>/proc/PID/status</code> to build the <code>process_memory</code> summary. Values are in bytes. Fields that cannot be read are omitted; their absence does not mean zero. This summary does not depend on support for a particular language.</p>
+<p>The following example shows the <code>process_memory</code> field in a result. All values are illustrative and expressed in bytes:</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">12
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span><span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#81a1c1">&#34;process_memory&#34;</span><span style="color:#eceff4">:</span> <span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;status&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;complete&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;virtual_bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">6442450944</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;rss_bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">1610612736</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;rss_anon_bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">1509949440</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;rss_file_bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">83886080</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;rss_shmem_bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">16777216</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;swap_bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">33554432</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;page_table_bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">4194304</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#eceff4">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#eceff4">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>Evidence from the language runtime.</strong> memsnapshot identifies the target language and runtime layout, then uses <code>process_vm_readv</code> to read the required memory ranges into the HUATUO process. The corresponding collector parses and aggregates the data. The application does not need to generate a heap dump, and HUATUO does not copy the process&rsquo;s entire memory. The next section explains what each language collector reads.</p>
+<p><strong>The design aims to minimize extra work in the application process.</strong> Among open-source tools, <a href="https://bloomberg.github.io/memray/overview.html">Memray</a> can track Python and native allocations, while <a href="https://github.com/async-profiler/async-profiler">async-profiler</a> can sample Java heap allocations. These capabilities observe allocation behavior over time. memsnapshot reads existing runtime information under memory pressure to provide evidence from a single collection. The tools differ in what they measure and how the results are used.</p>
+<p>During collection, HUATUO does not inject collection code into the application or explicitly pause the process. HUATUO handles most of the CPU work and temporary buffer allocation for parsing and aggregation in its own process. It reuses existing profiles, limits scan ranges, runs collection serially, and applies cooldown intervals to control additional CPU and memory use.</p>
+<p>Reading memory from outside the process still consumes node CPU and memory bandwidth. Accessing nonresident pages can also trigger page faults and I/O. Runtime structures may change during collection, so the result is not a consistent heap snapshot. Language-specific collection has a default budget of 2 seconds, enforced through cooperative checks; this is not a hard limit on the entire operation. These choices explain how overhead is controlled. Whether this approach uses fewer resources than other tools, and how much it affects application latency, still requires measurement under the same workload.</p>
+<p>Each collector places its results in <code>snapshot</code>, including the runtime version, collection status, elapsed time, and top entries. Reasons for incomplete or unavailable results are recorded as well. Collection is bounded by a time budget and an output size limit. Even if the language is unsupported or collection fails, a process summary that has already been read may still be retained.</p>
+<p>memsnapshot does not save results itself. After the result returns to the autotracing module, the module rechecks process identity and container ownership. It then associates the container&rsquo;s usage and limit, the target process, and the collection result, and writes them according to the storage configuration. A saved record therefore provides both the memory pressure at the time and diagnostic evidence for the corresponding process.</p>
+<p><strong>Other events can reuse the same collection capability.</strong> memsnapshot does not depend on the Before-OOM trigger conditions, nor does it select containers, schedule tasks, or write to storage. Once another event has selected a target process, it can pass the PID, start time, collection budget, and maximum number of result entries to <code>collector.Capture</code> to obtain the same process summary and language snapshot. The event is responsible for its trigger policy, any required checks of target ownership, and saving the result, without having to reimplement runtime parsing.</p>
+<h3 id="investigating-memory-through-allocation-stacks-and-object-types">Investigating Memory Through Allocation Stacks and Object Types</h3>
+<p>The implementation and configuration details below are based on HUATUO <a href="https://github.com/ccfos/huatuo/tree/36175d6e91fdc7b79e818496e1587eb0ca79a18d">36175d6e</a>. Collectors depend on specific runtime versions, symbols, and memory layouts. Support for a language does not imply support for every version or build configuration; check the actual collection results for the target runtime when deploying.</p>
+<p><strong>Go: Follow allocation call stacks back to application code.</strong> The collector uses information such as <code>runtime.mbuckets</code> and <code>runtime.MemProfileRate</code> to locate the runtime&rsquo;s existing memory profile. It reads allocation and free records along with their call stacks, applies the sampling rate to estimate in-use memory and object counts, then aggregates by allocation stack and resolves symbols.</p>
+<p>The call stack records the call chain at the time of allocation. Even if the top frame is a standard library function such as JSON encoding, following the callers can lead back to application code. Results depend on runtime sampling and when the statistics are updated. If the application has disabled memory sampling, the collector reports that collection is unavailable; it does not enable sampling on the application&rsquo;s behalf.</p>
+<p>The following excerpt shows the language result within <code>tracer_data</code>. Names and values are illustrative, common fields are omitted, and only some frames of the Go call stack are shown:</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">22
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span><span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#81a1c1">&#34;language&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;go&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#81a1c1">&#34;snapshot&#34;</span><span style="color:#eceff4">:</span> <span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;status&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;complete&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;entries&#34;</span><span style="color:#eceff4">:</span> <span style="color:#eceff4">[</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;kind&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;allocation_site&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;name&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;encoding/json.mapEncoder.encode&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">1572864</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;objects&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">8192</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;average_bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">192</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;stack&#34;</span><span style="color:#eceff4">:</span> <span style="color:#eceff4">[</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#a3be8c">&#34;encoding/json.mapEncoder.encode&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#a3be8c">&#34;encoding/json.(*encodeState).reflectValue&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#a3be8c">&#34;encoding/json.(*encodeState).marshal&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#a3be8c">&#34;encoding/json.(*Encoder).Encode&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#a3be8c">&#34;main.serve.func2&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#eceff4">]</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#eceff4">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#eceff4">]</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#eceff4">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#eceff4">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>This record attributes an estimated 1.5 MiB of in-use memory to one allocation stack. <code>stack</code> proceeds from the allocation site toward its callers. Following the JSON encoding path leads to the application entry point <code>main.serve.func2</code>, where you can inspect how the relevant objects are used and released.</p>
+<p><strong>Java: Identify object types in G1 heap regions.</strong> The current implementation targets HotSpot G1 and does not yet support JVMs with compact object headers enabled. The collector obtains field offsets and structure layouts from VM metadata exported by <code>libjvm.so</code>, locates G1 regions, and uses Klass information in object headers to identify class names and object sizes.</p>
+<p>For regular regions, it samples windows of memory, identifies valid objects, and estimates the distribution of object types. For Humongous objects spanning multiple regions, it primarily reads the initial object header and class metadata without copying the entire object&rsquo;s contents. Results summarize object counts and shallow sizes by class; they do not include the full graph of referenced objects.</p>
+<p>The following excerpt shows the corresponding language result. Names and values are illustrative:</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">16
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span><span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#81a1c1">&#34;language&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;java&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#81a1c1">&#34;snapshot&#34;</span><span style="color:#eceff4">:</span> <span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;status&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;partial&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;reason&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;Illustrative: regular regions are sampled, so type statistics include estimates&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;entries&#34;</span><span style="color:#eceff4">:</span> <span style="color:#eceff4">[</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;kind&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;object_type&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;name&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;com.example.order.PendingOrder&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">201326592</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;objects&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">1048576</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;average_bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">192</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#eceff4">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#eceff4">]</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#eceff4">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#eceff4">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>In this record, the estimated shallow sizes of <code>PendingOrder</code> objects total 192 MiB, suggesting that the pending queue and its processing rate are worth investigating. This total excludes other objects referenced by these objects. The <code>partial</code> status is a reminder to interpret the result in the context of the sampling scope.</p>
+<p><strong>Python: Summarize objects through GC tracking structures.</strong> The collector locates <code>_PyRuntime</code> through symbols in the executable or libpython, finds the interpreter&rsquo;s GC structures for the CPython version, and follows the linked lists to read objects. It identifies types through <code>ob_type</code> and aggregates counts and sizes.</p>
+<p>The size estimate includes the objects themselves, some management overhead, and some buffers directly owned by lists and dictionaries. It does not recursively count referenced objects. Application-defined types may also appear in the result, helping investigate accumulated tasks and request contexts. Objects not tracked by GC and native memory held by extension modules are not fully covered, so the result should not be treated as an inventory of the entire Python heap.</p>
+<p>The following excerpt shows the corresponding language result. Names and values are illustrative:</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">15
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span><span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#81a1c1">&#34;language&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;python&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#81a1c1">&#34;snapshot&#34;</span><span style="color:#eceff4">:</span> <span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;status&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;complete&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;entries&#34;</span><span style="color:#eceff4">:</span> <span style="color:#eceff4">[</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;kind&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;object_type&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;name&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;dict&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">67108864</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;objects&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">262144</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;average_bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">256</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#eceff4">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#eceff4">]</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#eceff4">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#eceff4">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>This record reports an estimated total of 64 MiB for the <code>dict</code> objects found in this scan. <code>complete</code> means only that collection finished within this collector&rsquo;s scope. It does not mean that all Python objects were covered, nor does it identify which application code owns these dictionaries.</p>
+<p>Container memory usage, RSS for a single process, and byte counts in language entries use different accounting scopes and cannot be directly added or subtracted. Processes written in C/C++ or using unsupported runtimes may still yield a process summary, but that does not imply support for native heap analysis. <a href="https://github.com/ccfos/huatuo/tree/36175d6e91fdc7b79e818496e1587eb0ca79a18d/internal/memsnapshot/providers">Source code for the language providers</a></p>
+<h3 id="using-memory-snapshots-on-a-node">Using Memory Snapshots on a Node</h3>
+<p><code>memory_threshold_snapshot</code> is enabled by default. First, confirm that HUATUO can obtain container metadata, access the host&rsquo;s <code>/proc</code> and memory cgroups, and has permission to load BPF programs and read the target process&rsquo;s memory. The target container must have a finite memory limit and a dedicated memory cgroup.</p>
+<p><strong>Adjust collection parameters as needed.</strong> By default, HUATUO reads <code>huatuo-bamai.conf</code> from its working directory at startup. If <code>--config</code> specifies a configuration file, edit that file. All four settings below show their default values. If the configuration section already exists, edit it instead of adding a duplicate:</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-toml" data-lang="toml"><span style="display:flex;"><span><span style="color:#eceff4">[</span>AutoTracing<span style="color:#eceff4">.</span>MemoryThresholdSnapshot<span style="color:#eceff4">]</span>
+</span></span><span style="display:flex;"><span>    ThresholdPercent <span style="color:#eceff4">=</span> <span style="color:#b48ead">90</span>
+</span></span><span style="display:flex;"><span>    IntervalTracing <span style="color:#eceff4">=</span> <span style="color:#b48ead">300</span>
+</span></span><span style="display:flex;"><span>    RunTracingToolTimeout <span style="color:#eceff4">=</span> <span style="color:#b48ead">2</span>
+</span></span><span style="display:flex;"><span>    MaxMemoryObjectEntries <span style="color:#eceff4">=</span> <span style="color:#b48ead">10</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><table>
+  <thead>
+      <tr>
+          <th>Parameter</th>
+          <th>How to interpret it</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>ThresholdPercent</code></td>
+          <td>A container becomes a collection candidate when its memory usage ratio reaches 90% at the time of a check. Lowering this threshold does not guarantee an earlier kernel notification.</td>
+      </tr>
+      <tr>
+          <td><code>IntervalTracing</code></td>
+          <td>Cooldown shared across the node, in seconds. A shorter interval allows more frequent collection. Expiration of the cooldown does not start collection automatically; another trigger opportunity is still required.</td>
+      </tr>
+      <tr>
+          <td><code>RunTracingToolTimeout</code></td>
+          <td>Budget for language-specific collection, in seconds. Increasing it may yield more information but also increases collection work. It is not a hard timeout for the entire operation.</td>
+      </tr>
+      <tr>
+          <td><code>MaxMemoryObjectEntries</code></td>
+          <td>Number of entries retained in each language snapshot, configurable from 1 to 100. Increasing it exposes more allocation stacks or object types, but does not imply coverage of the entire heap.</td>
+      </tr>
+  </tbody>
+</table>
+<p>After changing the configuration, restart HUATUO and check that the global <code>BlackList</code> does not contain <code>memory_threshold_snapshot</code>. When upgrading, use the current <code>AutoTracing.MemoryThresholdSnapshot</code> configuration rather than older fields such as <code>EventTracing.BeforeOOMMemsnap</code>.</p>
+<p><strong>Verify that collection can trigger before waiting for a production incident.</strong> After startup, check the logs for watch initialization and registration, then use controlled memory growth to confirm that a collection record is produced. On cgroup v2, also check <code>memory.high</code>: HUATUO does not set it automatically, and configuring a 90% threshold alone does not guarantee a notification at 90%. Before adjusting this level, assess its effects on memory reclaim, throttling, and application latency.</p>
+<p><strong>Find results in the configured storage backend.</strong> Snapshots use the existing <code>[Storage]</code> configuration. With LocalFile storage, look for the <code>memory_threshold_snapshot</code> file in the <code>Path</code> directory configured under <code>[Storage.LocalFile]</code>. For example, after setting <code>Path</code> to <code>/var/log/huatuo/snapshots</code>, you can read it directly:</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>less /var/log/huatuo/snapshots/memory_threshold_snapshot
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>When inspecting a record, first check the target process, <code>snapshot.status</code>, <code>reason</code>, and <code>runtime_version</code> to determine whether the result is usable. Then examine the allocation stacks or object types in <code>entries</code>. <code>output_truncated</code> indicates that the output was truncated. If language-specific collection fails, <code>process_memory</code> may still provide a process summary. <code>victim_pid</code> identifies the collection target; it does not mean the process has been killed by the OOM killer.</p>
+<p>To disable collection, add <code>memory_threshold_snapshot</code> to the global <code>BlackList</code>, preserving any existing entries, then restart HUATUO.</p>
+<p>After an OOM event, the hardest evidence to recover is what was in memory before the process exited. The allocation stacks, object types, and process summaries preserved here can help identify which code, queue, or cache to investigate next. They may not reveal the root cause directly, but they give us more evidence to work with.</p>
+
+                        </div>
+
+                        
+                        <div id="comments">
+                            
+                            <script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="en"
+        crossorigin="anonymous"
+        async>
+</script>
+
+                        </div>
+                        
+
+                    </div>
+
+                    <div class="col-md-3">
+                        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">Tags</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/tags/ai"><i class="fas fa-tags"></i> ai</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ascend"><i class="fas fa-tags"></i> ascend</a>
+            </li>
+            
+            <li >
+                <a href="/tags/blkio"><i class="fas fa-tags"></i> blkio</a>
+            </li>
+            
+            <li >
+                <a href="/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/bpf-foundation"><i class="fas fa-tags"></i> bpf foundation</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ccf"><i class="fas fa-tags"></i> ccf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/containers"><i class="fas fa-tags"></i> containers</a>
+            </li>
+            
+            <li >
+                <a href="/tags/cpuidle"><i class="fas fa-tags"></i> cpuidle</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ebpf"><i class="fas fa-tags"></i> ebpf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/fault-detection"><i class="fas fa-tags"></i> fault detection</a>
+            </li>
+            
+            <li >
+                <a href="/tags/go"><i class="fas fa-tags"></i> go</a>
+            </li>
+            
+            <li >
+                <a href="/tags/gpu"><i class="fas fa-tags"></i> gpu</a>
+            </li>
+            
+            <li >
+                <a href="/tags/hao022"><i class="fas fa-tags"></i> hao022</a>
+            </li>
+            
+            <li >
+                <a href="/tags/k8s"><i class="fas fa-tags"></i> k8s</a>
+            </li>
+            
+            <li >
+                <a href="/tags/linux-%e5%86%85%e6%a0%b8"><i class="fas fa-tags"></i> linux 内核</a>
+            </li>
+            
+            <li >
+                <a href="/tags/loadavg"><i class="fas fa-tags"></i> loadavg</a>
+            </li>
+            
+            <li >
+                <a href="/tags/memory"><i class="fas fa-tags"></i> memory</a>
+            </li>
+            
+            <li >
+                <a href="/tags/moore-threads"><i class="fas fa-tags"></i> moore threads</a>
+            </li>
+            
+            <li >
+                <a href="/tags/net"><i class="fas fa-tags"></i> net</a>
+            </li>
+            
+            <li >
+                <a href="/tags/networking"><i class="fas fa-tags"></i> networking</a>
+            </li>
+            
+            <li >
+                <a href="/tags/news"><i class="fas fa-tags"></i> news</a>
+            </li>
+            
+            <li >
+                <a href="/tags/npu"><i class="fas fa-tags"></i> npu</a>
+            </li>
+            
+            <li >
+                <a href="/tags/observability"><i class="fas fa-tags"></i> observability</a>
+            </li>
+            
+            <li >
+                <a href="/tags/open-source"><i class="fas fa-tags"></i> open source</a>
+            </li>
+            
+            <li >
+                <a href="/tags/rdma"><i class="fas fa-tags"></i> rdma</a>
+            </li>
+            
+            <li >
+                <a href="/tags/recognition"><i class="fas fa-tags"></i> recognition</a>
+            </li>
+            
+            <li >
+                <a href="/tags/tcp"><i class="fas fa-tags"></i> tcp</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8a%a8%e6%80%81"><i class="fas fa-tags"></i> 动态</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7"><i class="fas fa-tags"></i> 可观测性</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%90%88%e4%bd%9c"><i class="fas fa-tags"></i> 合作</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%a4%9c%e8%8e%ba%e7%9b%91%e6%8e%a7"><i class="fas fa-tags"></i> 夜莺监控</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%bc%80%e6%ba%90"><i class="fas fa-tags"></i> 开源</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%81%ab%e7%84%b0%e5%9b%be"><i class="fas fa-tags"></i> 火焰图</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%a4%be%e5%8c%ba"><i class="fas fa-tags"></i> 社区</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%bd%91%e7%bb%9c%e4%bc%98%e5%8c%96"><i class="fas fa-tags"></i> 网络优化</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e8%8d%a3%e8%aa%89"><i class="fas fa-tags"></i> 荣誉</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <footer id="footer">
+    <div class="container">
+        
+        
+        
+        
+        <div class="row">
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>Official Certifications</h4>
+                <div class="footer-certifications">
+                    
+                    <a href="https://landscape.cncf.io/?item=observability-and-analysis--observability--huatuo" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="CNCF Landscape">
+                        <img src="/img/certifications/cncf.png" alt="CNCF Landscape" />
+                    </a>
+                    
+                    <a href="https://ebpf.foundation/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="eBPF Foundation">
+                        <img src="/img/certifications/ebpf-foundation.png" alt="eBPF Foundation" />
+                    </a>
+                    
+                    <a href="https://prometheus.io/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="prometheus">
+                        <img src="/img/certifications/prometheus-logo.png" alt="prometheus" />
+                    </a>
+                    
+                    <a href="https://www.ccf.org.cn/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="ccf">
+                        <img src="/img/certifications/ccf.png" alt="ccf" />
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>About us</h4>
+                Linux kernel developers, and observability developers.
+            </div>
+            
+            
+        </div>
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026, HUATUO Open Source Community.</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+<script src="/js/front.js?1790251448"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

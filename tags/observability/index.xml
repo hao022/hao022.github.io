@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Observability on Linux Kernel, Cloud-native and AI Infra Observability.</title>
+    <link>https://huatuo.tech/tags/observability/</link>
+    <description>Recent content in Observability on Linux Kernel, Cloud-native and AI Infra Observability.</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Thu, 24 Sep 2026 12:03:52 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/tags/observability/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Before OOM: Capturing Memory Evidence Across Runtimes with HUATUO</title>
+      <link>https://huatuo.tech/blog/2026-09-24-container-memory-threshold-snapshot/</link>
+      <pubDate>Thu, 24 Sep 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/blog/2026-09-24-container-memory-threshold-snapshot/</guid>
+      <description>Investigate memory growth across runtimes with out-of-process snapshots of allocation stacks and object types.</description>
+    </item>
+    <item>
+      <title>TCP Retransmissions, Explained: Inside the Kernel with tcpshark</title>
+      <link>https://huatuo.tech/blog/2026-09-11-trace-tcp-retransmissions-with-tcpshark/</link>
+      <pubDate>Fri, 11 Sep 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/blog/2026-09-11-trace-tcp-retransmissions-with-tcpshark/</guid>
+      <description>Analyze TCP retransmissions with eBPF tracing and kernel packet drop correlation.</description>
+    </item>
+    <item>
+      <title>HUATUO Adds Huawei Ascend NPU Monitoring Support</title>
+      <link>https://huatuo.tech/events/2026-07-29-huawei-ascend-npu-monitoring/</link>
+      <pubDate>Wed, 29 Jul 2026 10:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/events/2026-07-29-huawei-ascend-npu-monitoring/</guid>
+      <description>Monitor Huawei Ascend NPUs through DCMI, PCIe, and HCCN to troubleshoot AI training and inference.</description>
+    </item>
+    <item>
+      <title>Some Thoughts on a Dual-Uplink Non-Stacking Network Architecture</title>
+      <link>https://huatuo.tech/blog/2025-09-26-some-thoughts-on-non-stacking-network-architecture/</link>
+      <pubDate>Fri, 26 Sep 2025 03:20:47 -0400</pubDate>
+      <guid>https://huatuo.tech/blog/2025-09-26-some-thoughts-on-non-stacking-network-architecture/</guid>
+      <description>This article discusses the design of a dual-uplink non-stacking network architecture and issues observed in production, including the challenges of monitoring LACP state and physical links. It also introduces &lt;a href=&#34;https://huatuo.tech/&#34;&gt;HUATUO&lt;/a&gt; for observing physical link availability.</description>
+    </item>
+  </channel>
+</rss>

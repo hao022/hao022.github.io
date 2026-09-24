@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>EBPF on HUATUO 开源社区</title>
+    <link>https://huatuo.tech/zh/tags/ebpf/</link>
+    <description>Recent content in EBPF on HUATUO 开源社区</description>
+    <generator>Hugo</generator>
+    <language>zh</language>
+    <lastBuildDate>Thu, 24 Sep 2026 12:03:52 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/zh/tags/ebpf/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>OOM 之前，留下现场：HUATUO 的多语言内存快照方案</title>
+      <link>https://huatuo.tech/zh/blog/2026-09-24-container-memory-threshold-snapshot/</link>
+      <pubDate>Thu, 24 Sep 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-09-24-container-memory-threshold-snapshot/</guid>
+      <description>从进程外采集多语言内存快照，保留分配栈与对象类型线索，辅助排查内存增长。</description>
+    </item>
+    <item>
+      <title>TCP 重传如何排查？用 HUATUO 追踪连接、关联内核丢包</title>
+      <link>https://huatuo.tech/zh/blog/2026-09-11-trace-tcp-retransmissions-with-tcpshark/</link>
+      <pubDate>Fri, 11 Sep 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-09-11-trace-tcp-retransmissions-with-tcpshark/</guid>
+      <description>基于 eBPF 追踪 TCP 重传，解析连接阶段与容器归属，关联内核丢包事件定位故障。</description>
+    </item>
+    <item>
+      <title>为什么复活 Go-pcap：面向 AI 基础设施的纯 Go 报文过滤</title>
+      <link>https://huatuo.tech/zh/blog/2026-08-04-why-we-revived-go-pcap-for-ai-infrastructure/</link>
+      <pubDate>Tue, 04 Aug 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-08-04-why-we-revived-go-pcap-for-ai-infrastructure/</guid>
+      <description>Go-pcap 基于 Go 将过滤表达式生成 eBPF 用于 skb、mbuf、RDMA 实时报文过滤。</description>
+    </item>
+  </channel>
+</rss>

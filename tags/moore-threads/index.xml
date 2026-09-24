@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Moore Threads on Linux Kernel, Cloud-native and AI Infra Observability.</title>
+    <link>https://huatuo.tech/tags/moore-threads/</link>
+    <description>Recent content in Moore Threads on Linux Kernel, Cloud-native and AI Infra Observability.</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Thu, 24 Sep 2026 12:03:52 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/tags/moore-threads/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>HUATUO Adds Moore Threads GPU Monitoring</title>
+      <link>https://huatuo.tech/events/2026-09-18-mthread-gpu-works-together-with-huatuo/</link>
+      <pubDate>Fri, 18 Sep 2026 15:30:00 +0800</pubDate>
+      <guid>https://huatuo.tech/events/2026-09-18-mthread-gpu-works-together-with-huatuo/</guid>
+      <description>Collect Moore Threads GPU health, PCIe, and MTLink metrics through MTML and correlate them with host data to troubleshoot AI clusters.</description>
+    </item>
+  </channel>
+</rss>

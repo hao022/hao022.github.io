@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>摩尔线程开发者 on HUATUO 开源社区</title>
+    <link>https://huatuo.tech/zh/authors/%E6%91%A9%E5%B0%94%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91%E8%80%85/</link>
+    <description>Recent content in 摩尔线程开发者 on HUATUO 开源社区</description>
+    <generator>Hugo</generator>
+    <language>zh</language>
+    <lastBuildDate>Thu, 24 Sep 2026 12:03:52 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/zh/authors/%E6%91%A9%E5%B0%94%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91%E8%80%85/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>摩尔线程深度接入 HUATUO 开源生态，实现 GPU 全栈可观测</title>
+      <link>https://huatuo.tech/zh/events/2026-09-18-mthread-gpu-works-together-with-huatuo/</link>
+      <pubDate>Fri, 18 Sep 2026 15:30:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/events/2026-09-18-mthread-gpu-works-together-with-huatuo/</guid>
+      <description>摩尔线程 GPU 通过 MTML 接入 HUATUO，统一采集设备健康、PCIe 与 MTLink 指标，关联主机侧数据，支持智算集群监控与故障排查。</description>
+    </item>
+  </channel>
+</rss>

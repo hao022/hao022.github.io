@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<script>
+  (function (root) {
+    var theme
+    try { theme = localStorage.getItem('huatuo-theme') } catch {}
+    root.dataset.theme = theme === 'light' || theme === 'dark'
+      ? theme
+      : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+  }(document.documentElement))
+</script>
+
+<title>OOM 之前，留下现场：HUATUO 的多语言内存快照方案</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, eBPF, Memory">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' rel='stylesheet'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1790251448" rel="stylesheet">
+<link href="/css/theme.css?1790251448" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+<link rel="android-chrome-icon" href="/img/android-chrome-512x512.png" />
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="HUATUO 开源社区">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="zh">
+<meta property="og:site_name" content="HUATUO 开源社区">
+<meta property="og:title" content="OOM 之前，留下现场：HUATUO 的多语言内存快照方案">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/zh/blog/2026-09-24-container-memory-threshold-snapshot/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2026-09-24-container-memory-threshold-snapshot-cover.jpg">
+<meta property="og:image:type" content="image/jpg">
+
+
+
+  <meta property="og:image:width" content="300">
+  <meta property="og:image:height" content="200">
+
+
+<meta property="og:updated_time" content="2026-09-24T12:03:52Z">
+
+  
+  
+  
+  <meta property="article:tag" content="eBPF">
+  <meta property="article:tag" content="Memory">
+  <meta property="article:tag" content="可观测性">
+  
+  
+  <meta property="article:published_time" content="2026-09-24T12:00:00&#43;0800">
+  <meta property="article:modified_time" content="2026-09-24T12:03:52Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="OOM 之前，留下现场：HUATUO 的多语言内存快照方案">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2026-09-24-container-memory-threshold-snapshot-cover.jpg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+  </head>
+
+  <body><div id="all" class="has-page-hero">
+
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+              🚀  2025 年中国信息通信研究院《OSCAR 尖峰开源项目及开源社区》、腾讯科技《杰出贡献奖》、CNCF Landscape。欢迎 <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>  ❤️
+          </p>
+        
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/zh/">
+                    
+                      <img src="/img/huatuo-logo-v4.png" alt="OOM 之前，留下现场：HUATUO 的多语言内存快照方案 logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/huatuo-logo-v4.png" alt="OOM 之前，留下现场：HUATUO 的多语言内存快照方案 logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">OOM 之前，留下现场：HUATUO 的多语言内存快照方案 - 跳到主页</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">切换导航</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-cubes theme-icon nav-icon nav-menu-icon'></i>项目 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                            <li><a href="/zh/projects/huatuo/">HUATUO（华佗）</a></li>
+                            
+                            
+                            
+                            <li><a href="/zh/projects/go-pcap/">Go-pcap</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-book theme-icon nav-icon nav-menu-icon'></i>文档 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/latest/" data-theme-link>Latest</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/v2.3.0/" data-theme-link>V2.3.0</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/v2.2.0/" data-theme-link>V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    <a href="/zh/blog/"><i class='fas fa-pen-nib theme-icon nav-icon nav-menu-icon'></i>博客</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/milestone/"><i class='fas fa-rss theme-icon nav-icon nav-menu-icon'></i>动态</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/about/"><i class='fas fa-info-circle theme-icon nav-icon nav-menu-icon'></i>关于</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <button type="button"
+                            class="dropdown-toggle nav-control"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                      <i class="fas fa-globe theme-icon nav-icon"></i>
+                      中文
+                      <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                      
+                      
+                      
+                        
+                        
+                        
+                          
+                            
+                          
+                        
+                          
+                        
+                        
+                        
+                        <li>
+                          <a href="/blog/2026-09-24-container-memory-threshold-snapshot/" class="language-option">
+                            <i class="language-check" aria-hidden="true"></i>
+                            English
+                          </a>
+                        </li>
+                      
+                        
+                        
+                        
+                          
+                        
+                          
+                            
+                          
+                        
+                        
+                        
+                        <li class="active">
+                          <a href="/zh/blog/2026-09-24-container-memory-threshold-snapshot/" class="language-option" aria-current="page">
+                            <i class="language-check fas fa-check" aria-hidden="true"></i>
+                            中文
+                          </a>
+                        </li>
+                      
+                    </ul>
+                  </li>
+                  
+                  
+
+                  
+                  
+                  
+                  <li class="theme-toggle-item">
+                    <button type="button"
+                            class="nav-control theme-toggle"
+                            data-theme-toggle
+                            data-light-label="切换至浅色主题"
+                            data-dark-label="切换至深色主题"
+                            aria-label="切换至深色主题"
+                            aria-pressed="false">
+                      <span class="theme-toggle-track" aria-hidden="true">
+                        <span class="theme-toggle-thumb">
+                          <i class="theme-toggle-icon fas fa-sun"></i>
+                        </span>
+                      </span>
+                      <span class="sr-only theme-toggle-text">切换至深色主题</span>
+                    </button>
+                  </li>
+                  
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars"
+                         onerror="this.style.display='none'">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        
+        
+        
+        <div class="page-hero">
+    <div class="page-hero-grid"></div>
+    <div class="page-hero-glow"></div>
+    <div class="page-hero-inner">
+        <div class="page-hero-title-row">
+            <div class="page-hero-icon"><i class="fas fa-pen-nib theme-icon"></i></div>
+            <h1 class="page-hero-title">博客</h1>
+        </div>
+    </div>
+</div>
+
+        
+
+        <div id="content">
+            <div class="container">
+                <div class="row">
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                        <h1 class="post-title">OOM 之前，留下现场：HUATUO 的多语言内存快照方案</h1>
+                        <div class="post-meta">
+                            <span class="post-meta-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                2026-09-24
+                            </span>
+                            
+                            <span class="post-meta-authors">
+                                <i class="fas fa-user"></i>
+                                <a href="/zh/authors/%E4%BB%89%E9%B9%8F">仉鹏</a>
+                            </span>
+                            
+                            
+                            <span class="post-meta-tags">
+                                <a href="/zh/tags/ebpf" class="post-meta-tag">eBPF</a><a href="/zh/tags/memory" class="post-meta-tag">Memory</a><a href="/zh/tags/%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7" class="post-meta-tag">可观测性</a>
+                            </span>
+                            
+                        </div>
+                        
+
+                        <div id="post-content">
+                          <h3 id="容器恢复了问题却没有结束">容器恢复了，问题却没有结束</h3>
+<p>一个服务的内存持续上涨，最终被 OOM 终止。容器重启后，流量恢复，监控曲线也回落了。排查的人打开告警：容器名、时间、内存峰值都有，唯独不知道那一刻内存里装着什么。</p>
+<p>以请求处理服务为例，缓存变大、下游变慢造成队列积压、对象被意外持有，都可能画出相似的曲线。第一反应往往是加大限额，或者等下次复现再抓 heap dump。</p>
+<p>如果只是限额低于正常工作集，调整限额可以解决问题；如果内存持续泄漏，扩容往往只是争取时间。heap dump 也可以自动触发，但需要提前配置，并考虑生成时的暂停、CPU 和存储开销。</p>
+<p>即使知道 OOM killer 最终选择了哪个进程，也不能据此判断是哪类对象、哪条分配路径导致了增长。尤其一个容器里存在多个进程时，容器水位与单个进程的运行时内存之间，还隔着一层选择和解释。</p>
+<p>HUATUO 的 memsnapshot 把采集提前到内存压力阶段：<strong>收到内存通知后复查水位，达到阈值时读取仍在运行的进程，保存能够帮助定位的内存摘要。</strong> 进程后来即使重启，已保存的线索仍然可以继续分析。不过，通知时机、内存增长速度和采集冷却状态都会影响能否赶上，不能保证每次 OOM 前都能留下快照。</p>
+<h3 id="先选容器再选进程">先选容器，再选进程</h3>
+<p>采集从容器的内存水位开始。HUATUO 获取运行中容器的 memory cgroup 路径，监听内存通知；收到通知、完成监听注册或硬限额发生变化后，重新读取使用量与限额。使用比例达到配置阈值，才有机会进入采集，默认阈值为 90%。未设置内存上限的容器不参与比例判断。</p>
+<p>这个阈值用于检查时判断是否采集，并不代表内核会在该水位发出通知。</p>
+<p><strong>先选容器，再选进程。</strong> 多个容器同时触发时，调度器会合并候选，复查水位并按使用比例排序，每批只尝试最高的一项。采集串行执行，并受节点级冷却限制，因此一次触发并不会扫描节点上的所有容器。</p>
+<p>选定容器后，HUATUO 会从该 cgroup 的直接成员中选择一个进程。选择方式参考 memcg OOM 的评分思路，将 RSS、Swap、页表占用相加，再叠加按容器限额缩放的 <code>oom_score_adj</code>，选择分数最高的候选，并排除 <code>oom_score_adj = -1000</code> 的进程。</p>
+<p>这个分数用于确定诊断目标，不保证与内核最终终止的进程一致。采集前后还会核对容器实例、cgroup 目录身份，以及 PID 和启动时间；目标退出或身份变化时，取消采集或丢弃结果。</p>
+<h3 id="一份快照里留下哪些线索">一份快照里留下哪些线索</h3>
+<p>选定目标进程后，autotracing 将 PID 和启动时间交给 memsnapshot，开始一次进程内存采集。memsnapshot 负责读取进程摘要、识别语言运行时，再调用对应的采集器，返回统一格式的结果。</p>
+<p><strong>先看进程占用了哪些内存。</strong> memsnapshot 从 <code>/proc/PID/status</code> 读取 RSS、匿名驻留内存、文件映射驻留内存、共享内存驻留部分、Swap 和页表占用等，形成 <code>process_memory</code> 摘要。数值单位为字节，读取不到的字段会省略，不代表为零。这部分不依赖语言支持。</p>
+<p>下面是结果中 <code>process_memory</code> 字段的示例，数值仅作示意，单位均为字节：</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">12
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span><span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#81a1c1">&#34;process_memory&#34;</span><span style="color:#eceff4">:</span> <span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;status&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;complete&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;virtual_bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">6442450944</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;rss_bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">1610612736</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;rss_anon_bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">1509949440</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;rss_file_bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">83886080</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;rss_shmem_bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">16777216</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;swap_bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">33554432</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;page_table_bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">4194304</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#eceff4">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#eceff4">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>语言层面的线索。</strong> memsnapshot 识别目标语言及运行时布局，通过 <code>process_vm_readv</code> 将所需内存片段读到 HUATUO 进程中，交给对应采集器解析和聚合。业务无需主动生成 heap dump，HUATUO 也不复制整个进程的内存。各语言具体读取什么，下一节展开。</p>
+<p><strong>设计上尽量减少业务进程承担的额外工作。</strong> 开源工具中，<a href="https://bloomberg.github.io/memray/overview.html">Memray</a> 可以跟踪 Python 与 native 分配，<a href="https://github.com/async-profiler/async-profiler">async-profiler</a> 可以采样 Java 堆分配；这些能力可以观察一段时间内的分配行为。memsnapshot 则在内存压力下读取已有运行时信息，提供一次取证结果，两者的统计范围和用途不同。</p>
+<p>采集时，HUATUO 不向业务注入采集代码，不主动暂停进程，将解析和聚合所需的 CPU、临时缓冲区主要放在 HUATUO 中；通过复用已有 profile、限制扫描范围、串行采集和冷却间隔，尽量控制额外 CPU 与内存消耗。</p>
+<p>进程外读取仍会消耗节点 CPU 和内存带宽，访问非驻留页时还可能触发缺页与 I/O。运行时结构也可能在采集期间变化，因此结果不是一致性堆快照。语言采集默认有 2 秒预算，采用协作式检查，并非全流程的硬性上限。这些设计说明了如何控制开销；是否比其他工具消耗更少、对业务延迟影响多大，仍需要在相同负载下测量。</p>
+<p>不同采集器的结果统一放入 <code>snapshot</code>，包含运行时版本、采集状态、耗时和排名靠前的条目；不完整或不可用的原因也会随结果记录。采集受时间预算和输出大小限制，语言不受支持或采集失败时，仍可能保留已经读到的进程摘要。</p>
+<p>memsnapshot 本身不负责保存。结果返回自动追踪模块后，还会再次核对进程身份和容器归属，再将容器使用量、限额、目标进程与采集结果关联起来，按存储配置写出。这样，后续查看一条记录时，既能知道当时的内存压力，也能找到对应进程的诊断线索。</p>
+<p><strong>这套采集能力也可以复用于其他事件。</strong> memsnapshot 不依赖 Before-OOM 的触发条件，也不负责选择容器、调度任务或写入存储。其他事件选定目标进程后，可以通过 <code>collector.Capture</code> 传入 PID、启动时间、采集预算和结果条目上限，获取同样的进程摘要与语言快照。事件自身负责触发策略、必要的目标归属校验和结果保存，无需重复实现运行时解析。</p>
+<h3 id="从分配栈和对象类型追查内存">从分配栈和对象类型追查内存</h3>
+<p>以下实现与配置说明基于 HUATUO <a href="https://github.com/ccfos/huatuo/tree/36175d6e91fdc7b79e818496e1587eb0ca79a18d">36175d6e</a>。采集器依赖具体运行时版本、符号和内存布局，支持某种语言并不意味着支持它的所有版本与构建方式；部署时应检查目标运行时的实际采集结果。</p>
+<p><strong>Go：沿分配调用栈回到业务代码。</strong> 采集器从 <code>runtime.mbuckets</code>、<code>runtime.MemProfileRate</code> 等信息定位 runtime 已有的内存 profile，读取分配、释放记录和调用栈，结合采样率换算为存量内存与对象数估计，再按分配栈聚合、符号化。</p>
+<p>调用栈记录的是分配发生时的调用关系。即使栈顶落在 JSON 编码等标准库函数中，沿调用者仍能找到业务入口。结果受 runtime 采样和统计更新时机影响；应用关闭内存采样时，采集器返回不可用，不替应用开启采样。</p>
+<p>下面节选 <code>tracer_data</code> 中的语言结果，名称与数值均为示意，省略通用字段；Go 调用栈仅展示部分帧：</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">22
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span><span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#81a1c1">&#34;language&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;go&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#81a1c1">&#34;snapshot&#34;</span><span style="color:#eceff4">:</span> <span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;status&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;complete&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;entries&#34;</span><span style="color:#eceff4">:</span> <span style="color:#eceff4">[</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;kind&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;allocation_site&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;name&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;encoding/json.mapEncoder.encode&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">1572864</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;objects&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">8192</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;average_bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">192</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;stack&#34;</span><span style="color:#eceff4">:</span> <span style="color:#eceff4">[</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#a3be8c">&#34;encoding/json.mapEncoder.encode&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#a3be8c">&#34;encoding/json.(*encodeState).reflectValue&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#a3be8c">&#34;encoding/json.(*encodeState).marshal&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#a3be8c">&#34;encoding/json.(*Encoder).Encode&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>          <span style="color:#a3be8c">&#34;main.serve.func2&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#eceff4">]</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#eceff4">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#eceff4">]</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#eceff4">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#eceff4">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这条记录将约 1.5 MiB 的存量估计归到一条分配栈。<code>stack</code> 从分配位置向调用者展开，可以沿 JSON 编码路径找到业务入口 <code>main.serve.func2</code>，再检查相关对象的使用与释放。</p>
+<p><strong>Java：从 G1 堆分区识别对象类型。</strong> 当前实现面向 HotSpot G1，暂不支持启用 compact object headers（紧凑对象头）的 JVM。采集器从 <code>libjvm.so</code> 导出的 VM 元数据获得字段偏移和结构布局，定位 G1 region，再通过对象头中的 Klass 信息识别类名和对象大小。</p>
+<p>普通 region 使用窗口采样，识别有效对象后估算类型分布；对于跨越多个 region 的 Humongous 大对象，主要读取起始对象头和类元数据，无需复制完整对象内容。结果按类汇总对象数量与浅层大小，不包含对象引用的整棵对象图。</p>
+<p>对应的语言结果节选如下，名称与数值均为示意：</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">16
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span><span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#81a1c1">&#34;language&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;java&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#81a1c1">&#34;snapshot&#34;</span><span style="color:#eceff4">:</span> <span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;status&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;partial&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;reason&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;示意：普通 region 采用采样，类型统计包含估算值&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;entries&#34;</span><span style="color:#eceff4">:</span> <span style="color:#eceff4">[</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;kind&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;object_type&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;name&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;com.example.order.PendingOrder&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">201326592</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;objects&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">1048576</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;average_bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">192</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#eceff4">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#eceff4">]</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#eceff4">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#eceff4">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这条记录中，<code>PendingOrder</code> 的浅层大小估计合计为 192 MiB，可以继续检查待处理队列与消费速度。它不包含这些对象引用的其他对象；<code>partial</code> 提醒读者结合采样范围解释结果。</p>
+<p><strong>Python：沿 GC 跟踪结构汇总对象。</strong> 采集器通过可执行文件或 libpython 的符号定位 <code>_PyRuntime</code>，根据 CPython 版本找到解释器的 GC 结构，再沿链表读取对象，通过 <code>ob_type</code> 识别类型并汇总数量和大小。</p>
+<p>大小估算包含对象自身、部分管理开销，以及 list、dict 直接持有的部分缓冲区，不递归统计其引用对象。业务自定义类型也可能出现在结果中，便于排查任务和请求上下文积压。未被 GC 跟踪的对象、扩展模块持有的 native 内存不在完整覆盖范围内，因此不能将它当作 Python 全堆清单。</p>
+<p>对应的语言结果节选如下，名称与数值均为示意：</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">15
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span><span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#81a1c1">&#34;language&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;python&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#81a1c1">&#34;snapshot&#34;</span><span style="color:#eceff4">:</span> <span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;status&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;complete&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#81a1c1">&#34;entries&#34;</span><span style="color:#eceff4">:</span> <span style="color:#eceff4">[</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;kind&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;object_type&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;name&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;dict&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">67108864</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;objects&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">262144</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#81a1c1">&#34;average_bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">256</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#eceff4">}</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#eceff4">]</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#eceff4">}</span>
+</span></span><span style="display:flex;"><span><span style="color:#eceff4">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这条记录表示本次扫描统计到的 <code>dict</code> 大小估计合计为 64 MiB。<code>complete</code> 只表示在该采集器的统计范围内完成，不代表覆盖所有 Python 对象，也不能据此判断这些字典属于哪段业务代码。</p>
+<p>容器使用量、单进程 RSS、语言条目字节数采用不同统计口径，不能直接相加减。C/C++ 或不受支持的运行时仍可能获得进程摘要，但不意味着已经支持 native 堆分析。<a href="https://github.com/ccfos/huatuo/tree/36175d6e91fdc7b79e818496e1587eb0ca79a18d/internal/memsnapshot/providers">各语言 provider 源码</a></p>
+<h3 id="让内存快照在节点上用起来">让内存快照在节点上用起来</h3>
+<p><code>memory_threshold_snapshot</code> 默认启用。使用时，先确认 HUATUO 能获取容器元数据、访问宿主机 <code>/proc</code> 和 memory cgroup，并具备加载 BPF、读取目标进程内存的权限。目标容器需要设置有限的内存上限，并使用独立的 memory cgroup。</p>
+<p><strong>按需要调整采集参数。</strong> 默认读取启动工作目录下的 <code>huatuo-bamai.conf</code>；通过 <code>--config</code> 指定了配置文件时，应修改实际加载的那一份。下面四项均为默认值，已有同名配置节时直接修改，不要重复添加：</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-toml" data-lang="toml"><span style="display:flex;"><span><span style="color:#eceff4">[</span>AutoTracing<span style="color:#eceff4">.</span>MemoryThresholdSnapshot<span style="color:#eceff4">]</span>
+</span></span><span style="display:flex;"><span>    ThresholdPercent <span style="color:#eceff4">=</span> <span style="color:#b48ead">90</span>
+</span></span><span style="display:flex;"><span>    IntervalTracing <span style="color:#eceff4">=</span> <span style="color:#b48ead">300</span>
+</span></span><span style="display:flex;"><span>    RunTracingToolTimeout <span style="color:#eceff4">=</span> <span style="color:#b48ead">2</span>
+</span></span><span style="display:flex;"><span>    MaxMemoryObjectEntries <span style="color:#eceff4">=</span> <span style="color:#b48ead">10</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><table>
+  <thead>
+      <tr>
+          <th>参数</th>
+          <th>使用时如何理解</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>ThresholdPercent</code></td>
+          <td>检查时内存使用比例达到 90%，才进入采集候选；降低它不等于一定能更早收到内核通知</td>
+      </tr>
+      <tr>
+          <td><code>IntervalTracing</code></td>
+          <td>节点级冷却间隔，单位为秒；缩短间隔允许更频繁地采集；冷却结束不会自动启动采集，仍需新的触发机会</td>
+      </tr>
+      <tr>
+          <td><code>RunTracingToolTimeout</code></td>
+          <td>语言采集预算，单位为秒；调大可能获得更多信息，也会增加采集工作量，不是全流程硬性超时</td>
+      </tr>
+      <tr>
+          <td><code>MaxMemoryObjectEntries</code></td>
+          <td>每份语言快照保留的条目数，可配置 1–100；调大便于查看更多分配栈或类型，但不代表覆盖完整堆</td>
+      </tr>
+  </tbody>
+</table>
+<p>修改配置后重启 HUATUO，并检查全局 <code>BlackList</code> 中没有 <code>memory_threshold_snapshot</code>。升级时使用当前的 <code>AutoTracing.MemoryThresholdSnapshot</code> 配置，不要沿用旧的 <code>EventTracing.BeforeOOMMemsnap</code> 等字段。</p>
+<p><strong>先确认能触发，再等待业务现场。</strong> 启动后检查日志中的监听初始化和注册情况，用受控的内存增长确认产生采集记录。cgroup v2 下还要核对 <code>memory.high</code>：HUATUO 不会自动设置它，只配置 90% 并不保证在 90% 时收到通知；调整该水位前，应验证它对业务回收、节流和延迟的影响。</p>
+<p><strong>到配置的存储后端查看结果。</strong> 快照沿用 <code>[Storage]</code> 配置。使用 LocalFile 时，到 <code>[Storage.LocalFile]</code> 的 <code>Path</code> 目录查看 <code>memory_threshold_snapshot</code> 文件。例如，将 <code>Path</code> 配置为 <code>/var/log/huatuo/snapshots</code> 后，可直接查看：</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>less /var/log/huatuo/snapshots/memory_threshold_snapshot
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>拿到记录后，先核对目标进程、<code>snapshot.status</code>、<code>reason</code> 和 <code>runtime_version</code>，确认结果是否可用，再查看 <code>entries</code> 中的分配栈或对象类型。<code>output_truncated</code> 表示输出发生裁剪；语言采集失败时，仍可能从 <code>process_memory</code> 获得进程摘要。<code>victim_pid</code> 表示采集目标，不代表它已经被 OOM killer 终止。</p>
+<p>需要关闭时，将 <code>memory_threshold_snapshot</code> 加入全局 <code>BlackList</code>，保留其中已有的其他项，然后重启 HUATUO。</p>
+<p>OOM 后最难补回的是进程退出前的内存内容。这里留下的分配栈、对象类型和进程摘要，可以帮助确定下一步该检查哪段代码、哪个队列或哪类缓存。它们也许不会直接给出根因，但能为我们提供更多线索。</p>
+
+                        </div>
+
+                        
+                        <div id="comments">
+                            
+                            <script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+                        </div>
+                        
+
+                    </div>
+
+                    <div class="col-md-3">
+                        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">标签</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/zh/tags/ai"><i class="fas fa-tags"></i> ai</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/ascend"><i class="fas fa-tags"></i> ascend</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/blkio"><i class="fas fa-tags"></i> blkio</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/ccf"><i class="fas fa-tags"></i> ccf</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/ebpf"><i class="fas fa-tags"></i> ebpf</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/go"><i class="fas fa-tags"></i> go</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/gpu"><i class="fas fa-tags"></i> gpu</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/hao022"><i class="fas fa-tags"></i> hao022</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/k8s"><i class="fas fa-tags"></i> k8s</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/linux-%e5%86%85%e6%a0%b8"><i class="fas fa-tags"></i> linux 内核</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/memory"><i class="fas fa-tags"></i> memory</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/net"><i class="fas fa-tags"></i> net</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/networking"><i class="fas fa-tags"></i> networking</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/news"><i class="fas fa-tags"></i> news</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/npu"><i class="fas fa-tags"></i> npu</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/rdma"><i class="fas fa-tags"></i> rdma</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/tcp"><i class="fas fa-tags"></i> tcp</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e5%8a%a8%e6%80%81"><i class="fas fa-tags"></i> 动态</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7"><i class="fas fa-tags"></i> 可观测性</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e5%90%88%e4%bd%9c"><i class="fas fa-tags"></i> 合作</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e5%bc%80%e6%ba%90"><i class="fas fa-tags"></i> 开源</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e6%91%a9%e5%b0%94%e7%ba%bf%e7%a8%8b"><i class="fas fa-tags"></i> 摩尔线程</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e6%95%85%e9%9a%9c%e6%a3%80%e6%b5%8b"><i class="fas fa-tags"></i> 故障检测</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e7%a4%be%e5%8c%ba"><i class="fas fa-tags"></i> 社区</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e7%bd%91%e7%bb%9c"><i class="fas fa-tags"></i> 网络</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e8%8d%a3%e8%aa%89"><i class="fas fa-tags"></i> 荣誉</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <footer id="footer">
+    <div class="container">
+        
+        
+        
+        
+        <div class="row">
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>官方认证</h4>
+                <div class="footer-certifications">
+                    
+                    <a href="https://landscape.cncf.io/?item=observability-and-analysis--observability--huatuo" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="CNCF Landscape">
+                        <img src="/img/certifications/cncf.png" alt="CNCF Landscape" />
+                    </a>
+                    
+                    <a href="https://ebpf.foundation/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="eBPF Foundation">
+                        <img src="/img/certifications/ebpf-foundation.png" alt="eBPF Foundation" />
+                    </a>
+                    
+                    <a href="https://prometheus.io/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="prometheus">
+                        <img src="/img/certifications/prometheus-logo.png" alt="prometheus" />
+                    </a>
+                    
+                    <a href="https://www.ccf.org.cn/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="ccf">
+                        <img src="/img/certifications/ccf.png" alt="ccf" />
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>关于我们</h4>
+                基础软件技术研究者，Linux 内核开发者。
+            </div>
+            
+            
+        </div>
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026 HUATUO 开源社区。</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+<script src="/js/front.js?1790251448"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

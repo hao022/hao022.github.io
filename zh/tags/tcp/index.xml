@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>TCP on HUATUO 开源社区</title>
+    <link>https://huatuo.tech/zh/tags/tcp/</link>
+    <description>Recent content in TCP on HUATUO 开源社区</description>
+    <generator>Hugo</generator>
+    <language>zh</language>
+    <lastBuildDate>Thu, 24 Sep 2026 12:03:52 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/zh/tags/tcp/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>TCP 重传如何排查？用 HUATUO 追踪连接、关联内核丢包</title>
+      <link>https://huatuo.tech/zh/blog/2026-09-11-trace-tcp-retransmissions-with-tcpshark/</link>
+      <pubDate>Fri, 11 Sep 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-09-11-trace-tcp-retransmissions-with-tcpshark/</guid>
+      <description>基于 eBPF 追踪 TCP 重传，解析连接阶段与容器归属，关联内核丢包事件定位故障。</description>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<script>
+  (function (root) {
+    var theme
+    try { theme = localStorage.getItem('huatuo-theme') } catch {}
+    root.dataset.theme = theme === 'light' || theme === 'dark'
+      ? theme
+      : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+  }(document.documentElement))
+</script>
+
+<title>摩尔线程深度接入 HUATUO 开源生态，实现 GPU 全栈可观测</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, AI, GPU, 摩尔线程, 故障检测">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' rel='stylesheet'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1790251448" rel="stylesheet">
+<link href="/css/theme.css?1790251448" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+<link rel="android-chrome-icon" href="/img/android-chrome-512x512.png" />
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="HUATUO 开源社区">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="zh">
+<meta property="og:site_name" content="HUATUO 开源社区">
+<meta property="og:title" content="摩尔线程深度接入 HUATUO 开源生态，实现 GPU 全栈可观测">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://huatuo.tech/zh/events/2026-09-18-mthread-gpu-works-together-with-huatuo/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/events/2026-09-18-mthread-gpu-huatuo-cover.jpg">
+<meta property="og:image:type" content="image/jpg">
+
+
+
+  <meta property="og:image:width" content="897">
+  <meta property="og:image:height" content="382">
+
+
+<meta property="og:updated_time" content="2026-09-24T12:03:52Z">
+
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="摩尔线程深度接入 HUATUO 开源生态，实现 GPU 全栈可观测">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/events/2026-09-18-mthread-gpu-huatuo-cover.jpg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+  </head>
+
+  <body><div id="all" class="has-page-hero">
+
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+              🚀  2025 年中国信息通信研究院《OSCAR 尖峰开源项目及开源社区》、腾讯科技《杰出贡献奖》、CNCF Landscape。欢迎 <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>  ❤️
+          </p>
+        
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/zh/">
+                    
+                      <img src="/img/huatuo-logo-v4.png" alt="摩尔线程深度接入 HUATUO 开源生态，实现 GPU 全栈可观测 logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/huatuo-logo-v4.png" alt="摩尔线程深度接入 HUATUO 开源生态，实现 GPU 全栈可观测 logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">摩尔线程深度接入 HUATUO 开源生态，实现 GPU 全栈可观测 - 跳到主页</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">切换导航</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-cubes theme-icon nav-icon nav-menu-icon'></i>项目 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                            <li><a href="/zh/projects/huatuo/">HUATUO（华佗）</a></li>
+                            
+                            
+                            
+                            <li><a href="/zh/projects/go-pcap/">Go-pcap</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-book theme-icon nav-icon nav-menu-icon'></i>文档 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/latest/" data-theme-link>Latest</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/v2.3.0/" data-theme-link>V2.3.0</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/v2.2.0/" data-theme-link>V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/blog/"><i class='fas fa-pen-nib theme-icon nav-icon nav-menu-icon'></i>博客</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/milestone/"><i class='fas fa-rss theme-icon nav-icon nav-menu-icon'></i>动态</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/about/"><i class='fas fa-info-circle theme-icon nav-icon nav-menu-icon'></i>关于</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <button type="button"
+                            class="dropdown-toggle nav-control"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                      <i class="fas fa-globe theme-icon nav-icon"></i>
+                      中文
+                      <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                      
+                      
+                      
+                        
+                        
+                        
+                          
+                            
+                          
+                        
+                          
+                        
+                        
+                        
+                        <li>
+                          <a href="/events/2026-09-18-mthread-gpu-works-together-with-huatuo/" class="language-option">
+                            <i class="language-check" aria-hidden="true"></i>
+                            English
+                          </a>
+                        </li>
+                      
+                        
+                        
+                        
+                          
+                        
+                          
+                            
+                          
+                        
+                        
+                        
+                        <li class="active">
+                          <a href="/zh/events/2026-09-18-mthread-gpu-works-together-with-huatuo/" class="language-option" aria-current="page">
+                            <i class="language-check fas fa-check" aria-hidden="true"></i>
+                            中文
+                          </a>
+                        </li>
+                      
+                    </ul>
+                  </li>
+                  
+                  
+
+                  
+                  
+                  
+                  <li class="theme-toggle-item">
+                    <button type="button"
+                            class="nav-control theme-toggle"
+                            data-theme-toggle
+                            data-light-label="切换至浅色主题"
+                            data-dark-label="切换至深色主题"
+                            aria-label="切换至深色主题"
+                            aria-pressed="false">
+                      <span class="theme-toggle-track" aria-hidden="true">
+                        <span class="theme-toggle-thumb">
+                          <i class="theme-toggle-icon fas fa-sun"></i>
+                        </span>
+                      </span>
+                      <span class="sr-only theme-toggle-text">切换至深色主题</span>
+                    </button>
+                  </li>
+                  
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars"
+                         onerror="this.style.display='none'">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        
+        
+        
+          
+        
+        <div class="page-hero">
+    <div class="page-hero-grid"></div>
+    <div class="page-hero-glow"></div>
+    <div class="page-hero-inner">
+        <div class="page-hero-title-row">
+            <div class="page-hero-icon"><i class="fas fa-history theme-icon"></i></div>
+            <h1 class="page-hero-title">发展历程</h1>
+        </div>
+    </div>
+</div>
+
+        
+
+        <div id="content">
+            <div class="container">
+                <div class="row">
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                        <h1 class="post-title">摩尔线程深度接入 HUATUO 开源生态，实现 GPU 全栈可观测</h1>
+                        <div class="post-meta">
+                            <span class="post-meta-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                2026-09-18
+                            </span>
+                            
+                            <span class="post-meta-authors">
+                                <i class="fas fa-user"></i>
+                                <a href="/zh/authors/%E6%91%A9%E5%B0%94%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91%E8%80%85">摩尔线程开发者</a>
+                            </span>
+                            
+                            
+                            <span class="post-meta-tags">
+                                <a href="/zh/tags/ai" class="post-meta-tag">AI</a><a href="/zh/tags/gpu" class="post-meta-tag">GPU</a><a href="/zh/tags/%E6%91%A9%E5%B0%94%E7%BA%BF%E7%A8%8B" class="post-meta-tag">摩尔线程</a><a href="/zh/tags/%E6%95%85%E9%9A%9C%E6%A3%80%E6%B5%8B" class="post-meta-tag">故障检测</a>
+                            </span>
+                            
+                        </div>
+                        
+
+                        <div id="post-content">
+                          <p>近日，摩尔线程全功能 GPU 可观测能力正式合入 HUATUO（华佗）开源社区官方主线。通过摩尔线程贡献的 <a href="https://github.com/ccfos/huatuo/pull/641">PR #641</a>，运维人员与开发者无需配置私有补丁，即可在 HUATUO 中获取 GPU 运行状态，并在同一时间线上关联设备侧与主机侧数据，开展单机与集群的监控和故障排查。</p>
+<p><strong>此次接入将 GPU 设备状态、PCIe 链路与 MTLink 跨卡互联纳入统一的观测入口</strong>，为智算集群日常巡检、异常定位和容量规划提供数据基础。</p>
+<hr>
+<h3 id="支持概览">支持概览</h3>
+<p>HUATUO 是由滴滴开源、中国计算机学会（CCF）孵化的操作系统级深度观测项目，面向云原生通用计算、AI 计算及裸金属基础服务，利用 eBPF 与内核动态追踪技术提供深度观测能力。</p>
+<p>随着国产 AI 算力进入规模化部署阶段，显存压力、芯片过热、PCIe 降级和跨卡链路异常成为训练与推理排障中需要关注的问题。仅依赖主机侧日志、调度和网络信号，往往难以直接确认设备状态；逐一调用厂商 CLI、解析输出，也增加了多卡与集群环境中的运维成本。</p>
+<p>摩尔线程 GPU 的接入，使设备侧信号能够与 HUATUO 已有的主机侧观测数据结合，帮助运维人员缩小异常范围。</p>
+<p><img src="/img/events/2026-09-18-mthread-gpu-huatuo-architecture.png" alt="HUATUO 全栈可观测能力" loading="lazy" />
+</p>
+<hr>
+<h3 id="业务价值">业务价值</h3>
+<p>该能力统一采集 GPU、PCIe 与 MTLink 指标，关联主机侧数据，支持日常监控与故障排查，并通过长期趋势分析辅助容量规划和健康巡检。典型故障的排查方向如下：</p>
+<table>
+  <thead>
+      <tr>
+          <th>典型现象</th>
+          <th>可关联信号</th>
+          <th>可能的排查方向</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>未修改代码、batch 或学习率，单卡训练吞吐突然下降</td>
+          <td>核心温度、当前与最大频率、风扇转速、当前功耗与功率上限</td>
+          <td>芯片过热降频、风扇异常、功率限制</td>
+      </tr>
+      <tr>
+          <td>显存看似充足，但任务间歇性 OOM 或显存分配失败</td>
+          <td>显存温度、已用量与总量、当前与最大显存频率</td>
+          <td>显存温度或频率异常，并结合显存使用情况排查</td>
+      </tr>
+      <tr>
+          <td>多卡集合通信（如 all-reduce）变慢</td>
+          <td>PCIe 当前与最大速率、当前与最大宽度、重传计数、MTLink 状态</td>
+          <td>PCIe 协商降级、链路质量问题、MTLink 异常</td>
+      </tr>
+  </tbody>
+</table>
+<hr>
+<h3 id="新增观测能力">新增观测能力</h3>
+<h4 id="原生采集与统一输出">原生采集与统一输出</h4>
+<p><code>mthreads_gpu</code> 采集器调用摩尔线程官方 MTML 库读取 GPU 运行状态，将数据转换为标准 Prometheus 指标，通过 HUATUO 原生 <code>/metrics</code> 端点统一暴露，无需额外部署 sidecar。</p>
+<p>采集器将随时间变化的动态指标纳入高频轮询，并在多卡场景下并行采集；驱动或底层库出现偶发异常时，按规则尝试自动重连。</p>
+<p>首批接入的观测范围如下：</p>
+<table>
+  <thead>
+      <tr>
+          <th>指标类别</th>
+          <th>观测范围</th>
+          <th>关键数据</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>基本信息</td>
+          <td>设备识别与资产信息</td>
+          <td>型号、序列号、PCI / BIOS 信息、显存规格</td>
+      </tr>
+      <tr>
+          <td>运行状态</td>
+          <td>健康、负载与显存</td>
+          <td>芯片及显存温度、功耗、电压、功率上限、计算与显存利用率、显存总量与已用量</td>
+      </tr>
+      <tr>
+          <td>运行状态</td>
+          <td>频率、散热与性能状态</td>
+          <td>GPU / 显存当前与最大频率、风扇转速及百分比、P-state</td>
+      </tr>
+      <tr>
+          <td>运行状态</td>
+          <td>VPU</td>
+          <td>总利用率、编解码利用率、时钟频率</td>
+      </tr>
+      <tr>
+          <td>PCIe</td>
+          <td>主机与设备间链路</td>
+          <td>当前与最大速率（GT/s）、当前与最大宽度（lane）、重传计数</td>
+      </tr>
+      <tr>
+          <td>MTLink</td>
+          <td>机内跨卡互联</td>
+          <td>每条链路状态、单链路带宽、链路数</td>
+      </tr>
+  </tbody>
+</table>
+<h4 id="常用指标">常用指标</h4>
+<p><code>/metrics</code> 中的指标系列以 <code>mthreads_gpu_</code> 为前缀。下表沿用原文中的指标名称，省略此前缀：</p>
+<table>
+  <thead>
+      <tr>
+          <th>指标名称</th>
+          <th>含义与排查用途</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>gpu_temperature_celsius</code></td>
+          <td>GPU 核心温度，可结合频率和吞吐变化检查散热及限频问题</td>
+      </tr>
+      <tr>
+          <td><code>gpu_utilization_percent</code>、<code>memory_utilization_percent</code></td>
+          <td>GPU 计算与显存利用率，用于分析负载特征及数据供给情况</td>
+      </tr>
+      <tr>
+          <td><code>memory_used_bytes</code>、<code>memory_total_bytes</code></td>
+          <td>显存已用量与总量，用于观察显存压力</td>
+      </tr>
+      <tr>
+          <td><code>memory_temperature_celsius</code></td>
+          <td>显存温度，可与容量、频率等信号结合排查异常</td>
+      </tr>
+      <tr>
+          <td><code>pcie_link_speed_gt_per_sec</code>、<code>pcie_link_max_speed_gt_per_sec</code></td>
+          <td>PCIe 当前协商速率与最大速率，用于检查链路是否存在降级</td>
+      </tr>
+      <tr>
+          <td><code>pcie_replay_total</code></td>
+          <td>PCIe 重传计数，持续增长时需关注链路质量</td>
+      </tr>
+      <tr>
+          <td><code>mtlink_state</code></td>
+          <td>MTLink 链路状态，按 <code>link</code> 标签区分；<code>0</code>、<code>1</code>、<code>2</code> 分别表示 DOWN、UP、DOWNGRADE</td>
+      </tr>
+      <tr>
+          <td><code>fan_rpm</code>、<code>fan_speed_percent</code></td>
+          <td>风扇转速与百分比，按 <code>fan</code> 标签区分，可结合 GPU 温度检查散热状态</td>
+      </tr>
+  </tbody>
+</table>
+<p>所有指标均携带 <code>gpu=&lt;index&gt;</code> 标签，多卡场景下可按设备筛选与聚合。上述信号用于提供排查方向，具体原因需结合任务负载和其他观测数据确认。</p>
+<hr>
+<h3 id="配置与部署">配置与部署</h3>
+<p>使用包含该采集器的 HUATUO 版本，并安装摩尔线程 GPU 驱动及 MTML 动态库。从全局 <code>BlackList</code> 中移除 <code>&quot;mthreads_gpu&quot;</code> 后，按需开启健康、PCIe 和 MTLink 指标：</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-toml" data-lang="toml"><span style="display:flex;"><span><span style="color:#616e87;font-style:italic"># 先从现有全局 BlackList 中移除 &#34;mthreads_gpu&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#eceff4">[</span>MetricCollector<span style="color:#eceff4">.</span>Mthreads<span style="color:#eceff4">]</span>
+</span></span><span style="display:flex;"><span>    EnableHealth <span style="color:#eceff4">=</span> <span style="color:#81a1c1;font-weight:bold">true</span>
+</span></span><span style="display:flex;"><span>    EnablePCIe <span style="color:#eceff4">=</span> <span style="color:#81a1c1;font-weight:bold">true</span>
+</span></span><span style="display:flex;"><span>    EnableMTLink <span style="color:#eceff4">=</span> <span style="color:#81a1c1;font-weight:bold">true</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>裸机可直接运行；Docker / Kubernetes 部署需映射设备节点（<code>/dev/dri/renderD*</code>、<code>/dev/mtgpu.*</code>），并挂载 <code>libmtml.so</code>。启动 HUATUO 后，即可在 <code>/metrics</code> 端点查看以 <code>mthreads_gpu_</code> 为前缀的指标。</p>
+<hr>
+<h3 id="后续规划">后续规划</h3>
+<p>指标接入是摩尔线程与 HUATUO 合作的第一步。原文提出，后续将围绕以下方向继续完善观测能力：</p>
+<ol>
+<li><strong>异常事件实时上报</strong>：将温度阈值触发、风扇停转、PCIe 降速、MTLink 状态切换等异常转换为结构化事件，缩短告警响应时间。</li>
+<li><strong>线上持续性能分析</strong>：打通底层 profiling 工具链，在不重启生产服务的前提下进行轻量级性能定位，并按需启动深度采样。</li>
+<li><strong>集群网络拓扑观测</strong>：接入 MTLink 机内互联与 RDMA 跨机网络的拓扑和性能数据，观察卡间及跨节点通信。</li>
+<li><strong>AI 作业端到端追踪</strong>：关联设备侧指标、PyTorch 等上层 AI 框架与主机侧调度上下文，扩展训练和推理作业的全链路追踪能力。</li>
+</ol>
+<hr>
+<h3 id="结语">结语</h3>
+<p>后续双方将继续通过开源协作，推进从指标监测到异常事件、性能分析与端到端追踪的能力建设，帮助开发者和运维团队管理规模化 AI 基础设施。</p>
+<hr>
+<h3 id="相关链接">相关链接</h3>
+<ul>
+<li>微信原文（摩尔线程开发者）：<a href="https://mp.weixin.qq.com/s/dGiL5osi51DfZBZ8-_NZDQ">摩尔线程深度接入 HUATUO 开源生态，实现 GPU 全栈可观测</a></li>
+<li>HUATUO GitHub：<a href="https://github.com/ccfos/huatuo">https://github.com/ccfos/huatuo</a></li>
+</ul>
+
+                        </div>
+
+                        
+                        <div id="comments">
+                            
+                            <script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+                        </div>
+                        
+
+                    </div>
+
+                    <div class="col-md-3">
+                        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">标签</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/zh/tags/ai"><i class="fas fa-tags"></i> ai</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/ascend"><i class="fas fa-tags"></i> ascend</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/blkio"><i class="fas fa-tags"></i> blkio</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/ccf"><i class="fas fa-tags"></i> ccf</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/ebpf"><i class="fas fa-tags"></i> ebpf</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/go"><i class="fas fa-tags"></i> go</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/gpu"><i class="fas fa-tags"></i> gpu</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/hao022"><i class="fas fa-tags"></i> hao022</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/k8s"><i class="fas fa-tags"></i> k8s</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/linux-%e5%86%85%e6%a0%b8"><i class="fas fa-tags"></i> linux 内核</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/memory"><i class="fas fa-tags"></i> memory</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/net"><i class="fas fa-tags"></i> net</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/networking"><i class="fas fa-tags"></i> networking</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/news"><i class="fas fa-tags"></i> news</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/npu"><i class="fas fa-tags"></i> npu</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/rdma"><i class="fas fa-tags"></i> rdma</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/tcp"><i class="fas fa-tags"></i> tcp</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e5%8a%a8%e6%80%81"><i class="fas fa-tags"></i> 动态</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7"><i class="fas fa-tags"></i> 可观测性</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e5%90%88%e4%bd%9c"><i class="fas fa-tags"></i> 合作</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e5%bc%80%e6%ba%90"><i class="fas fa-tags"></i> 开源</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e6%91%a9%e5%b0%94%e7%ba%bf%e7%a8%8b"><i class="fas fa-tags"></i> 摩尔线程</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e6%95%85%e9%9a%9c%e6%a3%80%e6%b5%8b"><i class="fas fa-tags"></i> 故障检测</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e7%a4%be%e5%8c%ba"><i class="fas fa-tags"></i> 社区</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e7%bd%91%e7%bb%9c"><i class="fas fa-tags"></i> 网络</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/%e8%8d%a3%e8%aa%89"><i class="fas fa-tags"></i> 荣誉</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <footer id="footer">
+    <div class="container">
+        
+        
+        
+        
+        <div class="row">
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>官方认证</h4>
+                <div class="footer-certifications">
+                    
+                    <a href="https://landscape.cncf.io/?item=observability-and-analysis--observability--huatuo" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="CNCF Landscape">
+                        <img src="/img/certifications/cncf.png" alt="CNCF Landscape" />
+                    </a>
+                    
+                    <a href="https://ebpf.foundation/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="eBPF Foundation">
+                        <img src="/img/certifications/ebpf-foundation.png" alt="eBPF Foundation" />
+                    </a>
+                    
+                    <a href="https://prometheus.io/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="prometheus">
+                        <img src="/img/certifications/prometheus-logo.png" alt="prometheus" />
+                    </a>
+                    
+                    <a href="https://www.ccf.org.cn/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="ccf">
+                        <img src="/img/certifications/ccf.png" alt="ccf" />
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>关于我们</h4>
+                基础软件技术研究者，Linux 内核开发者。
+            </div>
+            
+            
+        </div>
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026 HUATUO 开源社区。</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+<script src="/js/front.js?1790251448"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

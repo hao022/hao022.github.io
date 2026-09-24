@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Fault Detection on Linux Kernel, Cloud-native and AI Infra Observability.</title>
+    <link>https://huatuo.tech/tags/fault-detection/</link>
+    <description>Recent content in Fault Detection on Linux Kernel, Cloud-native and AI Infra Observability.</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Thu, 24 Sep 2026 12:03:52 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/tags/fault-detection/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>HUATUO Adds Moore Threads GPU Monitoring</title>
+      <link>https://huatuo.tech/events/2026-09-18-mthread-gpu-works-together-with-huatuo/</link>
+      <pubDate>Fri, 18 Sep 2026 15:30:00 +0800</pubDate>
+      <guid>https://huatuo.tech/events/2026-09-18-mthread-gpu-works-together-with-huatuo/</guid>
+      <description>Collect Moore Threads GPU health, PCIe, and MTLink metrics through MTML and correlate them with host data to troubleshoot AI clusters.</description>
+    </item>
+    <item>
+      <title>HUATUO Adds Huawei Ascend NPU Monitoring Support</title>
+      <link>https://huatuo.tech/events/2026-07-29-huawei-ascend-npu-monitoring/</link>
+      <pubDate>Wed, 29 Jul 2026 10:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/events/2026-07-29-huawei-ascend-npu-monitoring/</guid>
+      <description>Monitor Huawei Ascend NPUs through DCMI, PCIe, and HCCN to troubleshoot AI training and inference.</description>
+    </item>
+  </channel>
+</rss>

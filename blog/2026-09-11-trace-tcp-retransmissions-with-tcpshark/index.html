@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<script>
+  (function (root) {
+    var theme
+    try { theme = localStorage.getItem('huatuo-theme') } catch {}
+    root.dataset.theme = theme === 'light' || theme === 'dark'
+      ? theme
+      : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+  }(document.documentElement))
+</script>
+
+<title>TCP Retransmissions, Explained: Inside the Kernel with tcpshark</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, eBPF, TCP, Observability">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' rel='stylesheet'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1790251448" rel="stylesheet">
+<link href="/css/theme.css?1790251448" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+<link rel="android-chrome-icon" href="/img/android-chrome-512x512.png" />
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="Linux Kernel, Cloud-native and AI Infra Observability.">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en">
+<meta property="og:site_name" content="Linux Kernel, Cloud-native and AI Infra Observability.">
+<meta property="og:title" content="TCP Retransmissions, Explained: Inside the Kernel with tcpshark">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/blog/2026-09-11-trace-tcp-retransmissions-with-tcpshark/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2026-09-11-tcpshark-cover.jpg">
+<meta property="og:image:type" content="image/jpg">
+
+
+
+  <meta property="og:image:width" content="300">
+  <meta property="og:image:height" content="200">
+
+
+<meta property="og:updated_time" content="2026-09-24T12:03:52Z">
+
+  
+  
+  
+  <meta property="article:tag" content="eBPF">
+  <meta property="article:tag" content="TCP">
+  <meta property="article:tag" content="Observability">
+  
+  
+  <meta property="article:published_time" content="2026-09-11T12:00:00&#43;0800">
+  <meta property="article:modified_time" content="2026-09-24T12:03:52Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="TCP Retransmissions, Explained: Inside the Kernel with tcpshark">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2026-09-11-tcpshark-cover.jpg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+  </head>
+
+  <body><div id="all" class="has-page-hero">
+
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+              🚀  Listed in the CNCF Landscape and eBPF Foundation Emerging Project. If you like this project, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>!  ❤️
+          </p>
+        
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/huatuo-logo-v4.png" alt="TCP Retransmissions, Explained: Inside the Kernel with tcpshark logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/huatuo-logo-v4.png" alt="TCP Retransmissions, Explained: Inside the Kernel with tcpshark logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">TCP Retransmissions, Explained: Inside the Kernel with tcpshark - go to homepage</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">Toggle Navigation</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-cubes theme-icon nav-icon nav-menu-icon'></i>Projects <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                            <li><a href="/projects/huatuo/">HUATUO（华佗）</a></li>
+                            
+                            
+                            
+                            <li><a href="/projects/go-pcap/">Go-pcap</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-book theme-icon nav-icon nav-menu-icon'></i>Docs <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/en/latest/" data-theme-link>Latest</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/en/v2.3.0/" data-theme-link>V2.3.0</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/en/v2.2.0/" data-theme-link>V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    <a href="/blog/"><i class='fas fa-pen-nib theme-icon nav-icon nav-menu-icon'></i>Blog</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/milestone/"><i class='fas fa-rss theme-icon nav-icon nav-menu-icon'></i>News</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/about/"><i class='fas fa-info-circle theme-icon nav-icon nav-menu-icon'></i>About</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <button type="button"
+                            class="dropdown-toggle nav-control"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                      <i class="fas fa-globe theme-icon nav-icon"></i>
+                      English
+                      <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                      
+                      
+                      
+                        
+                        
+                        
+                          
+                            
+                          
+                        
+                          
+                        
+                        
+                        
+                        <li class="active">
+                          <a href="/blog/2026-09-11-trace-tcp-retransmissions-with-tcpshark/" class="language-option" aria-current="page">
+                            <i class="language-check fas fa-check" aria-hidden="true"></i>
+                            English
+                          </a>
+                        </li>
+                      
+                        
+                        
+                        
+                          
+                        
+                          
+                            
+                          
+                        
+                        
+                        
+                        <li>
+                          <a href="/zh/blog/2026-09-11-trace-tcp-retransmissions-with-tcpshark/" class="language-option">
+                            <i class="language-check" aria-hidden="true"></i>
+                            中文
+                          </a>
+                        </li>
+                      
+                    </ul>
+                  </li>
+                  
+                  
+
+                  
+                  
+                  
+                  <li class="theme-toggle-item">
+                    <button type="button"
+                            class="nav-control theme-toggle"
+                            data-theme-toggle
+                            data-light-label="Switch to light theme"
+                            data-dark-label="Switch to dark theme"
+                            aria-label="Switch to dark theme"
+                            aria-pressed="false">
+                      <span class="theme-toggle-track" aria-hidden="true">
+                        <span class="theme-toggle-thumb">
+                          <i class="theme-toggle-icon fas fa-sun"></i>
+                        </span>
+                      </span>
+                      <span class="sr-only theme-toggle-text">Switch to dark theme</span>
+                    </button>
+                  </li>
+                  
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars"
+                         onerror="this.style.display='none'">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        
+        
+        
+        <div class="page-hero">
+    <div class="page-hero-grid"></div>
+    <div class="page-hero-glow"></div>
+    <div class="page-hero-inner">
+        <div class="page-hero-title-row">
+            <div class="page-hero-icon"><i class="fas fa-pen-nib theme-icon"></i></div>
+            <h1 class="page-hero-title">Blog</h1>
+        </div>
+    </div>
+</div>
+
+        
+
+        <div id="content">
+            <div class="container">
+                <div class="row">
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                        <h1 class="post-title">TCP Retransmissions, Explained: Inside the Kernel with tcpshark</h1>
+                        <div class="post-meta">
+                            <span class="post-meta-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                2026-09-11
+                            </span>
+                            
+                            <span class="post-meta-authors">
+                                <i class="fas fa-user"></i>
+                                <a href="/authors/hao022">HAO022</a>, <a href="/authors/%E8%83%A1%E6%B4%AA">胡洪</a>
+                            </span>
+                            
+                            
+                            <span class="post-meta-tags">
+                                <a href="/tags/ebpf" class="post-meta-tag">eBPF</a><a href="/tags/tcp" class="post-meta-tag">TCP</a><a href="/tags/observability" class="post-meta-tag">Observability</a>
+                            </span>
+                            
+                        </div>
+                        
+
+                        <div id="post-content">
+                          <h3 id="overview">Overview</h3>
+<p>Requests are timing out and TCP retransmission counters are climbing. Which connections are affected, and which containers do they belong to? Node-level metrics alone rarely tell you where to look next. HUATUO tcpshark traces retransmissions in the kernel, identifies the connection phase and owning container, and correlates retransmissions with local packet drops through dropwatch. This walkthrough shows how to turn a retransmission alert into a focused investigation.</p>
+<h3 id="why-tcpshark">Why tcpshark?</h3>
+<table>
+  <thead>
+      <tr>
+          <th>Tool</th>
+          <th>What it tells you</th>
+          <th>Key limitations</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>nstat</code>, <code>netstat -s</code></td>
+          <td>Whether node-level retransmission counters are increasing</td>
+          <td>Cannot identify the connection, direction, or container</td>
+      </tr>
+      <tr>
+          <td><code>ss -ti</code></td>
+          <td>A snapshot of a socket&rsquo;s RTT, congestion state, and retransmissions</td>
+          <td>Can miss short-lived connections; does not report individual events</td>
+      </tr>
+      <tr>
+          <td>BCC <code>tcpretrans</code></td>
+          <td>Which flow is retransmitting or sending TLPs</td>
+          <td>Lacks tcpshark&rsquo;s phase classification, container attribution, and packet drop correlation</td>
+      </tr>
+      <tr>
+          <td><code>tcpdump</code>, Wireshark</td>
+          <td>Packet timing, ACK/SACK behavior, and suspected retransmissions</td>
+          <td>Requires choosing a capture point, storing traffic, and reconstructing flows; overhead can be substantial on busy nodes</td>
+      </tr>
+  </tbody>
+</table>
+<p>tcpshark instruments the following kernel paths:</p>
+<ul>
+<li><code>tcp/tcp_retransmit_skb</code>: SKB retransmissions from the regular retransmission queue.</li>
+<li><code>tcp/tcp_retransmit_synack</code>: Server-side SYN-ACK retransmissions during connection establishment.</li>
+<li><code>tcp_send_loss_probe</code>: Tail Loss Probes (TLPs).</li>
+</ul>
+<p>Each event includes the connection four-tuple, TCP state, sequence number, congestion control state, retransmission counters, and socket metadata. Userspace processing adds the <code>phase</code> and <code>tcp_reason</code> fields. Use these fields to narrow your investigation:</p>
+<ol>
+<li>Map the host&rsquo;s network namespaces to containers.</li>
+<li>Identify the affected connections and traffic direction within each container.</li>
+<li>Determine whether retransmissions occur during connection establishment, data transfer, or teardown.</li>
+</ol>
+<h3 id="using-tcpshark">Using tcpshark</h3>
+<p>Set <code>--mode retransmit</code> and point <code>--bpf-path</code> to your copy of <code>tcp_retransmit.o</code>. This example captures events for 60 seconds, filters regular retransmissions involving <code>10.0.0.1</code> and ports <code>443–444</code>, enables TLP tracing, and outputs newline-delimited JSON (NDJSON):</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo ./tcpshark --mode retransmit <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --enable-tlp <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --bpf-path bpf/tcp_retransmit.o <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --filter <span style="color:#a3be8c">&#34;tcp and host 10.0.0.1 and portrange 443-444&#34;</span> <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --duration <span style="color:#b48ead">60</span> <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --output json
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="/img/blog/2026-09-11-tcpshark-tcp-filter.png" alt="TCP retransmissions and TLP events for the target connections" loading="lazy" />
+</p>
+<p>Use these options to control what tcpshark captures and how many events it emits:</p>
+<ul>
+<li><code>--duration 60</code> stops collection after 60 seconds. Choose a duration that covers the incident window, or set it to <code>0</code> to run until tcpshark receives a termination signal.</li>
+<li><code>--enable-tlp</code> is disabled by default. Enabling it also attaches to <code>tcp_send_loss_probe</code> and emits TLP events.</li>
+<li><code>--filter</code> accepts tcpdump-style filter expressions.</li>
+<li><code>--max-events-per-second 100</code> caps the event rate at 100 events per second in the BPF program.</li>
+</ul>
+<p>When run as a standalone tool, tcpshark does not include <code>container_id</code> in its output. huatuo-bamai resolves container ownership by checking the socket&rsquo;s memory cgroup first, then the network namespace cookie, and finally the network namespace inode number (inum). In the examples below, the retransmitting connections belong to the <code>tcpshark-container-demo</code> container.</p>
+<p><img src="/img/blog/2026-09-11-tcpshark-container-cmd.png" alt="Container attribution for TCP retransmission events" loading="lazy" />
+</p>
+<p><img src="/img/blog/2026-09-11-tcpshark-container-v1.png" alt="Container attribution for TCP retransmission events" loading="lazy" />
+</p>
+<h3 id="troubleshooting-tcp-retransmissions">Troubleshooting TCP Retransmissions</h3>
+<p>An event labeled <code>tcp_reason=&quot;RTO&quot;</code> does not, by itself, prove network packet loss. Start by identifying the affected connection and its phase, then examine the retransmission path, owning container, and any evidence of packet drops.</p>
+<h4 id="step-1-identify-the-connection">Step 1: Identify the Connection</h4>
+<p>Consider the first event in the first screenshot:</p>
+<ol>
+<li><code>10.0.0.2:33342 &gt; 10.0.0.1:443</code>: The <code>tcp_saddr</code>, <code>tcp_sport</code>, <code>tcp_daddr</code>, and <code>tcp_dport</code> fields identify the connection and traffic direction.</li>
+<li><code>phase=&quot;connect&quot;</code>, <code>tcp_state=&quot;SYN_SENT&quot;</code>, and <code>tcp_flags=&quot;SYN&quot;</code> indicate that connection establishment is in progress.</li>
+<li><code>tcp_reason=&quot;RTO&quot;</code>: In the first two events, <code>icsk_retransmits</code> increases from <code>1</code> to <code>2</code>, while <code>tcp_seq</code> stays the same. The endpoint is retrying the same SYN as connection establishment stalls.</li>
+<li><code>net_namespace_inum=4026532512</code>: This identifies the network namespace associated with the event.</li>
+</ol>
+<h4 id="step-2-identify-the-connection-phase-and-retransmission-path">Step 2: Identify the Connection Phase and Retransmission Path</h4>
+<p><code>phase</code> classifies retransmissions as <code>connect</code>, <code>data</code>, or <code>close</code>. <code>tcp_reason</code> further classifies them using the event type, <code>sk_state</code>, <code>ca_state</code>, and reordering counters.</p>
+<table>
+  <thead>
+      <tr>
+          <th>Observed signal</th>
+          <th>What it means</th>
+          <th>What to check first</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>connect/RTO</code> with <code>SYN</code></td>
+          <td>The initiating endpoint is retransmitting a SYN</td>
+          <td>Routing, ACLs/firewalls, load balancers, the peer&rsquo;s listening socket, and SYN queues</td>
+      </tr>
+      <tr>
+          <td><code>tcp_retransmit_synack</code></td>
+          <td>The server is retransmitting a SYN-ACK</td>
+          <td>The return path, client state, firewalls, and handshake queues</td>
+      </tr>
+      <tr>
+          <td><code>data/RTO</code></td>
+          <td>The established connection is in the Loss state, or tcpshark classified the event as RTO using its fallback rule</td>
+          <td>Local packet drops, NICs, link congestion, peer processing, and the ACK return path</td>
+      </tr>
+      <tr>
+          <td><code>data/fast_retransmit</code></td>
+          <td>The socket was in the Recovery state when the probe fired</td>
+          <td>Packet loss, reordering, ECMP path differences, and SACK/RACK behavior</td>
+      </tr>
+      <tr>
+          <td><code>TLP</code></td>
+          <td>The kernel is sending a Tail Loss Probe</td>
+          <td>Subsequent ACKs, RTOs, and application latency; a TLP alone does not prove packet loss</td>
+      </tr>
+      <tr>
+          <td><code>close/RTO</code></td>
+          <td>A packet sent during connection teardown was not acknowledged in time</td>
+          <td>Peer shutdown, connection cleanup, the FIN path, and middlebox timeout policies</td>
+      </tr>
+  </tbody>
+</table>
+<p>Interpret these classifications in context:</p>
+<ul>
+<li><code>RTO</code> often has a significant impact on latency. Look for recurring RTOs, repeated retransmissions with the same sequence number, and events that coincide with application latency spikes.</li>
+<li><code>fast_retransmit</code> means the socket was in the Recovery state. It does not reveal the full sequence of duplicate ACKs or SACK/RACK decisions that led to recovery.</li>
+<li><code>unknown</code> means the snapshot lacks enough information to classify the event. The event is still valid and may be useful to the investigation.</li>
+</ul>
+<p>To display only RTO events, filter the JSON output:</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo ./tcpshark --mode retransmit <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --enable-tlp <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --bpf-path bpf/tcp_retransmit.o <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --filter <span style="color:#a3be8c">&#34;tcp and host 10.0.0.1 and portrange 443-444&#34;</span> <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --duration <span style="color:#b48ead">60</span> <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --output json <span style="color:#eceff4">|</span>
+</span></span><span style="display:flex;"><span>  jq --unbuffered -cC <span style="color:#a3be8c">&#39;select(.tcp_reason == &#34;RTO&#34;)&#39;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="/img/blog/2026-09-11-tcpshark-filter-rto.png" alt="Filtering for RTO retransmission events" loading="lazy" />
+</p>
+<h4 id="step-3-look-for-persistent-patterns">Step 3: Look for Persistent Patterns</h4>
+<p>These patterns warrant closer investigation:</p>
+<ul>
+<li><code>icsk_retransmits</code> keeps increasing.</li>
+<li>Multiple affected connections share a destination address, port, or workload.</li>
+<li>RTOs coincide with increased application latency, timeouts, or reduced throughput.</li>
+</ul>
+<p>Group events to see which retransmission patterns dominate. The following command saves the NDJSON output and counts events by connection phase, retransmission reason, and event type:</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">13
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>./_output/bin/tcpshark <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --mode retransmit <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --enable-tlp <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --bpf-path ./_output/bpf/tcp_retransmit.o <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --filter <span style="color:#a3be8c">&#39;tcp and portrange 19991-19998&#39;</span> <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --duration <span style="color:#b48ead">90</span> <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --output json <span style="color:#eceff4">|</span>
+</span></span><span style="display:flex;"><span>  tee tcpshark.ndjson <span style="color:#eceff4">|</span>
+</span></span><span style="display:flex;"><span>  jq -r <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>    <span style="color:#a3be8c">&#39;[.phase, .tcp_reason, .event_type] | @tsv&#39;</span> <span style="color:#eceff4">|</span>
+</span></span><span style="display:flex;"><span>  sort <span style="color:#eceff4">|</span>
+</span></span><span style="display:flex;"><span>  uniq -c <span style="color:#eceff4">|</span>
+</span></span><span style="display:flex;"><span>  sort -nr
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><img src="/img/blog/2026-09-11-tcpshark-statistic.png" alt="TCP retransmission counts by phase, reason, and event type" loading="lazy" />
+</p>
+<h4 id="step-4-enable-packet-drop-detection">Step 4: Enable Packet Drop Detection</h4>
+<p>Add <code>--with-dropwatch</code> to trace local packet drops and automatically correlate them with retransmissions. This helps establish whether packets are being dropped in the local network stack.</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>./_output/bin/tcpshark <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --mode retransmit <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --with-dropwatch <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --bpf-path-dir ./_output/bpf <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --filter <span style="color:#a3be8c">&#39;tcp and port 19997&#39;</span> <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --output json <span style="color:#eceff4">|</span> jq --unbuffered -cC <span style="color:#a3be8c">&#39;select(.drop_location == &#34;host_software&#34;)&#39;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><img src="/img/blog/2026-09-11-tcpshark-correlation.png" alt="TCP retransmission and dropwatch correlation results with a stack trace for a local software packet drop" style="zoom:150%;" />
+<h3 id="continuous-monitoring-with-huatuo-bamai">Continuous Monitoring with huatuo-bamai</h3>
+<p>For ongoing monitoring, configure huatuo-bamai to trace TCP retransmissions on physical hosts and in containers. The following configuration sets the filter and event rate limit, and enables TLP tracing and packet drop correlation:</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-toml" data-lang="toml"><span style="display:flex;"><span><span style="color:#eceff4">[</span>EventTracing<span style="color:#eceff4">.</span>TCPRetransmit<span style="color:#eceff4">]</span>
+</span></span><span style="display:flex;"><span>Filter <span style="color:#eceff4">=</span> <span style="color:#a3be8c">&#34;tcp and port 443&#34;</span>
+</span></span><span style="display:flex;"><span>EnableTLP <span style="color:#eceff4">=</span> <span style="color:#81a1c1;font-weight:bold">true</span>
+</span></span><span style="display:flex;"><span>MaxEventsPerSecond <span style="color:#eceff4">=</span> <span style="color:#b48ead">100</span>
+</span></span><span style="display:flex;"><span>EnableDropwatchCorrelation <span style="color:#eceff4">=</span> <span style="color:#81a1c1;font-weight:bold">true</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>The global <code>BlackList</code> disables the <code>tcp_retransmit</code> tracer by default. To enable it, remove its entry and restart huatuo-bamai. Correlation uses tcpshark&rsquo;s built-in dropwatch source, so the standalone <code>dropwatch</code> tracer can remain in the <code>BlackList</code>. Enable that tracer only if you also need to record raw packet drop events separately.</p>
+<p>For full details on options, fields, and classification rules, see the <a href="https://docs.huatuo.tech/zh/latest/best-practice/tcpshark/">tcpshark documentation</a>.</p>
+<p>Project repository: <a href="https://github.com/ccfos/huatuo">github.com/ccfos/huatuo</a></p>
+
+                        </div>
+
+                        
+                        <div id="comments">
+                            
+                            <script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="en"
+        crossorigin="anonymous"
+        async>
+</script>
+
+                        </div>
+                        
+
+                    </div>
+
+                    <div class="col-md-3">
+                        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">Tags</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/tags/ai"><i class="fas fa-tags"></i> ai</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ascend"><i class="fas fa-tags"></i> ascend</a>
+            </li>
+            
+            <li >
+                <a href="/tags/blkio"><i class="fas fa-tags"></i> blkio</a>
+            </li>
+            
+            <li >
+                <a href="/tags/bpf"><i class="fas fa-tags"></i> bpf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/bpf-foundation"><i class="fas fa-tags"></i> bpf foundation</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ccf"><i class="fas fa-tags"></i> ccf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/containers"><i class="fas fa-tags"></i> containers</a>
+            </li>
+            
+            <li >
+                <a href="/tags/cpuidle"><i class="fas fa-tags"></i> cpuidle</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ebpf"><i class="fas fa-tags"></i> ebpf</a>
+            </li>
+            
+            <li >
+                <a href="/tags/fault-detection"><i class="fas fa-tags"></i> fault detection</a>
+            </li>
+            
+            <li >
+                <a href="/tags/go"><i class="fas fa-tags"></i> go</a>
+            </li>
+            
+            <li >
+                <a href="/tags/gpu"><i class="fas fa-tags"></i> gpu</a>
+            </li>
+            
+            <li >
+                <a href="/tags/hao022"><i class="fas fa-tags"></i> hao022</a>
+            </li>
+            
+            <li >
+                <a href="/tags/k8s"><i class="fas fa-tags"></i> k8s</a>
+            </li>
+            
+            <li >
+                <a href="/tags/linux-%e5%86%85%e6%a0%b8"><i class="fas fa-tags"></i> linux 内核</a>
+            </li>
+            
+            <li >
+                <a href="/tags/loadavg"><i class="fas fa-tags"></i> loadavg</a>
+            </li>
+            
+            <li >
+                <a href="/tags/memory"><i class="fas fa-tags"></i> memory</a>
+            </li>
+            
+            <li >
+                <a href="/tags/moore-threads"><i class="fas fa-tags"></i> moore threads</a>
+            </li>
+            
+            <li >
+                <a href="/tags/net"><i class="fas fa-tags"></i> net</a>
+            </li>
+            
+            <li >
+                <a href="/tags/networking"><i class="fas fa-tags"></i> networking</a>
+            </li>
+            
+            <li >
+                <a href="/tags/news"><i class="fas fa-tags"></i> news</a>
+            </li>
+            
+            <li >
+                <a href="/tags/npu"><i class="fas fa-tags"></i> npu</a>
+            </li>
+            
+            <li >
+                <a href="/tags/observability"><i class="fas fa-tags"></i> observability</a>
+            </li>
+            
+            <li >
+                <a href="/tags/open-source"><i class="fas fa-tags"></i> open source</a>
+            </li>
+            
+            <li >
+                <a href="/tags/rdma"><i class="fas fa-tags"></i> rdma</a>
+            </li>
+            
+            <li >
+                <a href="/tags/recognition"><i class="fas fa-tags"></i> recognition</a>
+            </li>
+            
+            <li >
+                <a href="/tags/tcp"><i class="fas fa-tags"></i> tcp</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8a%a8%e6%80%81"><i class="fas fa-tags"></i> 动态</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%8f%af%e8%a7%82%e6%b5%8b%e6%80%a7"><i class="fas fa-tags"></i> 可观测性</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%90%88%e4%bd%9c"><i class="fas fa-tags"></i> 合作</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%a4%9c%e8%8e%ba%e7%9b%91%e6%8e%a7"><i class="fas fa-tags"></i> 夜莺监控</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e5%bc%80%e6%ba%90"><i class="fas fa-tags"></i> 开源</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e6%95%85%e9%9a%9c"><i class="fas fa-tags"></i> 故障</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%81%ab%e7%84%b0%e5%9b%be"><i class="fas fa-tags"></i> 火焰图</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%a4%be%e5%8c%ba"><i class="fas fa-tags"></i> 社区</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e7%bd%91%e7%bb%9c%e4%bc%98%e5%8c%96"><i class="fas fa-tags"></i> 网络优化</a>
+            </li>
+            
+            <li >
+                <a href="/tags/%e8%8d%a3%e8%aa%89"><i class="fas fa-tags"></i> 荣誉</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <footer id="footer">
+    <div class="container">
+        
+        
+        
+        
+        <div class="row">
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>Official Certifications</h4>
+                <div class="footer-certifications">
+                    
+                    <a href="https://landscape.cncf.io/?item=observability-and-analysis--observability--huatuo" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="CNCF Landscape">
+                        <img src="/img/certifications/cncf.png" alt="CNCF Landscape" />
+                    </a>
+                    
+                    <a href="https://ebpf.foundation/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="eBPF Foundation">
+                        <img src="/img/certifications/ebpf-foundation.png" alt="eBPF Foundation" />
+                    </a>
+                    
+                    <a href="https://prometheus.io/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="prometheus">
+                        <img src="/img/certifications/prometheus-logo.png" alt="prometheus" />
+                    </a>
+                    
+                    <a href="https://www.ccf.org.cn/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="ccf">
+                        <img src="/img/certifications/ccf.png" alt="ccf" />
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>About us</h4>
+                Linux kernel developers, and observability developers.
+            </div>
+            
+            
+        </div>
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026, HUATUO Open Source Community.</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+<script src="/js/front.js?1790251448"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>
