@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tags on HUATUO 开源社区</title>
+    <link>https://huatuo.tech/zh/tags/</link>
+    <description>Recent content in Tags on HUATUO 开源社区</description>
+    <generator>Hugo</generator>
+    <language>zh</language>
+    <lastBuildDate>Sat, 10 Oct 2026 10:29:04 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/zh/tags/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>BPF</title>
+      <link>https://huatuo.tech/zh/tags/bpf/</link>
+      <pubDate>Sat, 10 Oct 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/tags/bpf/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>IRQ</title>
+      <link>https://huatuo.tech/zh/tags/irq/</link>
+      <pubDate>Sat, 10 Oct 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/tags/irq/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Observability</title>
+      <link>https://huatuo.tech/zh/tags/observability/</link>
+      <pubDate>Sat, 10 Oct 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/tags/observability/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Go</title>
+      <link>https://huatuo.tech/zh/tags/go/</link>
+      <pubDate>Fri, 09 Oct 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/tags/go/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Memory</title>
+      <link>https://huatuo.tech/zh/tags/memory/</link>
+      <pubDate>Fri, 09 Oct 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/tags/memory/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>AI</title>
+      <link>https://huatuo.tech/zh/tags/ai/</link>
+      <pubDate>Fri, 18 Sep 2026 15:30:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/tags/ai/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Faults</title>
+      <link>https://huatuo.tech/zh/tags/faults/</link>
+      <pubDate>Fri, 18 Sep 2026 15:30:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/tags/faults/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>GPU</title>
+      <link>https://huatuo.tech/zh/tags/gpu/</link>
+      <pubDate>Fri, 18 Sep 2026 15:30:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/tags/gpu/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Moore Threads</title>
+      <link>https://huatuo.tech/zh/tags/moore-threads/</link>
+      <pubDate>Fri, 18 Sep 2026 15:30:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/tags/moore-threads/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>TCP</title>
+      <link>https://huatuo.tech/zh/tags/tcp/</link>
+      <pubDate>Fri, 11 Sep 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/tags/tcp/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Community</title>
+      <link>https://huatuo.tech/zh/tags/community/</link>
+      <pubDate>Mon, 31 Aug 2026 19:58:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/tags/community/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>CCF</title>
+      <link>https://huatuo.tech/zh/tags/ccf/</link>
+      <pubDate>Tue, 18 Aug 2026 16:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/tags/ccf/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>News</title>
+      <link>https://huatuo.tech/zh/tags/news/</link>
+      <pubDate>Tue, 18 Aug 2026 16:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/tags/news/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Open Source</title>
+      <link>https://huatuo.tech/zh/tags/open-source/</link>
+      <pubDate>Tue, 18 Aug 2026 16:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/tags/open-source/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Recognition</title>
+      <link>https://huatuo.tech/zh/tags/recognition/</link>
+      <pubDate>Tue, 18 Aug 2026 16:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/tags/recognition/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Networking</title>
+      <link>https://huatuo.tech/zh/tags/networking/</link>
+      <pubDate>Tue, 04 Aug 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/tags/networking/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Ascend</title>
+      <link>https://huatuo.tech/zh/tags/ascend/</link>
+      <pubDate>Wed, 29 Jul 2026 10:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/tags/ascend/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>NPU</title>
+      <link>https://huatuo.tech/zh/tags/npu/</link>
+      <pubDate>Wed, 29 Jul 2026 10:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/tags/npu/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>BLKIO</title>
+      <link>https://huatuo.tech/zh/tags/blkio/</link>
+      <pubDate>Tue, 05 May 2026 23:17:00 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/tags/blkio/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>RDMA</title>
+      <link>https://huatuo.tech/zh/tags/rdma/</link>
+      <pubDate>Tue, 14 Apr 2026 06:36:13 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/tags/rdma/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Collaboration</title>
+      <link>https://huatuo.tech/zh/tags/collaboration/</link>
+      <pubDate>Mon, 10 Nov 2025 19:12:53 -0500</pubDate>
+      <guid>https://huatuo.tech/zh/tags/collaboration/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>HAO022</title>
+      <link>https://huatuo.tech/zh/tags/hao022/</link>
+      <pubDate>Wed, 11 Jun 2025 22:23:43 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/tags/hao022/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>K8S</title>
+      <link>https://huatuo.tech/zh/tags/k8s/</link>
+      <pubDate>Wed, 11 Jun 2025 22:23:43 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/tags/k8s/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Linux Kernel</title>
+      <link>https://huatuo.tech/zh/tags/linux-kernel/</link>
+      <pubDate>Wed, 11 Jun 2025 22:23:43 -0400</pubDate>
+      <guid>https://huatuo.tech/zh/tags/linux-kernel/</guid>
+      <description></description>
+    </item>
+  </channel>
+</rss>

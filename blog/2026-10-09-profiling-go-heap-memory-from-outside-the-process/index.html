@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<script>
+  (function (root) {
+    var theme
+    try { theme = localStorage.getItem('huatuo-theme') } catch {}
+    root.dataset.theme = theme === 'light' || theme === 'dark'
+      ? theme
+      : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+  }(document.documentElement))
+</script>
+
+<title>Profiling Go Heap Memory from Outside the Process</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, Go, Memory, Observability">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' rel='stylesheet'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1791628155" rel="stylesheet">
+<link href="/css/theme.css?1791628155" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+<link rel="android-chrome-icon" href="/img/android-chrome-512x512.png" />
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="Linux Kernel, Cloud-native and AI Infra Observability.">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en">
+<meta property="og:site_name" content="Linux Kernel, Cloud-native and AI Infra Observability.">
+<meta property="og:title" content="Profiling Go Heap Memory from Outside the Process">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/blog/2026-10-09-profiling-go-heap-memory-from-outside-the-process/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2026-10-09-go-heap-profiling-cover.png">
+<meta property="og:image:type" content="image/png">
+
+
+
+  <meta property="og:image:width" content="1600">
+  <meta property="og:image:height" content="816">
+
+
+<meta property="og:updated_time" content="2026-10-10T10:29:04Z">
+
+  
+  
+  
+  <meta property="article:tag" content="Go">
+  <meta property="article:tag" content="Memory">
+  <meta property="article:tag" content="Observability">
+  
+  
+  <meta property="article:published_time" content="2026-10-09T12:00:00&#43;0800">
+  <meta property="article:modified_time" content="2026-10-10T10:29:04Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="Profiling Go Heap Memory from Outside the Process">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2026-10-09-go-heap-profiling-cover.png">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+  </head>
+
+  <body><div id="all" class="has-page-hero">
+
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+              🚀  Listed in the CNCF Landscape and eBPF Foundation Emerging Project. If you like this project, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>!  ❤️
+          </p>
+        
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/huatuo-logo-v4.png" alt="Profiling Go Heap Memory from Outside the Process logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/huatuo-logo-v4.png" alt="Profiling Go Heap Memory from Outside the Process logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">Profiling Go Heap Memory from Outside the Process - go to homepage</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">Toggle Navigation</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-cubes theme-icon nav-icon nav-menu-icon'></i>Projects <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                            <li><a href="/projects/huatuo/">HUATUO（华佗）</a></li>
+                            
+                            
+                            
+                            <li><a href="/projects/go-pcap/">Go-pcap</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-book theme-icon nav-icon nav-menu-icon'></i>Docs <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/en/latest/" data-theme-link>Latest</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/en/v2.3.0/" data-theme-link>V2.3.0</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/en/v2.2.0/" data-theme-link>V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    <a href="/blog/"><i class='fas fa-pen-nib theme-icon nav-icon nav-menu-icon'></i>Blog</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/milestone/"><i class='fas fa-rss theme-icon nav-icon nav-menu-icon'></i>News</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/about/"><i class='fas fa-info-circle theme-icon nav-icon nav-menu-icon'></i>About</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <button type="button"
+                            class="dropdown-toggle nav-control"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                      <i class="fas fa-globe theme-icon nav-icon"></i>
+                      English
+                      <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                      
+                      
+                      
+                        
+                        
+                        
+                          
+                            
+                          
+                        
+                          
+                        
+                        
+                        
+                        <li class="active">
+                          <a href="/blog/2026-10-09-profiling-go-heap-memory-from-outside-the-process/" class="language-option" aria-current="page">
+                            <i class="language-check fas fa-check" aria-hidden="true"></i>
+                            English
+                          </a>
+                        </li>
+                      
+                        
+                        
+                        
+                          
+                        
+                          
+                            
+                          
+                        
+                        
+                        
+                        <li>
+                          <a href="/zh/blog/2026-10-09-profiling-go-heap-memory-from-outside-the-process/" class="language-option">
+                            <i class="language-check" aria-hidden="true"></i>
+                            中文
+                          </a>
+                        </li>
+                      
+                    </ul>
+                  </li>
+                  
+                  
+
+                  
+                  
+                  
+                  <li class="theme-toggle-item">
+                    <button type="button"
+                            class="nav-control theme-toggle"
+                            data-theme-toggle
+                            data-light-label="Switch to light theme"
+                            data-dark-label="Switch to dark theme"
+                            aria-label="Switch to dark theme"
+                            aria-pressed="false">
+                      <span class="theme-toggle-track" aria-hidden="true">
+                        <span class="theme-toggle-thumb">
+                          <i class="theme-toggle-icon fas fa-sun"></i>
+                        </span>
+                      </span>
+                      <span class="sr-only theme-toggle-text">Switch to dark theme</span>
+                    </button>
+                  </li>
+                  
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars"
+                         onerror="this.style.display='none'">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        
+        
+        
+        <div class="page-hero">
+    <div class="page-hero-grid"></div>
+    <div class="page-hero-glow"></div>
+    <div class="page-hero-inner">
+        <div class="page-hero-title-row">
+            <div class="page-hero-icon"><i class="fas fa-pen-nib theme-icon"></i></div>
+            <h1 class="page-hero-title">Blog</h1>
+        </div>
+    </div>
+</div>
+
+        
+
+        <div id="content">
+            <div class="container">
+                <div class="row">
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                        <h1 class="post-title">Profiling Go Heap Memory from Outside the Process</h1>
+                        <div class="post-meta">
+                            <span class="post-meta-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                2026-10-09
+                            </span>
+                            
+                            <span class="post-meta-authors">
+                                <i class="fas fa-user"></i>
+                                <a href="/authors/hao022">HAO022</a>
+                            </span>
+                            
+                            
+                            <span class="post-meta-tags">
+                                <a href="/tags/go" class="post-meta-tag">Go</a><a href="/tags/memory" class="post-meta-tag">Memory</a><a href="/tags/observability" class="post-meta-tag">Observability</a>
+                            </span>
+                            
+                        </div>
+                        
+
+                        <div id="post-content">
+                          <h3 id="abstract">Abstract</h3>
+<p>When an application does not expose a heap profile endpoint, process-level memory metrics cannot attribute memory use to Go allocation stack traces. This article examines the Go runtime&rsquo;s heap sampling model, profile bucket layout, and publication of statistics across GC cycles. It then explains how Huatuo locates the runtime data from outside the process, reads published <code>active</code> counters and allocation stacks, scales the samples, and produces a snapshot of in-use heap allocation hotspots. The method reuses existing runtime statistics. It requires sampling to be enabled, published statistics to exist, a supported runtime layout, and permission to read process memory; it does not require an HTTP export endpoint.</p>
+<p><strong>Keywords:</strong> Go; heap sampling; pprof; out-of-process collection; sample scaling; Huatuo</p>
+<h3 id="1-introduction">1. Introduction</h3>
+<p>Process RSS and container memory usage reveal memory pressure, but these totals do not identify the Go allocation stacks responsible for it. A Go heap profile groups statistics by allocation site. Collecting one conventionally requires an HTTP endpoint or an application call that writes the profile to a file. When neither is available, runtime sampling statistics may still exist and can potentially be read from outside the process.</p>
+<p>The question is how to obtain heap statistics grouped by allocation stack without invoking a profile export function in the target process, and how to define what those statistics mean. Here, a <em>heap snapshot</em> means runtime sampling statistics read and aggregated during a collection window. It does not contain individual object addresses, type fields, or an object reference graph, and collection is not assumed to be atomic.</p>
+<p>The analysis follows Huatuo&rsquo;s Go provider. It covers the relevant 64-bit layouts at the listed Go 1.18–1.26 version tags, along with Huatuo&rsquo;s variable lookup, batched reads, in-use estimation, and symbolization. The aim is to connect sampled objects, cycle counters, and output metrics; explain external collection and version compatibility; and identify the effects of sampling, publication timing, and concurrent reads. The analysis is based on source code and the sampling model.</p>
+<h3 id="2-background-and-related-work">2. Background and Related Work</h3>
+<h4 id="21-how-pprof-represents-heap-statistics">2.1 How pprof Represents Heap Statistics</h4>
+<p>A Go heap profile groups object counts and byte counts by allocation stack trace. It supports analysis of both cumulative allocations and in-use memory. For an application exposing the pprof HTTP endpoint, the following commands collect a profile and display in-use bytes and objects:</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>curl -fsS -o heap.pb.gz <span style="color:#a3be8c">&#39;http://127.0.0.1:6060/debug/pprof/heap&#39;</span>
+</span></span><span style="display:flex;"><span>go tool pprof -top -inuse_space heap.pb.gz
+</span></span><span style="display:flex;"><span>go tool pprof -top -inuse_objects heap.pb.gz
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Besides the <a href="https://pkg.go.dev/net/http/pprof">HTTP endpoint</a>, an application can call <a href="https://github.com/golang/go/blob/go1.26.0/src/runtime/pprof/pprof.go"><code>runtime/pprof.WriteHeapProfile</code></a> to write a heap profile to a file. Both export paths use the same kind of runtime statistics.</p>
+<p>The following illustrative <code>-inuse_space</code> output shows the meaning of the columns:</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>Type: inuse_space
+</span></span><span style="display:flex;"><span>Showing nodes accounting for 96MB, 100% of 96MB total
+</span></span><span style="display:flex;"><span>      flat  flat%   sum%        cum   cum%
+</span></span><span style="display:flex;"><span>      64MB 66.67% 66.67%       64MB 66.67%  example/cache.allocate
+</span></span><span style="display:flex;"><span>      32MB 33.33%   100%       32MB 33.33%  example/response.encode
+</span></span><span style="display:flex;"><span>         0     0%   100%       96MB   100%  example/api.Handle
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>top</code> aggregates values by function. <code>flat</code> is the sample weight attributed directly to a function; <code>cum</code> includes the weight attributed to that function and its callees. In this example, <code>Handle</code> makes no direct allocations, while the two downstream paths account for 96 MB, giving it <code>flat=0</code> and <code>cum=96 MB</code>. Cumulative values can overlap across rows and must not be summed to estimate the total. <code>sum%</code> is the running sum of <code>flat%</code>. <a href="https://github.com/google/pprof/blob/main/doc/README.md">pprof documentation</a></p>
+<p>Figure 1: Allocation call paths and pprof attribution.</p>
+<img src="/img/blog/2026-10-09-go-heap-profiling-pprof-call-tree.png" alt="Allocation call paths and pprof attribution" width="1769" height="1146" style="width: 424.404px; max-width: 100%; height: auto;" loading="lazy" />
+<p>pprof attributes memory to allocation sites. It does not expose individual object addresses, types, fields, or reference relationships. Call graphs and flame graphs visualize the selected sample type, not the arrangement of objects in the heap.</p>
+<p>Table 1: pprof sample types, meanings, and uses.</p>
+<table>
+  <thead>
+      <tr>
+          <th>Sample type</th>
+          <th>Meaning</th>
+          <th>Use</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>alloc_objects</code></td>
+          <td>Cumulative allocated objects, including objects already freed</td>
+          <td>Compare allocation counts between two points in time</td>
+      </tr>
+      <tr>
+          <td><code>alloc_space</code></td>
+          <td>Cumulative allocated bytes, including memory already freed</td>
+          <td>Find allocation hotspots for temporary objects</td>
+      </tr>
+      <tr>
+          <td><code>inuse_objects</code></td>
+          <td>Objects whose frees have not been accounted for</td>
+          <td>Find allocation sites retaining many objects</td>
+      </tr>
+      <tr>
+          <td><code>inuse_space</code></td>
+          <td>Bytes whose frees have not been accounted for</td>
+          <td>Find the main contributors to heap memory use</td>
+      </tr>
+  </tbody>
+</table>
+<h4 id="22-the-data-available-to-an-external-collector">2.2 The Data Available to an External Collector</h4>
+<p>Go heap profiles use a linked list of statistics rooted at <code>runtime.mbuckets</code>; export does not require scanning every application heap object. Collection can therefore be framed as locating, reading, and interpreting these statistics from outside a process, provided sampling is enabled, the runtime layout is recognized, and read permissions are available. Huatuo currently estimates in-use memory from published <code>active</code> counters only. Pending events in <code>future</code> do not enter the calculation.</p>
+<p>Figure 2: pprof and Huatuo use the same runtime statistics.</p>
+<img src="/img/blog/2026-10-09-go-heap-profiling-shared-runtime-source.png" alt="The runtime statistics shared by pprof and Huatuo" width="1835" height="1239" style="width: 440.304px; max-width: 100%; height: auto;" loading="lazy" />
+<h3 id="3-gos-heap-sampling-model">3. Go&rsquo;s Heap Sampling Model</h3>
+<h4 id="31-linking-sampled-allocations-to-frees">3.1 Linking Sampled Allocations to Frees</h4>
+<p>Memory sampling operates on the runtime&rsquo;s heap allocation blocks. When an allocation is sampled, the runtime captures its allocation stack trace and records its allocation count and byte count in the corresponding bucket. When sweeping reclaims the object, the runtime updates that bucket&rsquo;s free counters.</p>
+<p>Figure 3: Accounting for a sampled object from allocation to free.</p>
+<img src="/img/blog/2026-10-09-go-heap-profiling-allocation-and-free.png" alt="Accounting for a sampled allocation and its free" width="1776" height="1406" style="width: 426.12px; max-width: 100%; height: auto;" loading="lazy" />
+<h4 id="32-sampling-probability-and-estimation">3.2 Sampling Probability and Estimation</h4>
+<p>Let <code>R=runtime.MemProfileRate</code>, measured in bytes. The runtime generates exponentially distributed sampling intervals, reaching a sampling point after roughly <code>R</code> allocated bytes on average. <code>mcache.nextSample</code> holds the remaining interval and is reset when a sampling point is reached. Snapshot collection does not resample existing objects.</p>
+<ul>
+<li><code>R=0</code> disables sampling.</li>
+<li><code>R=1</code> records every allocation block.</li>
+<li>For <code>R&gt;1</code>, shorter intervals generally yield more samples and increase the cost of stack capture and accounting.</li>
+</ul>
+<p>For <code>R&gt;1</code>, let <code>s</code> be the allocation block size in bytes. <code>p(s)</code> is the probability that the block is sampled, and <code>exp(x)=e^x</code>. In the Poisson sampling model over cumulative allocated bytes, the probability that an interval of length <code>s</code> contains no sampling point is <code>exp(-s/R)</code>. The probability of at least one sampling point is therefore:</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>p(s) = 1 - exp(-s / R)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Figure 4: Sampling probability and the small-allocation approximation.</p>
+<img src="/img/blog/2026-10-09-go-heap-profiling-sampling-probability.png" alt="Sampling probability and the small-allocation range" width="2145" height="1093" style="width: 514.584px; max-width: 100%; height: auto;" loading="lazy" />
+<p>The left plot uses <code>s/R</code> on the horizontal axis. Because <code>R</code> is the mean of a random interval, an allocation of size <code>s=R</code> has a sampling probability of about 63.21%, rather than 100%. The probability approaches 100% as allocation size increases. The right plot fixes <code>R=512 KiB</code> and compares the exponential model with the linear approximation <code>s/R</code>. The two agree closely only when <code>s</code> is much smaller than <code>R</code>. These are model curves, not experimental measurements.</p>
+<p>For example, with <code>R=512 KiB</code>:</p>
+<p>Table 2: Sampling probabilities and scaling weights at different allocation sizes.</p>
+<table>
+  <thead>
+      <tr>
+          <th>Allocation block size</th>
+          <th style="text-align: right">Sampling probability</th>
+          <th style="text-align: right">Scaling weight</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>4 KiB</td>
+          <td style="text-align: right">About 0.78%</td>
+          <td style="text-align: right">About 128.50</td>
+      </tr>
+      <tr>
+          <td>128 KiB</td>
+          <td style="text-align: right">About 22.12%</td>
+          <td style="text-align: right">About 4.52</td>
+      </tr>
+      <tr>
+          <td>512 KiB</td>
+          <td style="text-align: right">About 63.21%</td>
+          <td style="text-align: right">About 1.58</td>
+      </tr>
+      <tr>
+          <td>1 MiB</td>
+          <td style="text-align: right">About 86.47%</td>
+          <td style="text-align: right">About 1.16</td>
+      </tr>
+  </tbody>
+</table>
+<p>For equal-sized allocations, let <code>N</code> be the actual allocation count and <code>n</code> the sampled count. The model gives <code>E[n]=N·p(s)</code>, with the estimator <code>N̂=n/p(s)</code>. Each sampled 4 KiB allocation thus receives a weight of about 128.50. The estimate remains subject to random variation, with greater uncertainty when samples are sparse. Recording all allocations at <code>R=1</code> requires no scaling; the formula does not apply when sampling is disabled at <code>R=0</code>.</p>
+<p>Because sampling probability varies with allocation size, samples must be scaled separately by size. Huatuo also needs the target process&rsquo;s actual sampling rate. Section 3.3 describes how the effective rate is determined, and Section 5.1 discusses the effect of changes to that rate over time. <a href="https://github.com/golang/go/blob/go1.26.0/src/runtime/malloc.go">nextSample</a>, <a href="https://github.com/golang/go/blob/go1.26.0/src/runtime/pprof/protomem.go">scaleHeapSample</a></p>
+<h4 id="33-enabling-sampling-and-resolving-configuration-overrides">3.3 Enabling Sampling and Resolving Configuration Overrides</h4>
+<p><code>runtime.MemProfile</code> reads statistics. Whether sampling continues depends on the effective runtime value of <code>MemProfileRate</code>. The configuration precedence below follows the Go 1.26 documentation and source.</p>
+<p>Table 3: Configuration and linking conditions that affect heap sampling in Go 1.26.</p>
+<table>
+  <thead>
+      <tr>
+          <th>Factor</th>
+          <th>Effect on sampling</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>Initial source value</td>
+          <td>The initial value is <code>512 * 1024</code>, but startup can override it. It does not guarantee that sampling is enabled in every program. <a href="https://github.com/golang/go/blob/go1.26.0/src/runtime/mprof.go#L866">Variable definition</a></td>
+      </tr>
+      <tr>
+          <td>Startup <code>GODEBUG</code></td>
+          <td><code>memprofilerate=N</code> sets the rate; <code>0</code> disables sampling. The runtime or application can subsequently override it. <a href="https://github.com/golang/go/blob/go1.26.0/src/runtime/runtime1.go#L532">Parsing logic</a></td>
+      </tr>
+      <tr>
+          <td>Reachability of the profile reader</td>
+          <td>If <code>runtime.memProfileInternal</code> is unreachable and the linking-mode condition is met, the linker sets <code>disableMemoryProfiling</code>, causing runtime startup to clear the rate. Reachability is a build-time property of references; the reader need not have executed. <a href="https://github.com/golang/go/blob/go1.26.0/src/cmd/link/internal/ld/lib.go#L910">Linker logic</a></td>
+      </tr>
+      <tr>
+          <td>Go linking mode</td>
+          <td>Automatic disablement requires <code>!DynlinkingGo()</code>. Go shared builds, <code>-linkshared</code>, plugins, and related modes affect this condition. Using cgo or dynamically linking libc alone does not determine the outcome. <a href="https://github.com/golang/go/blob/go1.26.0/src/cmd/link/internal/ld/lib.go#L285">Mode check</a></td>
+      </tr>
+      <tr>
+          <td>Application or library assignment</td>
+          <td>Assigning a positive value in <code>init()</code>, <code>main()</code>, or elsewhere enables sampling; assigning <code>0</code> disables it. An assignment can also re-enable sampling after startup cleared the rate. Set it once, as early as possible, and keep it stable. <a href="https://pkg.go.dev/runtime@go1.26.0#MemProfileRate">Usage contract</a></td>
+      </tr>
+      <tr>
+          <td>Test flags</td>
+          <td><code>go test -memprofilerate=N</code> sets the rate before tests start. In Go 1.26, it assigns a value only when <code>N&gt;0</code>; <code>N=0</code> leaves the current value unchanged. <a href="https://github.com/golang/go/blob/go1.26.0/src/testing/testing.go#L2600">testing implementation</a></td>
+      </tr>
+  </tbody>
+</table>
+<p>Figure 5: Sampling-rate overrides and the final enablement condition in Go 1.26.</p>
+<img src="/img/blog/2026-10-09-go-heap-profiling-memprofile-enablement.png" alt="Sampling-rate overrides and the final enablement condition" width="1877" height="1896" style="width: 450.276px; max-width: 100%; height: auto;" loading="lazy" />
+<p>After parsing startup configuration, the runtime checks <code>disableMemoryProfiling</code>. If it is <code>true</code>, the runtime sets <code>MemProfileRate</code> to zero. If it is <code>false</code>, the previous value is retained, and that value may already be zero. A <code>false</code> flag therefore does not imply that sampling is enabled, and a positive <code>GODEBUG=memprofilerate=...</code> setting alone does not guarantee it. The application can subsequently enable sampling by assigning <code>MemProfileRate</code>, without explicitly calling <code>runtime.MemProfile</code> or starting an HTTP server. This affects only later allocations; it cannot reconstruct allocations that were never sampled. <a href="https://github.com/golang/go/blob/go1.26.0/src/runtime/proc.go#L907">Startup order</a>, <a href="https://github.com/golang/go/blob/go1.26.0/src/runtime/malloc.go#L2234">Allocation sampling</a></p>
+<p>The official <code>TestMemProfileCheck</code> verifies that reachable uses of <code>runtime.MemProfile</code>, <code>pprof.WriteHeapProfile</code>, <code>pprof.Lookup(&quot;heap&quot;)</code>, or <code>pprof.Profiles()</code>, as well as a blank <code>import _ &quot;net/http/pprof&quot;</code>, can retain the default sampling path. Dependencies may make these paths reachable indirectly. If the rate is subsequently set to <code>0</code>, sampling still stops. <a href="https://github.com/golang/go/blob/go1.26.0/src/cmd/link/internal/ld/ld_test.go#L251">Official test</a></p>
+<h4 id="34-bucket-keys-and-linked-lists">3.4 Bucket Keys and Linked Lists</h4>
+<p>The runtime groups samples by <code>(profile type, full allocation stack, allocation size)</code>. Different allocation sizes at the same stack use different buckets; multiple equal-sized samples can share one bucket. Reclaiming an object increments free counters without deleting the bucket.</p>
+<p>Figure 6: The hash chain supports lookup; the allnext chain supports traversal.</p>
+<img src="/img/blog/2026-10-09-go-heap-profiling-bucket-lists.png" alt="Hash-chain lookup and allnext traversal" width="2076" height="892" style="width: 498.012px; max-width: 100%; height: auto;" loading="lazy" />
+<p>Huatuo first reads the head pointer stored in <code>runtime.mbuckets</code>, then follows <code>allnext</code>. The <code>next</code> field links collision entries within one hash slot and serves a different purpose. Buckets are allocated by the persistent allocator and prepended to the profile list. Existing headers, stacks, and links remain unchanged while counters continue to update. <a href="https://github.com/golang/go/blob/go1.19/src/runtime/mprof.go">bucket and stkbucket</a></p>
+<h4 id="35-bucket-layout-and-counter-fields">3.5 Bucket Layout and Counter Fields</h4>
+<p>In the 64-bit layouts examined here, a bucket consists of a 48-byte header, <code>nstk</code> PCs, and a 128-byte counter record stored contiguously. The PC area is not a slice header, nor does it reserve space for the maximum stack depth.</p>
+<p>Figure 7: Bucket memory layout; offsets are in bytes.</p>
+<img src="/img/blog/2026-10-09-go-heap-profiling-bucket-layout.png" alt="Bucket memory layout with byte offsets" width="1745" height="1547" style="width: 418.644px; max-width: 100%; height: auto;" loading="lazy" />
+<p>Each <code>memRecordCycle</code> contains four <code>uintptr</code> sample counters:</p>
+<p>Table 4: Field layout of a 64-bit memRecordCycle.</p>
+<table>
+  <thead>
+      <tr>
+          <th style="text-align: right">Relative offset</th>
+          <th>Field</th>
+          <th>Meaning</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td style="text-align: right">0</td>
+          <td><code>allocs</code></td>
+          <td>Allocation count</td>
+      </tr>
+      <tr>
+          <td style="text-align: right">8</td>
+          <td><code>frees</code></td>
+          <td>Recorded free count</td>
+      </tr>
+      <tr>
+          <td style="text-align: right">16</td>
+          <td><code>alloc_bytes</code></td>
+          <td>Allocated bytes</td>
+      </tr>
+      <tr>
+          <td style="text-align: right">24</td>
+          <td><code>free_bytes</code></td>
+          <td>Recorded freed bytes</td>
+      </tr>
+  </tbody>
+</table>
+<p><code>active</code> holds published cumulative values. The three <code>future</code> slots hold increments for different cycles, so the four records represent different time ranges. <a href="https://github.com/golang/go/blob/release-branch.go1.26/src/runtime/mprof.go">Go 1.26 layout</a></p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">27
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">28
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">29
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">30
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">31
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">32
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">33
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">34
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">35
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">36
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">37
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">38
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">39
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">40
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">41
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">42
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">43
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">44
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">45
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">46
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">47
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">48
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">49
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">50
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">51
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">52
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">53
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">54
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">55
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">56
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">57
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">58
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">59
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">60
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">61
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">62
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">63
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">64
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">65
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">66
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">67
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">68
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">69
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">70
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">71
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">72
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">73
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">74
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">75
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">76
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">77
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">78
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">79
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">80
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">81
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">82
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">83
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">84
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-golang" data-lang="golang"><span style="display:flex;"><span><span style="color:#616e87;font-style:italic">// A bucket holds per-call-stack profiling information.</span>
+</span></span><span style="display:flex;"><span><span style="color:#616e87;font-style:italic">// The representation is a bit sleazy, inherited from C.</span>
+</span></span><span style="display:flex;"><span><span style="color:#616e87;font-style:italic">// This struct defines the bucket header. It is followed in</span>
+</span></span><span style="display:flex;"><span><span style="color:#616e87;font-style:italic">// memory by the stack words and then the actual record</span>
+</span></span><span style="display:flex;"><span><span style="color:#616e87;font-style:italic">// data, either a memRecord or a blockRecord.</span>
+</span></span><span style="display:flex;"><span><span style="color:#616e87;font-style:italic">//</span>
+</span></span><span style="display:flex;"><span><span style="color:#616e87;font-style:italic">// Per-call-stack profiling information.</span>
+</span></span><span style="display:flex;"><span><span style="color:#616e87;font-style:italic">// Lookup by hashing call stack into a linked-list hash table.</span>
+</span></span><span style="display:flex;"><span><span style="color:#616e87;font-style:italic">//</span>
+</span></span><span style="display:flex;"><span><span style="color:#616e87;font-style:italic">// None of the fields in this bucket header are modified after</span>
+</span></span><span style="display:flex;"><span><span style="color:#616e87;font-style:italic">// creation, including its next and allnext links.</span>
+</span></span><span style="display:flex;"><span><span style="color:#616e87;font-style:italic">//</span>
+</span></span><span style="display:flex;"><span><span style="color:#616e87;font-style:italic">// No heap pointers.</span>
+</span></span><span style="display:flex;"><span><span style="color:#81a1c1;font-weight:bold">type</span> bucket <span style="color:#81a1c1;font-weight:bold">struct</span> <span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>	_       sys<span style="color:#eceff4">.</span>NotInHeap
+</span></span><span style="display:flex;"><span>	next    <span style="color:#81a1c1">*</span>bucket
+</span></span><span style="display:flex;"><span>	allnext <span style="color:#81a1c1">*</span>bucket
+</span></span><span style="display:flex;"><span>	typ     bucketType <span style="color:#616e87;font-style:italic">// memBucket or blockBucket (includes mutexProfile)</span>
+</span></span><span style="display:flex;"><span>	hash    <span style="color:#81a1c1">uintptr</span>
+</span></span><span style="display:flex;"><span>	size    <span style="color:#81a1c1">uintptr</span>
+</span></span><span style="display:flex;"><span>	nstk    <span style="color:#81a1c1">uintptr</span>
+</span></span><span style="display:flex;"><span><span style="color:#eceff4">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#616e87;font-style:italic">// A memRecord is the bucket data for a bucket of type memProfile,</span>
+</span></span><span style="display:flex;"><span><span style="color:#616e87;font-style:italic">// part of the memory profile.</span>
+</span></span><span style="display:flex;"><span><span style="color:#81a1c1;font-weight:bold">type</span> memRecord <span style="color:#81a1c1;font-weight:bold">struct</span> <span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// The following complex 3-stage scheme of stats accumulation</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// is required to obtain a consistent picture of mallocs and frees</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// for some point in time.</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// The problem is that mallocs come in real time, while frees</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// come only after a GC during concurrent sweeping. So if we would</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// naively count them, we would get a skew toward mallocs.</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">//</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// Hence, we delay information to get consistent snapshots as</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// of mark termination. Allocations count toward the next mark</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// termination&#39;s snapshot, while sweep frees count toward the</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// previous mark termination&#39;s snapshot:</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">//</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">//              MT          MT          MT          MT</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">//             .·|         .·|         .·|         .·|</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">//          .·˙  |      .·˙  |      .·˙  |      .·˙  |</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">//       .·˙     |   .·˙     |   .·˙     |   .·˙     |</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">//    .·˙        |.·˙        |.·˙        |.·˙        |</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">//</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">//       alloc → ▲ ← free</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">//               ┠┅┅┅┅┅┅┅┅┅┅┅P</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">//       C+2     →    C+1    →  C</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">//</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">//                   alloc → ▲ ← free</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">//                           ┠┅┅┅┅┅┅┅┅┅┅┅P</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">//                   C+2     →    C+1    →  C</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">//</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// Since we can&#39;t publish a consistent snapshot until all of</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// the sweep frees are accounted for, we wait until the next</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// mark termination (&#34;MT&#34; above) to publish the previous mark</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// termination&#39;s snapshot (&#34;P&#34; above). To do this, allocation</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// and free events are accounted to *future* heap profile</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// cycles (&#34;C+n&#34; above) and we only publish a cycle once all</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// of the events from that cycle must be done. Specifically:</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">//</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// Mallocs are accounted to cycle C+2.</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// Explicit frees are accounted to cycle C+2.</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// GC frees (done during sweeping) are accounted to cycle C+1.</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">//</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// After mark termination, we increment the global heap</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// profile cycle counter and accumulate the stats from cycle C</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// into the active profile.</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// active is the currently published profile. A profiling</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// cycle can be accumulated into active once its complete.</span>
+</span></span><span style="display:flex;"><span>	active memRecordCycle
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// future records the profile events we&#39;re counting for cycles</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// that have not yet been published. This is ring buffer</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// indexed by the global heap profile cycle C and stores</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// cycles C, C+1, and C+2. Unlike active, these counts are</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// only for a single cycle; they are not cumulative across</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// cycles.</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">//</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// We store cycle C here because there&#39;s a window between when</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// C becomes the active cycle and when we&#39;ve flushed it to</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#616e87;font-style:italic">// active.</span>
+</span></span><span style="display:flex;"><span>	future <span style="color:#eceff4">[</span><span style="color:#b48ead">3</span><span style="color:#eceff4">]</span>memRecordCycle
+</span></span><span style="display:flex;"><span><span style="color:#eceff4">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="36-gc-cycles-and-publication-of-statistics">3.6 GC Cycles and Publication of Statistics</h4>
+<p>Allocations are accounted for when sampling selects them; frees are accounted for during sweeping. At mark termination (MT), free accounting for that GC cycle is not yet complete. <code>active/future</code> aligns the accounting boundaries for allocations and frees, while the associated locks protect concurrent updates.</p>
+<p>The following analysis uses the default concurrent GC in Go 1.26.0. Let <code>C</code> be the global heap profile cycle.</p>
+<p>Table 5: Counter updates for allocation, free, and publication events.</p>
+<table>
+  <thead>
+      <tr>
+          <th>Event</th>
+          <th>Accounting location</th>
+          <th>Update</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>Sampled allocation, <code>mProf_Malloc</code></td>
+          <td><code>future[(C+2)%3]</code></td>
+          <td>Increment allocation count and allocated bytes</td>
+      </tr>
+      <tr>
+          <td>Sweep free, <code>mProf_Free</code></td>
+          <td><code>future[(C+1)%3]</code></td>
+          <td>Increment free count and freed bytes</td>
+      </tr>
+      <tr>
+          <td>Normal publication, <code>mProf_Flush</code></td>
+          <td><code>future[C%3]</code> → <code>active</code></td>
+          <td>Add each of the four counters, then clear the slot</td>
+      </tr>
+  </tbody>
+</table>
+<p>The array does not move or exchange addresses with <code>active</code>. As <code>C</code> advances, the three physical slots rotate through the roles of ready for publication, receiving frees, and receiving allocations. The ready-to-publish data needs a separate slot because the cycle advances during stop-the-world (STW), while the more expensive flush runs after the world restarts.</p>
+<p>Mark termination aligns the slot offsets. At <code>C=k</code>, an allocation is assigned to <code>k+2</code>. After MT advances the cycle to <code>C=k+1</code>, sweep frees are assigned to <code>(k+1)+1=k+2</code>. Both events therefore enter the same physical slot.</p>
+<p>Figure 8: A group of samples from allocation through reclamation to publication; each dot represents 10 sampled objects.</p>
+<img src="/img/blog/2026-10-09-go-heap-profiling-profile-cycles.png" alt="Sampled objects and counters across GC publication cycles" width="2217" height="1303" style="width: 531.912px; max-width: 100%; height: auto;" loading="lazy" />
+<p>The figure omits earlier cumulative values. GC phase ordering provides the normal publication condition: the previous sweep must finish before the next mark phase, so the free events associated with MT₁ have been accounted for by MT₂. A long-lived object&rsquo;s allocation may already be in <code>active</code>; its free is added to the same bucket in a later cycle.</p>
+<p>After sample scaling, the counters correspond to pprof&rsquo;s four sample types:</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>allocs                   -&gt; alloc_objects
+</span></span><span style="display:flex;"><span>alloc_bytes              -&gt; alloc_space
+</span></span><span style="display:flex;"><span>allocs - frees           -&gt; inuse_objects
+</span></span><span style="display:flex;"><span>alloc_bytes - free_bytes -&gt; inuse_space
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Huatuo reads cumulative allocation and free counters only from <code>active</code>, subtracts them, and scales the result. Increments in <code>future</code> contribute only after the runtime publishes them. This preserves the cycle alignment between allocations and frees.</p>
+<h3 id="4-huatuos-out-of-process-collection-method">4. Huatuo&rsquo;s Out-of-Process Collection Method</h3>
+<h4 id="41-process-identity-and-address-resolution">4.1 Process Identity and Address Resolution</h4>
+<p>Huatuo checks process identity using <code>TGID + StartTimeTicks</code>, opens <code>/proc/&lt;pid&gt;/exe</code> to read ELF and Go build information, and keeps the file handle open through symbolization. The current implementation accepts ELF64 and Go 1.18–1.26, decodes values using the target&rsquo;s byte order, and supports stripped-symbol recovery only on AMD64.</p>
+<p>Figure 9: The data flow of one collection.</p>
+<img src="/img/blog/2026-10-09-go-heap-profiling-collection-pipeline.png" alt="The data flow of a Huatuo heap collection" width="1438" height="1501" style="width: 345.06px; max-width: 100%; height: auto;" loading="lazy" />
+<p>For a position-independent executable (PIE), runtime addresses are computed using <code>/proc/&lt;pid&gt;/maps</code>, executable identity, and <code>PT_LOAD</code> segments:</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>Target variable address = ELF symbol value + loadBias
+</span></span><span style="display:flex;"><span>First bucket            = readPointer(target address of runtime.mbuckets)
+</span></span><span style="display:flex;"><span>PC for symbolization    = runtime return PC - loadBias - 1
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Subtracting one maps a return PC back into the address range of the call instruction. The relevant functions are <code>resolveExecutableLoadBias</code> in <code>process_linux.go</code>, <code>newRuntimeInfo</code> in <code>runtime.go</code>, and <code>resolve</code> in <code>symbols.go</code>.</p>
+<h4 id="42-locating-globals-and-reading-the-sampling-rate">4.2 Locating Globals and Reading the Sampling Rate</h4>
+<p>The collector first searches the ELF <code>.symtab</code> and <code>.dynsym</code> tables for <code>runtime.mbuckets</code> and <code>runtime.MemProfileRate</code>, subject to the metadata parsing budget. If the variable symbols are missing, the AMD64 path uses pclntab to find runtime functions that access those variables, then decodes their machine instructions. pclntab itself does not provide global-variable addresses.</p>
+<p>Figure 10: Recovering addresses after ELF symbols have been stripped.</p>
+<img src="/img/blog/2026-10-09-go-heap-profiling-stripped-symbols.png" alt="Recovering runtime global addresses from a stripped ELF binary" width="1878" height="1418" style="width: 450.504px; max-width: 100%; height: auto;" loading="lazy" />
+<p>Ambiguous addresses or unsupported instruction patterns make collection unavailable. After resolving the addresses, the collector must still read the actual sampling rate. <code>R=0</code> means sampling is disabled; a failed rate read cannot be replaced with the default value. Recovery depends on compiler instruction patterns and does not guarantee support for arbitrary obfuscation, executable packing, or custom toolchains. See <code>stripped_symbols.go</code> and <code>internal/symbol/elf_symbols.go</code>.</p>
+<h4 id="43-bucket-traversal-and-batched-reads">4.3 Bucket Traversal and Batched Reads</h4>
+<p>Linked-list addresses must be discovered one node at a time. Huatuo follows <code>allnext</code>, reading a 48-byte header per bucket and collecting up to 64 buckets per batch. <code>readMemRecords</code> still reads the entire 128-byte <code>memRecord</code> for each bucket, but <code>decodeCounters</code> interprets only its first 32 bytes, which hold <code>active</code>. Thus, using only <code>active</code> changes which counters contribute to the estimate; it does not reduce each remote record read to 32 bytes. Stack traces are then read only for buckets with nonzero in-use object counts, byte counts, and stack depths.</p>
+<p>Figure 11: Three read stages with buffers reused across batches.</p>
+<img src="/img/blog/2026-10-09-go-heap-profiling-batch-reads.png" alt="Batched header, counter, and stack reads" width="2012" height="1672" style="width: 482.772px; max-width: 100%; height: auto;" loading="lazy" />
+<p>The PC buffer is bounded by <code>64 × 1024 × 8 = 512 KiB</code> per batch. Stack keys retained in the aggregation table are copied. Batching reduces system calls for records and stacks, while header reads still grow linearly with the number of buckets. See <code>memory_linux.go</code> and <code>bucket.go</code>; Section 4.4 discusses read consistency.</p>
+<h4 id="44-in-use-counts-and-read-consistency">4.4 In-Use Counts and Read Consistency</h4>
+<p><code>decodeCounters</code> in <code>runtime_layout.go</code> uses only the four counters in <code>memRecord.active</code>:</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>Nsample = max(active.allocs - active.frees, 0)
+</span></span><span style="display:flex;"><span>Bsample = max(active.alloc_bytes - active.free_bytes, 0)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>future[0..2]</code> does not contribute to these differences. In Figure 8, publishing 100 allocations and 60 frees into <code>active</code> contributes 40 in-use samples. The 20 new allocations still in <code>future[0]</code> are excluded from this estimate. This preserves the runtime&rsquo;s publication delay and avoids including recent allocations before their accounting has been aligned with sweep frees.</p>
+<p>Huatuo reads data that has already been published. It does not acquire runtime locks or actively flush pending cycles. By comparison, <code>MemProfile</code>/pprof processes eligible cycles under locks before reading <code>active</code>; when no published history exists, it may also merge <code>future</code> into <code>active</code>. The two paths therefore use the same kind of published statistics but do not guarantee identical collection times or results. <a href="https://github.com/golang/go/blob/go1.26.0/src/runtime/mprof.go">memProfileInternal</a></p>
+<p>Reading only <code>active</code> is still not atomic. A flush updates several fields and traverses multiple buckets, so an external reader can observe different stages of those updates. Figure 12 uses unscaled object counts: before the flush, <code>allocs=100</code> and <code>frees=60</code>; the pending increment is 20 allocations and 10 frees. After the complete flush, 50 objects are in use. Reading the new allocation count with the old free count yields 60; combining the old allocation count with the new free count yields 30.</p>
+<p>Figure 12: Concurrent field reads can produce inconsistent in-use counts even when only active is used.</p>
+<img src="/img/blog/2026-10-09-go-heap-profiling-flush-read-races.png" alt="Concurrent reads of active counters during a profile flush" width="2232" height="1132" style="width: 535.548px; max-width: 100%; height: auto;" loading="lazy" />
+<p>Clamping a negative difference to zero prevents subtraction underflow but cannot restore consistency. Buckets may also be at different publication stages, and newly inserted buckets may be absent from the list view being traversed. <code>status=complete</code> therefore means traversal completed, not that the result is an atomic snapshot or the size of the currently reachable heap. <a href="https://github.com/golang/go/blob/go1.26.0/src/runtime/mprof.go">mProf_FlushLocked</a></p>
+<h4 id="45-sample-scaling-stack-aggregation-and-symbolization">4.5 Sample Scaling, Stack Aggregation, and Symbolization</h4>
+<p>For nonzero in-use samples obtained from <code>active</code> and <code>R=MemProfileRate&gt;1</code>, Huatuo uses pprof&rsquo;s sampling correction model. No scaling is applied at <code>R=1</code>:</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>s = Bsample / Nsample
+</span></span><span style="display:flex;"><span>w = 1 / (1 - exp(-s / R))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Estimated objects = int64(Nsample * w)
+</span></span><span style="display:flex;"><span>Estimated bytes   = int64(Bsample * w)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>For example, 100 in-use samples of 4 KiB each, with <code>R=512 KiB</code>, yield about 12,850 objects and 52,633,866 bytes (50.20 MiB) under this formula and integer truncation. These values illustrate the calculation; they are not accuracy measurements.</p>
+<p>Figure 13: Scale by allocation size before combining buckets with the same stack.</p>
+<img src="/img/blog/2026-10-09-go-heap-profiling-correct-before-merge.png" alt="Scale each allocation size before aggregating by stack trace" width="2081" height="1296" style="width: 499.212px; max-width: 100%; height: auto;" loading="lazy" />
+<p>Buckets with different allocation sizes have different sampling probabilities. Combining them before scaling changes their weights. The implementation therefore scales each bucket before aggregating by stack trace, as implemented by <code>addSample</code> and <code>scaleHeapSample</code> in <code>aggregate.go</code>. <code>MaxMemoryObjectEntries</code> limits only the final output. If a scan is constrained by its budget, rankings cover only the portion read.</p>
+<p>The aggregation key is the raw PC sequence; symbolization happens afterward. <code>name</code> uses the first non-runtime function, and <code>stack</code> holds the resolved stack. Distinct PC stacks do not necessarily merge even if they resolve to the same function names. Comparisons across processes also need to account for PIE and program versions.</p>
+<h4 id="46-output-representation-and-field-semantics">4.6 Output Representation and Field Semantics</h4>
+<p>The snapshot uses <code>inuse_space_objects</code> for results grouped by allocation stack trace. The JSON below is a structural example. All values, including <code>duration_ms</code>, illustrate the fields rather than report a performance measurement:</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">20
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span><span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#81a1c1">&#34;runtime_version&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;go1.26.0&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#81a1c1">&#34;status&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;complete&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#81a1c1">&#34;duration_ms&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">18</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#81a1c1">&#34;output_truncated&#34;</span><span style="color:#eceff4">:</span> <span style="color:#81a1c1;font-weight:bold">true</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#81a1c1">&#34;entries&#34;</span><span style="color:#eceff4">:</span> <span style="color:#eceff4">[</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#eceff4">{</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#81a1c1">&#34;kind&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;inuse_space_objects&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#81a1c1">&#34;name&#34;</span><span style="color:#eceff4">:</span> <span style="color:#a3be8c">&#34;example/cache.allocate&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#81a1c1">&#34;bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">52633866</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#81a1c1">&#34;objects&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">12850</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#81a1c1">&#34;average_bytes&#34;</span><span style="color:#eceff4">:</span> <span style="color:#b48ead">4096.020700389105</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#81a1c1">&#34;stack&#34;</span><span style="color:#eceff4">:</span> <span style="color:#eceff4">[</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a3be8c">&#34;example/cache.allocate&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a3be8c">&#34;example/cache.Get&#34;</span><span style="color:#eceff4">,</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a3be8c">&#34;example/api.Handle&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#eceff4">]</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#eceff4">}</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#eceff4">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#eceff4">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>bytes</code> and <code>objects</code> are in-use estimates obtained by scaling the differences in <code>active</code>. <code>average_bytes</code> is their quotient and can be affected by integer truncation; it is not a Go type&rsquo;s <code>sizeof</code>. The output does not contain individual object addresses, types, source lines, or reference relationships. A PC that cannot be resolved may appear as a hexadecimal address. Failure to build the symbol table as a whole returns an error.</p>
+<h3 id="5-limitations-and-scope">5. Limitations and Scope</h3>
+<h4 id="51-sampling-availability-and-historical-coverage">5.1 Sampling Availability and Historical Coverage</h4>
+<p>The linker can disable heap sampling when the profile consumer is unreachable and the linking mode permits it, causing runtime startup to set <code>MemProfileRate=0</code>. Earlier versions check <code>runtime.MemProfile</code>; newer versions check <code>runtime.memProfileInternal</code>.</p>
+<p>Huatuo currently returns <code>unavailable</code> when sampling is disabled. It does not write to the target process to enable sampling and cannot recover allocations that were never sampled. Set the sampling rate early in startup and keep it stable. If it changes during execution, the current value alone is insufficient to scale samples accumulated under earlier rates correctly. <a href="https://github.com/golang/go/blob/go1.25.0/src/runtime/mprof.go">MemProfileRate contract</a></p>
+<h4 id="52-estimation-error-and-attribution-limits">5.2 Estimation Error and Attribution Limits</h4>
+<p>Table 6: Limits on numerical estimates and memory attribution.</p>
+<table>
+  <thead>
+      <tr>
+          <th>Limitation</th>
+          <th>Effect</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>Sparse samples with large scaling weights</td>
+          <td>Estimates and hotspot rankings can fluctuate</td>
+      </tr>
+      <tr>
+          <td>active publication lags behind the current heap state</td>
+          <td>New allocations and later frees are not reflected until publication; the estimate is not the size of the currently reachable heap</td>
+      </tr>
+      <tr>
+          <td>No object types or reference relationships</td>
+          <td>Allocation stacks can be identified, but the code retaining an object cannot be determined directly</td>
+      </tr>
+      <tr>
+          <td>Memory outside the Go heap and output limited by <code>MaxMemoryObjectEntries</code></td>
+          <td>Heap entries alone cannot explain all RSS or cgroup memory usage; Huatuo also collects these broader memory metrics</td>
+      </tr>
+  </tbody>
+</table>
+<h4 id="53-diagnostic-use">5.3 Diagnostic Use</h4>
+<p>Figure 14: Interpreting a snapshot during an investigation.</p>
+<img src="/img/blog/2026-10-09-go-heap-profiling-reading-a-snapshot.png" alt="Interpreting snapshot status and allocation stack estimates" width="2090" height="1276" style="width: 501.528px; max-width: 100%; height: auto;" loading="lazy" />
+<p>The snapshot can connect memory-pressure events to allocation call paths and identify likely retention hotspots. Establishing a leak, identifying what retains objects, or explaining all RSS still requires time-series data, application behavior, and runtime or operating-system measurements.</p>
+<h3 id="6-conclusion">6. Conclusion</h3>
+<p>The Go runtime&rsquo;s heap sampling statistics provide a data source for out-of-process memory attribution. Huatuo locates runtime globals, traverses profile buckets, computes in-use differences from <code>active</code>, scales the samples, and resolves allocation stacks to produce a snapshot of in-use heap hotspots associated with an event.</p>
+<p>Using this method depends on sampling state, runtime layout, symbol resolution, and read permissions. Its output is an estimate based on published statistics read during a collection window. Using only <code>active</code> preserves the runtime&rsquo;s publication delay, making the snapshot useful as evidence of where memory was allocated.</p>
+<h3 id="references">References</h3>
+<table>
+  <thead>
+      <tr>
+          <th>Version tag</th>
+          <th>Runtime heap sampling source</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>go1.18</code></td>
+          <td><a href="https://github.com/golang/go/blob/go1.18/src/runtime/mprof.go">runtime/mprof.go</a></td>
+      </tr>
+      <tr>
+          <td><code>go1.19</code></td>
+          <td><a href="https://github.com/golang/go/blob/go1.19/src/runtime/mprof.go">runtime/mprof.go</a></td>
+      </tr>
+      <tr>
+          <td><code>go1.20</code></td>
+          <td><a href="https://github.com/golang/go/blob/go1.20/src/runtime/mprof.go">runtime/mprof.go</a></td>
+      </tr>
+      <tr>
+          <td><code>go1.21.0</code></td>
+          <td><a href="https://github.com/golang/go/blob/go1.21.0/src/runtime/mprof.go">runtime/mprof.go</a></td>
+      </tr>
+      <tr>
+          <td><code>go1.22.0</code></td>
+          <td><a href="https://github.com/golang/go/blob/go1.22.0/src/runtime/mprof.go">runtime/mprof.go</a></td>
+      </tr>
+      <tr>
+          <td><code>go1.23.0</code></td>
+          <td><a href="https://github.com/golang/go/blob/go1.23.0/src/runtime/mprof.go">runtime/mprof.go</a></td>
+      </tr>
+      <tr>
+          <td><code>go1.24.0</code></td>
+          <td><a href="https://github.com/golang/go/blob/go1.24.0/src/runtime/mprof.go">runtime/mprof.go</a></td>
+      </tr>
+      <tr>
+          <td><code>go1.25.0</code></td>
+          <td><a href="https://github.com/golang/go/blob/go1.25.0/src/runtime/mprof.go">runtime/mprof.go</a></td>
+      </tr>
+      <tr>
+          <td><code>go1.26.0</code></td>
+          <td><a href="https://github.com/golang/go/blob/go1.26.0/src/runtime/mprof.go">runtime/mprof.go</a></td>
+      </tr>
+  </tbody>
+</table>
+<p>Other relevant sources include the <a href="https://github.com/golang/go/blob/go1.26.0/src/runtime/malloc.go">Go 1.26 allocator</a>, <a href="https://github.com/golang/go/blob/go1.26.0/src/runtime/mheap.go">metadata linking sampled objects to profile buckets</a>, <a href="https://github.com/golang/go/blob/go1.26.0/src/runtime/pprof/protomem.go">pprof sample scaling</a>, and the <a href="https://github.com/golang/go/blob/go1.26.0/src/cmd/link/internal/ld/lib.go">linker&rsquo;s profiling disablement check</a>.</p>
+
+                        </div>
+
+                        
+                        <div id="comments">
+                            
+                            <script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="en"
+        crossorigin="anonymous"
+        async>
+</script>
+
+                        </div>
+                        
+
+                    </div>
+
+                    <div class="col-md-3">
+                        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">Tags</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/tags/ai"><i class="fas fa-tags"></i> AI</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ascend"><i class="fas fa-tags"></i> Ascend</a>
+            </li>
+            
+            <li >
+                <a href="/tags/blkio"><i class="fas fa-tags"></i> BLKIO</a>
+            </li>
+            
+            <li >
+                <a href="/tags/bpf"><i class="fas fa-tags"></i> BPF</a>
+            </li>
+            
+            <li >
+                <a href="/tags/bpf-foundation"><i class="fas fa-tags"></i> BPF Foundation</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ccf"><i class="fas fa-tags"></i> CCF</a>
+            </li>
+            
+            <li >
+                <a href="/tags/collaboration"><i class="fas fa-tags"></i> Collaboration</a>
+            </li>
+            
+            <li >
+                <a href="/tags/community"><i class="fas fa-tags"></i> Community</a>
+            </li>
+            
+            <li >
+                <a href="/tags/containers"><i class="fas fa-tags"></i> CONTAINERS</a>
+            </li>
+            
+            <li >
+                <a href="/tags/cpuidle"><i class="fas fa-tags"></i> CPUIDLE</a>
+            </li>
+            
+            <li >
+                <a href="/tags/faults"><i class="fas fa-tags"></i> Faults</a>
+            </li>
+            
+            <li >
+                <a href="/tags/flame-graphs"><i class="fas fa-tags"></i> Flame Graphs</a>
+            </li>
+            
+            <li >
+                <a href="/tags/go"><i class="fas fa-tags"></i> Go</a>
+            </li>
+            
+            <li >
+                <a href="/tags/gpu"><i class="fas fa-tags"></i> GPU</a>
+            </li>
+            
+            <li >
+                <a href="/tags/hao022"><i class="fas fa-tags"></i> HAO022</a>
+            </li>
+            
+            <li >
+                <a href="/tags/irq"><i class="fas fa-tags"></i> IRQ</a>
+            </li>
+            
+            <li >
+                <a href="/tags/k8s"><i class="fas fa-tags"></i> K8S</a>
+            </li>
+            
+            <li >
+                <a href="/tags/linux-kernel"><i class="fas fa-tags"></i> Linux Kernel</a>
+            </li>
+            
+            <li >
+                <a href="/tags/loadavg"><i class="fas fa-tags"></i> LOADAVG</a>
+            </li>
+            
+            <li >
+                <a href="/tags/memory"><i class="fas fa-tags"></i> Memory</a>
+            </li>
+            
+            <li >
+                <a href="/tags/moore-threads"><i class="fas fa-tags"></i> Moore Threads</a>
+            </li>
+            
+            <li >
+                <a href="/tags/network-optimization"><i class="fas fa-tags"></i> Network Optimization</a>
+            </li>
+            
+            <li >
+                <a href="/tags/networking"><i class="fas fa-tags"></i> Networking</a>
+            </li>
+            
+            <li >
+                <a href="/tags/news"><i class="fas fa-tags"></i> News</a>
+            </li>
+            
+            <li >
+                <a href="/tags/nightingale"><i class="fas fa-tags"></i> Nightingale</a>
+            </li>
+            
+            <li >
+                <a href="/tags/npu"><i class="fas fa-tags"></i> NPU</a>
+            </li>
+            
+            <li >
+                <a href="/tags/observability"><i class="fas fa-tags"></i> Observability</a>
+            </li>
+            
+            <li >
+                <a href="/tags/open-source"><i class="fas fa-tags"></i> Open Source</a>
+            </li>
+            
+            <li >
+                <a href="/tags/rdma"><i class="fas fa-tags"></i> RDMA</a>
+            </li>
+            
+            <li >
+                <a href="/tags/recognition"><i class="fas fa-tags"></i> Recognition</a>
+            </li>
+            
+            <li >
+                <a href="/tags/tcp"><i class="fas fa-tags"></i> TCP</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <footer id="footer">
+    <div class="container">
+        
+        
+        
+        
+        <div class="row">
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>Official Certifications</h4>
+                <div class="footer-certifications">
+                    
+                    <a href="https://landscape.cncf.io/?item=observability-and-analysis--observability--huatuo" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="CNCF Landscape">
+                        <img src="/img/certifications/cncf.png" alt="CNCF Landscape" />
+                    </a>
+                    
+                    <a href="https://ebpf.foundation/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="eBPF Foundation">
+                        <img src="/img/certifications/ebpf-foundation.png" alt="eBPF Foundation" />
+                    </a>
+                    
+                    <a href="https://prometheus.io/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="prometheus">
+                        <img src="/img/certifications/prometheus-logo.png" alt="prometheus" />
+                    </a>
+                    
+                    <a href="https://www.ccf.org.cn/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="ccf">
+                        <img src="/img/certifications/ccf.png" alt="ccf" />
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>About us</h4>
+                Linux kernel developers, and observability developers.
+            </div>
+            
+            
+        </div>
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026, HUATUO Open Source Community.</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+<script src="/js/front.js?1791628155"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

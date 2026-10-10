@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Memory on HUATUO 开源社区</title>
+    <link>https://huatuo.tech/zh/tags/memory/</link>
+    <description>Recent content in Memory on HUATUO 开源社区</description>
+    <generator>Hugo</generator>
+    <language>zh</language>
+    <lastBuildDate>Sat, 10 Oct 2026 10:29:04 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/zh/tags/memory/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>基于 Go 运行时采样统计的进程外堆内存快照方法</title>
+      <link>https://huatuo.tech/zh/blog/2026-10-09-profiling-go-heap-memory-from-outside-the-process/</link>
+      <pubDate>Fri, 09 Oct 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-10-09-profiling-go-heap-memory-from-outside-the-process/</guid>
+      <description>进程外读取 Go 堆采样统计，经概率校正，按分配调用栈估算在用内存与对象数量。</description>
+    </item>
+    <item>
+      <title>OOM 之前，留下现场：HUATUO 的多语言内存快照方案</title>
+      <link>https://huatuo.tech/zh/blog/2026-09-24-capturing-memory-evidence-before-oom/</link>
+      <pubDate>Thu, 24 Sep 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-09-24-capturing-memory-evidence-before-oom/</guid>
+      <description>从进程外采集多语言内存快照，保留分配栈与对象类型线索，辅助排查内存增长。</description>
+    </item>
+  </channel>
+</rss>

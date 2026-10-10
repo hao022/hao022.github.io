@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<script>
+  (function (root) {
+    var theme
+    try { theme = localStorage.getItem('huatuo-theme') } catch {}
+    root.dataset.theme = theme === 'light' || theme === 'dark'
+      ? theme
+      : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+  }(document.documentElement))
+</script>
+
+<title>irqtracing，一次定位中断突刺问题的探索</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, IRQ, Observability">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' rel='stylesheet'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1791628156" rel="stylesheet">
+<link href="/css/theme.css?1791628156" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+<link rel="android-chrome-icon" href="/img/android-chrome-512x512.png" />
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="HUATUO 开源社区">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="zh">
+<meta property="og:site_name" content="HUATUO 开源社区">
+<meta property="og:title" content="irqtracing，一次定位中断突刺问题的探索">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/zh/blog/2026-10-10-tracing-interrupt-spikes-with-irqtracing/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2026-10-10-irqtracing-cover.png">
+<meta property="og:image:type" content="image/png">
+
+
+
+  <meta property="og:image:width" content="300">
+  <meta property="og:image:height" content="200">
+
+
+<meta property="og:updated_time" content="2026-10-10T10:29:04Z">
+
+  
+  
+  
+  <meta property="article:tag" content="BPF">
+  <meta property="article:tag" content="IRQ">
+  <meta property="article:tag" content="Observability">
+  
+  
+  <meta property="article:published_time" content="2026-10-10T12:00:00&#43;0800">
+  <meta property="article:modified_time" content="2026-10-10T10:29:04Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="irqtracing，一次定位中断突刺问题的探索">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2026-10-10-irqtracing-cover.png">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+  </head>
+
+  <body><div id="all" class="has-page-hero">
+
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+              🚀  2025 年中国信息通信研究院《OSCAR 尖峰开源项目及开源社区》、腾讯科技《杰出贡献奖》、CNCF Landscape。欢迎 <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>  ❤️
+          </p>
+        
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/zh/">
+                    
+                      <img src="/img/huatuo-logo-v4.png" alt="irqtracing，一次定位中断突刺问题的探索 logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/huatuo-logo-v4.png" alt="irqtracing，一次定位中断突刺问题的探索 logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">irqtracing，一次定位中断突刺问题的探索 - 跳到主页</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">切换导航</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-cubes theme-icon nav-icon nav-menu-icon'></i>项目 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                            <li><a href="/zh/projects/huatuo/">HUATUO（华佗）</a></li>
+                            
+                            
+                            
+                            <li><a href="/zh/projects/go-pcap/">Go-pcap</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-book theme-icon nav-icon nav-menu-icon'></i>文档 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/latest/" data-theme-link>Latest</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/v2.3.0/" data-theme-link>V2.3.0</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/v2.2.0/" data-theme-link>V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    <a href="/zh/blog/"><i class='fas fa-pen-nib theme-icon nav-icon nav-menu-icon'></i>博客</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/milestone/"><i class='fas fa-rss theme-icon nav-icon nav-menu-icon'></i>动态</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/about/"><i class='fas fa-info-circle theme-icon nav-icon nav-menu-icon'></i>关于</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <button type="button"
+                            class="dropdown-toggle nav-control"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                      <i class="fas fa-globe theme-icon nav-icon"></i>
+                      中文
+                      <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                      
+                      
+                      
+                        
+                        
+                        
+                          
+                            
+                          
+                        
+                          
+                        
+                        
+                        
+                        <li>
+                          <a href="/blog/2026-10-10-tracing-interrupt-spikes-with-irqtracing/" class="language-option">
+                            <i class="language-check" aria-hidden="true"></i>
+                            English
+                          </a>
+                        </li>
+                      
+                        
+                        
+                        
+                          
+                        
+                          
+                            
+                          
+                        
+                        
+                        
+                        <li class="active">
+                          <a href="/zh/blog/2026-10-10-tracing-interrupt-spikes-with-irqtracing/" class="language-option" aria-current="page">
+                            <i class="language-check fas fa-check" aria-hidden="true"></i>
+                            中文
+                          </a>
+                        </li>
+                      
+                    </ul>
+                  </li>
+                  
+                  
+
+                  
+                  
+                  
+                  <li class="theme-toggle-item">
+                    <button type="button"
+                            class="nav-control theme-toggle"
+                            data-theme-toggle
+                            data-light-label="切换至浅色主题"
+                            data-dark-label="切换至深色主题"
+                            aria-label="切换至深色主题"
+                            aria-pressed="false">
+                      <span class="theme-toggle-track" aria-hidden="true">
+                        <span class="theme-toggle-thumb">
+                          <i class="theme-toggle-icon fas fa-sun"></i>
+                        </span>
+                      </span>
+                      <span class="sr-only theme-toggle-text">切换至深色主题</span>
+                    </button>
+                  </li>
+                  
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars"
+                         onerror="this.style.display='none'">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        
+        
+        
+        <div class="page-hero">
+    <div class="page-hero-grid"></div>
+    <div class="page-hero-glow"></div>
+    <div class="page-hero-inner">
+        <div class="page-hero-title-row">
+            <div class="page-hero-icon"><i class="fas fa-pen-nib theme-icon"></i></div>
+            <h1 class="page-hero-title">博客</h1>
+        </div>
+    </div>
+</div>
+
+        
+
+        <div id="content">
+            <div class="container">
+                <div class="row">
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                        <h1 class="post-title">irqtracing，一次定位中断突刺问题的探索</h1>
+                        <div class="post-meta">
+                            <span class="post-meta-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                2026-10-10
+                            </span>
+                            
+                            <span class="post-meta-authors">
+                                <i class="fas fa-user"></i>
+                                <a href="/zh/authors/%E7%8E%8B%E6%B4%AA%E7%A3%8A">王洪磊</a>, <a href="/zh/authors/hao022">HAO022</a>
+                            </span>
+                            
+                            
+                            <span class="post-meta-tags">
+                                <a href="/zh/tags/bpf" class="post-meta-tag">BPF</a><a href="/zh/tags/irq" class="post-meta-tag">IRQ</a><a href="/zh/tags/observability" class="post-meta-tag">Observability</a>
+                            </span>
+                            
+                        </div>
+                        
+
+                        <div id="post-content">
+                          <h3 id="背景">背景</h3>
+<p>线上环境中，我们经常会遇到一类较为棘手的问题：同一台宿主机上的多个容器突然同时出现服务耗时突刺。回溯历史监控数据后发现，问题发生时段该机器集中处理了大量中断，众多 CPU 核心的 cpu.irq 和 cpu.softirq 使用率骤然攀升。然而，历史监控虽能定位到异常的 CPU 核心，却难以还原当时的完整现场。</p>
+<p>这类问题通常以偶发形式出现，持续时间往往仅有数十秒甚至更短。由于仅部分 CPU 核心出现中断突增，机器整体负载和单个容器的负载变化并不明显，不足以触发常规的现场抓取工具进行自动采集。</p>
+<p>针对这一场景，我们开发了一款 CLI 工具 &ndash; irqtracing，期望能够为此类问题的根因分析提供有效的辅助手段。</p>
+<h3 id="解决方案">解决方案</h3>
+<p>如何解决这一问题？我们可以将其拆解为以下几个关键环节：</p>
+<ol>
+<li>
+<p>及时发现系统异常 &ndash; 在问题发生的第一时间感知到中断突增等异常信号。</p>
+</li>
+<li>
+<p>采集异常现场，定位问题根源 &ndash; 在异常窗口内快速捕获完整的现场信息，为根因分析提供数据支撑。</p>
+</li>
+<li>
+<p>以直观的方式呈现线索 &ndash; 将采集到的原始数据转化为易于解读的结果，辅助开发者快速锁定问题方向。</p>
+</li>
+</ol>
+<h4 id="问题检测">问题检测</h4>
+<p>在异常检测方面，我们采用了较为直接的思路：以固定的时间间隔采样各 CPU 的中断使用情况，并基于自定义的评价逻辑，判断 CPU 是否发生了中断突增。</p>
+<p>首先，计算每个 CPU 在相邻采样窗口中用于硬中断和软中断的时间占比：</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>中断时间占比 = 100% × (irq 时间增量 + softirq 时间增量) / CPU 总时间增量
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>然后，我们结合线上实际场景的观察，制定了以下两条判定规则（规则阈值均可根据实际使用情况进行动态调整）：</p>
+<ol>
+<li>
+<p><strong>多核并发突增</strong>：若多个 CPU 同时检测到中断使用率突增，则判定系统当前出现异常场景。</p>
+</li>
+<li>
+<p><strong>单核持续高位</strong>：若某一特定 CPU 在连续多个采集周期内均维持高资源消耗状态，则判定该 CPU 存在异常。</p>
+</li>
+</ol>
+<p>默认阈值如下：</p>
+<table>
+  <thead>
+      <tr>
+          <th>异常模式</th>
+          <th>判断方式</th>
+          <th>采集目标</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>多 CPU 突增</td>
+          <td>至少 3 个 CPU 同时增加 20 个百分点，且相对上一窗口增长至少 30%</td>
+          <td>增幅最大的 CPU</td>
+      </tr>
+      <tr>
+          <td>单 CPU 持续高</td>
+          <td>一个 CPU 连续 10 个窗口达到 80%</td>
+          <td>发生异常的 CPU</td>
+      </tr>
+  </tbody>
+</table>
+<p>通过上述方法确认目标 CPU 后，HuaTuo 会自动触发该 CPU 上的现场采集，并回收核心信息。</p>
+<h4 id="现场采集">现场采集</h4>
+<p>熟悉 HuaTuo 的朋友可能了解，我们此前已开发了若干针对中断问题的诊断功能。例如，通过检测 sched tick 是否正常触发，可以判断中断是否被长时间关闭及具体原因。然而，该机制在当前场景下并不适用 &ndash; 此处我们面临的并非长时间关闭中断，而是短时间内海量中断的频繁触发：单次中断的执行时间极短，但其高频率持续打断系统正常运行，从而对系统性能产生影响。</p>
+<p>这些中断产生的原因是什么？它们都影响到了谁？它们到底在忙什么？irqtracing试图回答这些问题。</p>
+<p>我们的解法关键依托于两个 tracepoint：irq:softirq_raise 与 irq:softirq_entry。</p>
+<ul>
+<li>
+<p>irq:softirq_raise 的作用是收集指定 CPU 上所有触发过软中断的调用栈信息，即梳理这些软中断的”触发来源“。其触发路径可能包括：中断快速处理完成后触发软中断，以及某些场景下在内核代码中直接触发软中断。</p>
+</li>
+<li>
+<p>irq:softirq_entry 的作用是收集指定 CPU 上所有被软中断打断的程序，即标识这些中断的”受害者“。受影响的程序可能包括：内核线程、进入内核态执行的用户进程，以及运行于用户态的用户进程。</p>
+</li>
+</ul>
+<p>以下是softirq_raise和softirq_entry的调用栈例子：</p>
+<p>softirq_raise:</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">27
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>pid = 1663386
+</span></span><span style="display:flex;"><span>kstack:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        raise_softirq_irqoff+130
+</span></span><span style="display:flex;"><span>        enqueue_to_backlog+630
+</span></span><span style="display:flex;"><span>        netif_rx_internal+59
+</span></span><span style="display:flex;"><span>        __netif_rx+19
+</span></span><span style="display:flex;"><span>        loopback_xmit+230
+</span></span><span style="display:flex;"><span>        dev_hard_start_xmit+167
+</span></span><span style="display:flex;"><span>        __dev_queue_xmit+1253
+</span></span><span style="display:flex;"><span>        ip_finish_output2+818
+</span></span><span style="display:flex;"><span>        ip_output+100
+</span></span><span style="display:flex;"><span>        ip_send_skb+136
+</span></span><span style="display:flex;"><span>        udp_send_skb+509
+</span></span><span style="display:flex;"><span>        udp_sendmsg+2175
+</span></span><span style="display:flex;"><span>        __sock_sendmsg+103
+</span></span><span style="display:flex;"><span>        ____sys_sendmsg+388
+</span></span><span style="display:flex;"><span>        ___sys_sendmsg+658
+</span></span><span style="display:flex;"><span>        __sys_sendmmsg+395
+</span></span><span style="display:flex;"><span>        __x64_sys_sendmmsg+35
+</span></span><span style="display:flex;"><span>        do_syscall_64+301
+</span></span><span style="display:flex;"><span>        entry_SYSCALL_64_after_hwframe+118
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>ustack:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        __sendmmsg+82
+</span></span><span style="display:flex;"><span>        udp_main+502
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>softirq_entry:</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">24
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>pid = 1663386
+</span></span><span style="display:flex;"><span>kstack:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        handle_softirqs+401
+</span></span><span style="display:flex;"><span>        do_softirq+86
+</span></span><span style="display:flex;"><span>        __local_bh_enable_ip+115
+</span></span><span style="display:flex;"><span>        __dev_queue_xmit+2813
+</span></span><span style="display:flex;"><span>        ip_finish_output2+818
+</span></span><span style="display:flex;"><span>        ip_output+100
+</span></span><span style="display:flex;"><span>        ip_send_skb+136
+</span></span><span style="display:flex;"><span>        udp_send_skb+509
+</span></span><span style="display:flex;"><span>        udp_sendmsg+2175
+</span></span><span style="display:flex;"><span>        __sock_sendmsg+103
+</span></span><span style="display:flex;"><span>        ____sys_sendmsg+388
+</span></span><span style="display:flex;"><span>        ___sys_sendmsg+658
+</span></span><span style="display:flex;"><span>        __sys_sendmmsg+395
+</span></span><span style="display:flex;"><span>        __x64_sys_sendmmsg+35
+</span></span><span style="display:flex;"><span>        do_syscall_64+301
+</span></span><span style="display:flex;"><span>        entry_SYSCALL_64_after_hwframe+118
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>ustack:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        __sendmmsg+82
+</span></span><span style="display:flex;"><span>        udp_main+502
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>基于这两个栈提供的调用链，我们可以大致推测出他们发生的场景：</p>
+<p>同一任务在 sendmmsg() 内触发接收软中断，并在恢复 BH 后就地执行软中断。两次采样时，任务都处于 pid 1663386 的同一次发送调用中。</p>
+<p>按时间顺序看：</p>
+<p><img src="/img/blog/2026-10-10-irqtracing-call-flow.png" alt="同一发送任务触发并执行 NET_RX 软中断的调用流程" loading="lazy" />
+</p>
+<ul>
+<li>
+<p>raise 是工作来源：pid 1663386 任务发送 UDP 报文，loopback 将报文放入接收 backlog，并置位当前 CPU 的 NET_RX_SOFTIRQ pending。</p>
+</li>
+<li>
+<p>entry 是执行入口：同一发送路径恢复 BH 时发现 pending，直接开始处理软中断。因此 CPU、PID 和用户栈都相同；系统调用此时尚未返回。</p>
+</li>
+<li>
+<p>相同用户栈表示相同的调用背景：两次都停留在 udp_main → __sendmmsg。entry 时当前任务仍是发送任务，执行上下文已经是中断上下文。</p>
+</li>
+</ul>
+<p>值的注意的是，上述调用栈并不代表 UDP 接收端一定是 pid 1663386，它只是恰逢其会执行了entry而已。</p>
+<p>借助这两个 tracepoint，我们能够还原出大部分中断负载发生时的工作状况，并准确追溯其来源（source）与受害者（victim）。</p>
+<p>然而，针对我们要解决的场景，还存在一个显而易见的问题 &ndash; 调用栈固然能够清晰描述单次中断的细节，但我们将面对的是短时间内集中爆发的中断潮。诚然，此期间的某一次栈信息可能颇具代表性，甚至能为问题的根因指明方向，但我们不能仅凭一个或几个采样便武断地概括所有可能发生的事件。那么，增加采样数量是否可行？有过线上问题排查经验的同学立刻就会联想到终端窗口中被无数调用栈刷屏的场景 &ndash; 即便借助 AI 辅助，想要从中筛选出明确的线索，依然是一件颇费功夫的差事。</p>
+<p>如何才能既充分采集信息、避免采样引入误判，又直观地呈现线索？我们的方案是 &ndash; 火焰图。具体而言，在极短的时间窗口内尽可能采集所有发生的中断事件，随后按照 source 与 victim 两个维度对调用栈进行聚合，最终生成一份双视角火焰图。</p>
+<p><img src="/img/blog/2026-10-10-irqtracing-dual-view-flow.png" alt="软中断采集与 source、victim 双视角聚合流程" loading="lazy" />
+</p>
+<p>这里展示一个效果图例子：</p>
+<p><img src="/img/blog/2026-10-10-irqtracing-flamegraph-example.png" alt="irqtracing 按 source 和 victim 聚合的双视角火焰图" loading="lazy" />
+</p>
+<p>在上图例子中：</p>
+<ol>
+<li>
+<p>整体聚合后共采集到3709次调用栈；</p>
+</li>
+<li>
+<p>source 侧可以确认多达2000次完全相同的调用栈触发 NET_RX 软中断；</p>
+</li>
+<li>
+<p>victime 侧同一个进程（PID 1740795）被 NET_RX irqentry 打断 1706；</p>
+</li>
+<li>
+<p>该进程运行期间还发生过两次 RCU 类型的中断，只因采样宽度过小，被 NET_RX 的庞大数据量所淹没。</p>
+</li>
+</ol>
+<p>这样一张图，可以非常直观的满足我们定位问题中的大部分需求：</p>
+<p>第一，它把大量零散的调用栈变成了热点分布。同一条调用路径反复出现，会在图上形成更宽的区域。排查者可以先看主要集中在哪种软中断，再向下展开具体调用链，而不必逐条翻栈记录。</p>
+<p>第二，<code>source</code> 和 <code>victim</code> 在同一份结果中各有一个根节点。<code>source</code> 一侧主要指向某类中断，例如 <code>NET_RX</code> 相关路径，<code>victim</code> 一侧频繁出现某个业务进程，就能形成一个清晰的排查方向：网络软中断活动是否正在与该业务争用 CPU。两侧还保留了软中断类型和任务标签，方便从“哪一类事件”继续缩小到“哪些调用路径、哪些任务”。</p>
+<p>第三，它让“发起者”和“现场任务”各自保持清楚的含义。如传统火焰图般把所有栈混在一棵树里，容易只看到最宽的函数；分成两侧后，读图时可以发现：哪里在频繁发起软中断？软中断执行时，哪些任务经常在 CPU 上？</p>
+<p>需要说明的是：这是一张用于定位线索的<strong>聚合图</strong>。不能具体确定某一条 <code>source</code> 恰好打断了另一条 <code>victim</code>，图上的宽度表示事件出现次数，不能直接解读成耗时。</p>
+<h4 id="工具试用">工具试用</h4>
+<p>结合上述探测与采集功能，irqtracing 在 HuaTuo 中的工作模式如下：</p>
+<ol>
+<li>
+<p>按照既定规则发现异常，并选定目标 CPU 进行采集；</p>
+</li>
+<li>
+<p>触发 irqtracing CLI 采集中断现场；</p>
+</li>
+<li>
+<p>自动追踪模式下，irqtracing CLI 的采集结果由 HuaTuo 自动保存；</p>
+</li>
+<li>
+<p>irqtracing CLI 也可按需独立运行，直接得到火焰图。</p>
+</li>
+</ol>
+<p><img src="/img/blog/2026-10-10-irqtracing-workflow.png" alt="irqtracing 异常检测、现场采集与结果保存流程" loading="lazy" />
+</p>
+<p>手动运行的方式也非常简单，项目构建后，可以单独采集指定 CPU，并直接输出 SVG 火焰图：</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>make build
+</span></span><span style="display:flex;"><span>sudo ./_output/bin/irqtracing <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --bpf-path ./_output/bpf/irqtracing.o <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --target-cpu <span style="color:#b48ead">1</span> <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --duration <span style="color:#b48ead">3</span> <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --output flamegraph &gt; irqtracing.svg
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>当前的解决方案仍存在一些不足之处。例如，判断 IRQ 利用率是否构成一次突刺的标准，目前仍依赖经验设计，并非最合理、最精确的判定方式。若能创新性地设计更科学的算法，将对采集准确性及类似指标（如 cpuidle、cpusys）的判定优化产生显著价值。此外，软中断亦可能在线程上下文中执行，其对系统其他任务的影响主要体现在调度延迟方面。考虑到处理此类情况将大幅增加工具的复杂度，且带来的收益有限，我们暂未将其纳入本工具的覆盖范围。</p>
+<p>尽管如此，irqtracing 工具的开发仍是我们在分析此类问题上的一次探索，期望能够为定位相关线上故障提供帮助，欢迎大家试用并提出优化建议。</p>
+
+                        </div>
+
+                        
+                        <div id="comments">
+                            
+                            <script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+                        </div>
+                        
+
+                    </div>
+
+                    <div class="col-md-3">
+                        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">标签</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/zh/tags/ai"><i class="fas fa-tags"></i> AI</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/ascend"><i class="fas fa-tags"></i> Ascend</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/blkio"><i class="fas fa-tags"></i> BLKIO</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/bpf"><i class="fas fa-tags"></i> BPF</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/ccf"><i class="fas fa-tags"></i> CCF</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/collaboration"><i class="fas fa-tags"></i> Collaboration</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/community"><i class="fas fa-tags"></i> Community</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/faults"><i class="fas fa-tags"></i> Faults</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/go"><i class="fas fa-tags"></i> Go</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/gpu"><i class="fas fa-tags"></i> GPU</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/hao022"><i class="fas fa-tags"></i> HAO022</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/irq"><i class="fas fa-tags"></i> IRQ</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/k8s"><i class="fas fa-tags"></i> K8S</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/linux-kernel"><i class="fas fa-tags"></i> Linux Kernel</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/memory"><i class="fas fa-tags"></i> Memory</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/moore-threads"><i class="fas fa-tags"></i> Moore Threads</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/networking"><i class="fas fa-tags"></i> Networking</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/news"><i class="fas fa-tags"></i> News</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/npu"><i class="fas fa-tags"></i> NPU</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/observability"><i class="fas fa-tags"></i> Observability</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/open-source"><i class="fas fa-tags"></i> Open Source</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/rdma"><i class="fas fa-tags"></i> RDMA</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/recognition"><i class="fas fa-tags"></i> Recognition</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/tcp"><i class="fas fa-tags"></i> TCP</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <footer id="footer">
+    <div class="container">
+        
+        
+        
+        
+        <div class="row">
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>官方认证</h4>
+                <div class="footer-certifications">
+                    
+                    <a href="https://landscape.cncf.io/?item=observability-and-analysis--observability--huatuo" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="CNCF Landscape">
+                        <img src="/img/certifications/cncf.png" alt="CNCF Landscape" />
+                    </a>
+                    
+                    <a href="https://ebpf.foundation/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="eBPF Foundation">
+                        <img src="/img/certifications/ebpf-foundation.png" alt="eBPF Foundation" />
+                    </a>
+                    
+                    <a href="https://prometheus.io/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="prometheus">
+                        <img src="/img/certifications/prometheus-logo.png" alt="prometheus" />
+                    </a>
+                    
+                    <a href="https://www.ccf.org.cn/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="ccf">
+                        <img src="/img/certifications/ccf.png" alt="ccf" />
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>关于我们</h4>
+                基础软件技术研究者，Linux 内核开发者。
+            </div>
+            
+            
+        </div>
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026 HUATUO 开源社区。</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+<script src="/js/front.js?1791628156"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

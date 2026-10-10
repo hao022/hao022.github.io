@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>IRQ on HUATUO 开源社区</title>
+    <link>https://huatuo.tech/zh/tags/irq/</link>
+    <description>Recent content in IRQ on HUATUO 开源社区</description>
+    <generator>Hugo</generator>
+    <language>zh</language>
+    <lastBuildDate>Sat, 10 Oct 2026 10:29:04 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/zh/tags/irq/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>irqtracing，一次定位中断突刺问题的探索</title>
+      <link>https://huatuo.tech/zh/blog/2026-10-10-tracing-interrupt-spikes-with-irqtracing/</link>
+      <pubDate>Sat, 10 Oct 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-10-10-tracing-interrupt-spikes-with-irqtracing/</guid>
+      <description>检测 CPU 中断突增，采集软中断来源与执行现场，以双视角火焰图辅助定位问题。</description>
+    </item>
+  </channel>
+</rss>

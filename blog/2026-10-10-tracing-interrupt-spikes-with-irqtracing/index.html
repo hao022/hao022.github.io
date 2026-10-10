@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<script>
+  (function (root) {
+    var theme
+    try { theme = localStorage.getItem('huatuo-theme') } catch {}
+    root.dataset.theme = theme === 'light' || theme === 'dark'
+      ? theme
+      : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+  }(document.documentElement))
+</script>
+
+<title>Tracing Interrupt Spikes with irqtracing</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, IRQ, Observability">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' rel='stylesheet'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1791628155" rel="stylesheet">
+<link href="/css/theme.css?1791628155" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+<link rel="android-chrome-icon" href="/img/android-chrome-512x512.png" />
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="Linux Kernel, Cloud-native and AI Infra Observability.">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en">
+<meta property="og:site_name" content="Linux Kernel, Cloud-native and AI Infra Observability.">
+<meta property="og:title" content="Tracing Interrupt Spikes with irqtracing">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/blog/2026-10-10-tracing-interrupt-spikes-with-irqtracing/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2026-10-10-irqtracing-cover.png">
+<meta property="og:image:type" content="image/png">
+
+
+
+  <meta property="og:image:width" content="300">
+  <meta property="og:image:height" content="200">
+
+
+<meta property="og:updated_time" content="2026-10-10T10:29:04Z">
+
+  
+  
+  
+  <meta property="article:tag" content="BPF">
+  <meta property="article:tag" content="IRQ">
+  <meta property="article:tag" content="Observability">
+  
+  
+  <meta property="article:published_time" content="2026-10-10T12:00:00&#43;0800">
+  <meta property="article:modified_time" content="2026-10-10T10:29:04Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="Tracing Interrupt Spikes with irqtracing">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2026-10-10-irqtracing-cover.png">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+  </head>
+
+  <body><div id="all" class="has-page-hero">
+
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+              🚀  Listed in the CNCF Landscape and eBPF Foundation Emerging Project. If you like this project, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>!  ❤️
+          </p>
+        
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/huatuo-logo-v4.png" alt="Tracing Interrupt Spikes with irqtracing logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/huatuo-logo-v4.png" alt="Tracing Interrupt Spikes with irqtracing logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">Tracing Interrupt Spikes with irqtracing - go to homepage</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">Toggle Navigation</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-cubes theme-icon nav-icon nav-menu-icon'></i>Projects <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                            <li><a href="/projects/huatuo/">HUATUO（华佗）</a></li>
+                            
+                            
+                            
+                            <li><a href="/projects/go-pcap/">Go-pcap</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-book theme-icon nav-icon nav-menu-icon'></i>Docs <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/en/latest/" data-theme-link>Latest</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/en/v2.3.0/" data-theme-link>V2.3.0</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/en/v2.2.0/" data-theme-link>V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    <a href="/blog/"><i class='fas fa-pen-nib theme-icon nav-icon nav-menu-icon'></i>Blog</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/milestone/"><i class='fas fa-rss theme-icon nav-icon nav-menu-icon'></i>News</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/about/"><i class='fas fa-info-circle theme-icon nav-icon nav-menu-icon'></i>About</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <button type="button"
+                            class="dropdown-toggle nav-control"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                      <i class="fas fa-globe theme-icon nav-icon"></i>
+                      English
+                      <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                      
+                      
+                      
+                        
+                        
+                        
+                          
+                            
+                          
+                        
+                          
+                        
+                        
+                        
+                        <li class="active">
+                          <a href="/blog/2026-10-10-tracing-interrupt-spikes-with-irqtracing/" class="language-option" aria-current="page">
+                            <i class="language-check fas fa-check" aria-hidden="true"></i>
+                            English
+                          </a>
+                        </li>
+                      
+                        
+                        
+                        
+                          
+                        
+                          
+                            
+                          
+                        
+                        
+                        
+                        <li>
+                          <a href="/zh/blog/2026-10-10-tracing-interrupt-spikes-with-irqtracing/" class="language-option">
+                            <i class="language-check" aria-hidden="true"></i>
+                            中文
+                          </a>
+                        </li>
+                      
+                    </ul>
+                  </li>
+                  
+                  
+
+                  
+                  
+                  
+                  <li class="theme-toggle-item">
+                    <button type="button"
+                            class="nav-control theme-toggle"
+                            data-theme-toggle
+                            data-light-label="Switch to light theme"
+                            data-dark-label="Switch to dark theme"
+                            aria-label="Switch to dark theme"
+                            aria-pressed="false">
+                      <span class="theme-toggle-track" aria-hidden="true">
+                        <span class="theme-toggle-thumb">
+                          <i class="theme-toggle-icon fas fa-sun"></i>
+                        </span>
+                      </span>
+                      <span class="sr-only theme-toggle-text">Switch to dark theme</span>
+                    </button>
+                  </li>
+                  
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars"
+                         onerror="this.style.display='none'">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        
+        
+        
+        <div class="page-hero">
+    <div class="page-hero-grid"></div>
+    <div class="page-hero-glow"></div>
+    <div class="page-hero-inner">
+        <div class="page-hero-title-row">
+            <div class="page-hero-icon"><i class="fas fa-pen-nib theme-icon"></i></div>
+            <h1 class="page-hero-title">Blog</h1>
+        </div>
+    </div>
+</div>
+
+        
+
+        <div id="content">
+            <div class="container">
+                <div class="row">
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                        <h1 class="post-title">Tracing Interrupt Spikes with irqtracing</h1>
+                        <div class="post-meta">
+                            <span class="post-meta-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                2026-10-10
+                            </span>
+                            
+                            <span class="post-meta-authors">
+                                <i class="fas fa-user"></i>
+                                <a href="/authors/%E7%8E%8B%E6%B4%AA%E7%A3%8A">王洪磊</a>, <a href="/authors/hao022">HAO022</a>
+                            </span>
+                            
+                            
+                            <span class="post-meta-tags">
+                                <a href="/tags/bpf" class="post-meta-tag">BPF</a><a href="/tags/irq" class="post-meta-tag">IRQ</a><a href="/tags/observability" class="post-meta-tag">Observability</a>
+                            </span>
+                            
+                        </div>
+                        
+
+                        <div id="post-content">
+                          <h3 id="background">Background</h3>
+<p>In production, we often encounter a difficult problem: several containers on the same host experience sudden service latency spikes at the same time. Historical monitoring shows that the host handled a large volume of interrupts during the incident, with sharp increases in <code>cpu.irq</code> and <code>cpu.softirq</code> utilization on multiple CPU cores. Monitoring can identify the affected cores, but it rarely preserves enough detail to reconstruct what was happening.</p>
+<p>These incidents tend to be sporadic, lasting only tens of seconds or less. Because the interrupt spike affects only some CPU cores, changes in overall host load and individual container load may be too small to trigger the usual automatic diagnostic capture tools.</p>
+<p>We developed irqtracing, a CLI tool, to capture evidence that can help investigate the root causes of these incidents.</p>
+<h3 id="approach">Approach</h3>
+<p>We break the problem into three steps:</p>
+<ol>
+<li>
+<p>Detect abnormal system behavior promptly, recognizing signals such as a sudden increase in interrupt activity as soon as it occurs.</p>
+</li>
+<li>
+<p>Capture runtime context during the incident, preserving evidence for root cause analysis while the anomaly is still present.</p>
+</li>
+<li>
+<p>Present the evidence clearly, turning raw data into results that help developers narrow their investigation.</p>
+</li>
+</ol>
+<h4 id="detecting-interrupt-spikes">Detecting Interrupt Spikes</h4>
+<p>Our detection approach is straightforward: sample interrupt utilization on each CPU at fixed intervals, then apply rules to determine whether interrupt activity has spiked.</p>
+<p>First, calculate the share of CPU time spent handling hardware and software interrupts between adjacent samples:</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>Interrupt time share = 100% × (irq time delta + softirq time delta) / total CPU time delta
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Based on observations from production, we use two detection rules. Their thresholds can be adjusted to suit the workload:</p>
+<ol>
+<li>
+<p><strong>Simultaneous spikes across multiple CPUs</strong>: Flag an anomaly when several CPUs show a sharp increase in interrupt utilization at the same time.</p>
+</li>
+<li>
+<p><strong>Sustained high utilization on one CPU</strong>: Flag a CPU when its interrupt utilization remains high across multiple consecutive sampling windows.</p>
+</li>
+</ol>
+<p>The default thresholds are:</p>
+<table>
+  <thead>
+      <tr>
+          <th>Pattern</th>
+          <th>Detection rule</th>
+          <th>Capture target</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>Spike across multiple CPUs</td>
+          <td>At least 3 CPUs simultaneously increase by at least 20 percentage points, with at least 30% growth relative to the previous window</td>
+          <td>The CPU with the largest increase</td>
+      </tr>
+      <tr>
+          <td>Sustained high utilization on one CPU</td>
+          <td>One CPU reaches 80% utilization in 10 consecutive windows</td>
+          <td>The affected CPU</td>
+      </tr>
+  </tbody>
+</table>
+<p>Once these rules identify a target CPU, HuaTuo automatically triggers a capture on that CPU and collects the diagnostic data.</p>
+<h4 id="capturing-runtime-context">Capturing Runtime Context</h4>
+<p>HuaTuo already provides several tools for diagnosing interrupt problems. For example, checking whether the scheduler tick fires as expected can reveal whether interrupts have been disabled for too long and help identify why. That mechanism does not fit this case. Here, the problem is a burst of frequent interrupts rather than a prolonged period with interrupts disabled. Each interrupt takes very little time to execute, but repeated interruptions disrupt normal execution and affect system performance.</p>
+<p>irqtracing aims to reveal where these interrupts come from, which tasks they affect, and what work they perform.</p>
+<p>The approach relies on two tracepoints: <code>irq:softirq_raise</code> and <code>irq:softirq_entry</code>.</p>
+<ul>
+<li>
+<p><code>irq:softirq_raise</code> collects the call stacks that raise softirqs on the selected CPU, identifying their <strong>sources</strong>. These paths include raising a softirq after the immediate work of a hardware interrupt handler, as well as raising one directly from other kernel code.</p>
+</li>
+<li>
+<p><code>irq:softirq_entry</code> captures the tasks present when softirq execution begins on the selected CPU, providing the <strong>victim</strong> view. Affected tasks can include kernel threads and user processes interrupted while running in either kernel mode or user mode.</p>
+</li>
+</ul>
+<p>Here are example call stacks for <code>softirq_raise</code> and <code>softirq_entry</code>:</p>
+<p>softirq_raise:</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">24
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">25
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">26
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">27
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>pid = 1663386
+</span></span><span style="display:flex;"><span>kstack:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        raise_softirq_irqoff+130
+</span></span><span style="display:flex;"><span>        enqueue_to_backlog+630
+</span></span><span style="display:flex;"><span>        netif_rx_internal+59
+</span></span><span style="display:flex;"><span>        __netif_rx+19
+</span></span><span style="display:flex;"><span>        loopback_xmit+230
+</span></span><span style="display:flex;"><span>        dev_hard_start_xmit+167
+</span></span><span style="display:flex;"><span>        __dev_queue_xmit+1253
+</span></span><span style="display:flex;"><span>        ip_finish_output2+818
+</span></span><span style="display:flex;"><span>        ip_output+100
+</span></span><span style="display:flex;"><span>        ip_send_skb+136
+</span></span><span style="display:flex;"><span>        udp_send_skb+509
+</span></span><span style="display:flex;"><span>        udp_sendmsg+2175
+</span></span><span style="display:flex;"><span>        __sock_sendmsg+103
+</span></span><span style="display:flex;"><span>        ____sys_sendmsg+388
+</span></span><span style="display:flex;"><span>        ___sys_sendmsg+658
+</span></span><span style="display:flex;"><span>        __sys_sendmmsg+395
+</span></span><span style="display:flex;"><span>        __x64_sys_sendmmsg+35
+</span></span><span style="display:flex;"><span>        do_syscall_64+301
+</span></span><span style="display:flex;"><span>        entry_SYSCALL_64_after_hwframe+118
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>ustack:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        __sendmmsg+82
+</span></span><span style="display:flex;"><span>        udp_main+502
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>softirq_entry:</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 6
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 7
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 8
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74"> 9
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">10
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">11
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">12
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">13
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">14
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">15
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">16
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">17
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">18
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">19
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">20
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">21
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">22
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">23
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">24
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-text" data-lang="text"><span style="display:flex;"><span>pid = 1663386
+</span></span><span style="display:flex;"><span>kstack:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        handle_softirqs+401
+</span></span><span style="display:flex;"><span>        do_softirq+86
+</span></span><span style="display:flex;"><span>        __local_bh_enable_ip+115
+</span></span><span style="display:flex;"><span>        __dev_queue_xmit+2813
+</span></span><span style="display:flex;"><span>        ip_finish_output2+818
+</span></span><span style="display:flex;"><span>        ip_output+100
+</span></span><span style="display:flex;"><span>        ip_send_skb+136
+</span></span><span style="display:flex;"><span>        udp_send_skb+509
+</span></span><span style="display:flex;"><span>        udp_sendmsg+2175
+</span></span><span style="display:flex;"><span>        __sock_sendmsg+103
+</span></span><span style="display:flex;"><span>        ____sys_sendmsg+388
+</span></span><span style="display:flex;"><span>        ___sys_sendmsg+658
+</span></span><span style="display:flex;"><span>        __sys_sendmmsg+395
+</span></span><span style="display:flex;"><span>        __x64_sys_sendmmsg+35
+</span></span><span style="display:flex;"><span>        do_syscall_64+301
+</span></span><span style="display:flex;"><span>        entry_SYSCALL_64_after_hwframe+118
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>ustack:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        __sendmmsg+82
+</span></span><span style="display:flex;"><span>        udp_main+502
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>The two call chains suggest the following sequence:</p>
+<p>The same task raises a receive softirq inside <code>sendmmsg()</code> and then executes it inline after re-enabling bottom halves (BH). Both samples occur within the same send call made by PID 1663386.</p>
+<p>In chronological order:</p>
+<p><img src="/img/blog/2026-10-10-irqtracing-call-flow.png" alt="The same sending task raises and executes a NET_RX softirq" loading="lazy" />
+</p>
+<ul>
+<li>
+<p><strong>Raise identifies the source of the work</strong>: PID 1663386 sends UDP packets. The loopback path places the packets on the receive backlog and sets the current CPU&rsquo;s <code>NET_RX_SOFTIRQ</code> pending bit.</p>
+</li>
+<li>
+<p><strong>Entry marks the start of execution</strong>: When the same send path re-enables BH, it finds pending work and immediately begins processing softirqs. The CPU, PID, and user stack therefore remain the same; the system call has not yet returned.</p>
+</li>
+<li>
+<p><strong>Matching user stacks indicate the same calling context</strong>: Both samples show <code>udp_main</code> → <code>__sendmmsg</code>. At entry, the current task is still the sending task, but execution is now in interrupt context.</p>
+</li>
+</ul>
+<p>These stacks do not establish that PID 1663386 is the UDP receiver. It happens to be the task in whose context softirq processing begins.</p>
+<p>Together, these two tracepoints let us reconstruct much of the activity behind interrupt load and distinguish its sources (<code>source</code>) from the tasks present when softirqs execute (<code>victim</code>).</p>
+<p>There is still a practical problem. A call stack can describe an individual event clearly, but we are dealing with a burst of many interrupts in a short period. One stack may be representative and even point toward the root cause, yet a handful of samples cannot characterize everything that happened. Collecting more samples creates another challenge familiar to anyone who has debugged production systems: a terminal flooded with stack traces. Extracting useful clues from that volume of output takes effort, even with AI assistance.</p>
+<p>To capture enough evidence, reduce misleading conclusions from sparse samples, and make the result easy to read, we use a flame graph. During a short capture window, we collect as many interrupt events as possible, then aggregate their call stacks into two views, <code>source</code> and <code>victim</code>, within a single flame graph.</p>
+<p><img src="/img/blog/2026-10-10-irqtracing-dual-view-flow.png" alt="Softirq capture and aggregation into source and victim views" loading="lazy" />
+</p>
+<p>Here is an example:</p>
+<p><img src="/img/blog/2026-10-10-irqtracing-flamegraph-example.png" alt="An irqtracing flame graph with separate source and victim roots" loading="lazy" />
+</p>
+<p>In this example:</p>
+<ol>
+<li>
+<p>A total of 3,709 captured stack traces are aggregated.</p>
+</li>
+<li>
+<p>The <code>source</code> side shows 2,000 occurrences of the same call stack raising <code>NET_RX</code> softirqs.</p>
+</li>
+<li>
+<p>The <code>victim</code> side records 1,706 <code>NET_RX</code> softirq entry events with the same process, PID 1740795, as the current task.</p>
+</li>
+<li>
+<p>Two <code>RCU</code> softirq events also occur while that process is running. Their bars are so narrow that they are difficult to see beside the much larger <code>NET_RX</code> count.</p>
+</li>
+</ol>
+<p>This view supports several common investigation needs:</p>
+<p>First, it turns individual stack traces into a distribution of activity. A call path that appears repeatedly occupies a wider region. Investigators can start with the dominant softirq type and then inspect its call chains, rather than reading every stack trace separately.</p>
+<p>Second, <code>source</code> and <code>victim</code> each have their own root in the same result. If the <code>source</code> side is dominated by a particular interrupt type, such as <code>NET_RX</code>, while a business process appears frequently on the <code>victim</code> side, that suggests a concrete question to investigate: is network softirq activity competing with that process for CPU time? Both views retain softirq types and task labels, making it possible to narrow the investigation from event categories to specific call paths and tasks.</p>
+<p>Third, it preserves the distinction between the task that raises a softirq and the task present when it executes. Merging every stack into one tree, as in a conventional flame graph, can draw attention only to the widest functions. Separate views expose both where softirqs are frequently raised and which tasks are often on the CPU when those softirqs execute.</p>
+<p>This is an <strong>aggregate view for finding investigative leads</strong>. It cannot establish that a particular <code>source</code> event interrupted a particular <code>victim</code>. Bar width represents event counts and must not be interpreted as elapsed time.</p>
+<h4 id="trying-irqtracing">Trying irqtracing</h4>
+<p>Combining detection and capture, irqtracing works with HuaTuo as follows:</p>
+<ol>
+<li>
+<p>Apply the detection rules to identify an anomaly and select a target CPU.</p>
+</li>
+<li>
+<p>Invoke the irqtracing CLI to capture interrupt activity.</p>
+</li>
+<li>
+<p>In automatic tracing mode, let HuaTuo save the CLI&rsquo;s capture results.</p>
+</li>
+<li>
+<p>Alternatively, run the irqtracing CLI independently to produce a flame graph directly.</p>
+</li>
+</ol>
+<p><img src="/img/blog/2026-10-10-irqtracing-workflow.png" alt="irqtracing anomaly detection, runtime capture, and result storage" loading="lazy" />
+</p>
+<p>To run a capture manually, build the project, select a CPU, and write the result as an SVG flame graph:</p>
+<div class="highlight"><div style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
+<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">1
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">2
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">3
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">4
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">5
+</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#6c6f74">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre tabindex="0" style="color:#d8dee9;background-color:#2e3440;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>make build
+</span></span><span style="display:flex;"><span>sudo ./_output/bin/irqtracing <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --bpf-path ./_output/bpf/irqtracing.o <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --target-cpu <span style="color:#b48ead">1</span> <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --duration <span style="color:#b48ead">3</span> <span style="color:#ebcb8b">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ebcb8b"></span>  --output flamegraph &gt; irqtracing.svg
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>The current approach has limitations. The rules for deciding whether IRQ utilization constitutes a spike are empirical and leave room for better detection methods. A more rigorous algorithm could improve capture accuracy and could also apply to similar metrics, such as <code>cpuidle</code> and <code>cpusys</code>. Softirqs can also execute in thread context, where their impact on other tasks is primarily scheduling delay. We have not included analysis of that case in the tool&rsquo;s scope, because doing so would add substantial complexity for limited benefit.</p>
+<p>irqtracing is a step toward understanding these incidents and preserving useful evidence for production debugging. We welcome users to try it and suggest improvements.</p>
+
+                        </div>
+
+                        
+                        <div id="comments">
+                            
+                            <script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="en"
+        crossorigin="anonymous"
+        async>
+</script>
+
+                        </div>
+                        
+
+                    </div>
+
+                    <div class="col-md-3">
+                        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">Tags</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/tags/ai"><i class="fas fa-tags"></i> AI</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ascend"><i class="fas fa-tags"></i> Ascend</a>
+            </li>
+            
+            <li >
+                <a href="/tags/blkio"><i class="fas fa-tags"></i> BLKIO</a>
+            </li>
+            
+            <li >
+                <a href="/tags/bpf"><i class="fas fa-tags"></i> BPF</a>
+            </li>
+            
+            <li >
+                <a href="/tags/bpf-foundation"><i class="fas fa-tags"></i> BPF Foundation</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ccf"><i class="fas fa-tags"></i> CCF</a>
+            </li>
+            
+            <li >
+                <a href="/tags/collaboration"><i class="fas fa-tags"></i> Collaboration</a>
+            </li>
+            
+            <li >
+                <a href="/tags/community"><i class="fas fa-tags"></i> Community</a>
+            </li>
+            
+            <li >
+                <a href="/tags/containers"><i class="fas fa-tags"></i> CONTAINERS</a>
+            </li>
+            
+            <li >
+                <a href="/tags/cpuidle"><i class="fas fa-tags"></i> CPUIDLE</a>
+            </li>
+            
+            <li >
+                <a href="/tags/faults"><i class="fas fa-tags"></i> Faults</a>
+            </li>
+            
+            <li >
+                <a href="/tags/flame-graphs"><i class="fas fa-tags"></i> Flame Graphs</a>
+            </li>
+            
+            <li >
+                <a href="/tags/go"><i class="fas fa-tags"></i> Go</a>
+            </li>
+            
+            <li >
+                <a href="/tags/gpu"><i class="fas fa-tags"></i> GPU</a>
+            </li>
+            
+            <li >
+                <a href="/tags/hao022"><i class="fas fa-tags"></i> HAO022</a>
+            </li>
+            
+            <li >
+                <a href="/tags/irq"><i class="fas fa-tags"></i> IRQ</a>
+            </li>
+            
+            <li >
+                <a href="/tags/k8s"><i class="fas fa-tags"></i> K8S</a>
+            </li>
+            
+            <li >
+                <a href="/tags/linux-kernel"><i class="fas fa-tags"></i> Linux Kernel</a>
+            </li>
+            
+            <li >
+                <a href="/tags/loadavg"><i class="fas fa-tags"></i> LOADAVG</a>
+            </li>
+            
+            <li >
+                <a href="/tags/memory"><i class="fas fa-tags"></i> Memory</a>
+            </li>
+            
+            <li >
+                <a href="/tags/moore-threads"><i class="fas fa-tags"></i> Moore Threads</a>
+            </li>
+            
+            <li >
+                <a href="/tags/network-optimization"><i class="fas fa-tags"></i> Network Optimization</a>
+            </li>
+            
+            <li >
+                <a href="/tags/networking"><i class="fas fa-tags"></i> Networking</a>
+            </li>
+            
+            <li >
+                <a href="/tags/news"><i class="fas fa-tags"></i> News</a>
+            </li>
+            
+            <li >
+                <a href="/tags/nightingale"><i class="fas fa-tags"></i> Nightingale</a>
+            </li>
+            
+            <li >
+                <a href="/tags/npu"><i class="fas fa-tags"></i> NPU</a>
+            </li>
+            
+            <li >
+                <a href="/tags/observability"><i class="fas fa-tags"></i> Observability</a>
+            </li>
+            
+            <li >
+                <a href="/tags/open-source"><i class="fas fa-tags"></i> Open Source</a>
+            </li>
+            
+            <li >
+                <a href="/tags/rdma"><i class="fas fa-tags"></i> RDMA</a>
+            </li>
+            
+            <li >
+                <a href="/tags/recognition"><i class="fas fa-tags"></i> Recognition</a>
+            </li>
+            
+            <li >
+                <a href="/tags/tcp"><i class="fas fa-tags"></i> TCP</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <footer id="footer">
+    <div class="container">
+        
+        
+        
+        
+        <div class="row">
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>Official Certifications</h4>
+                <div class="footer-certifications">
+                    
+                    <a href="https://landscape.cncf.io/?item=observability-and-analysis--observability--huatuo" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="CNCF Landscape">
+                        <img src="/img/certifications/cncf.png" alt="CNCF Landscape" />
+                    </a>
+                    
+                    <a href="https://ebpf.foundation/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="eBPF Foundation">
+                        <img src="/img/certifications/ebpf-foundation.png" alt="eBPF Foundation" />
+                    </a>
+                    
+                    <a href="https://prometheus.io/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="prometheus">
+                        <img src="/img/certifications/prometheus-logo.png" alt="prometheus" />
+                    </a>
+                    
+                    <a href="https://www.ccf.org.cn/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="ccf">
+                        <img src="/img/certifications/ccf.png" alt="ccf" />
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>About us</h4>
+                Linux kernel developers, and observability developers.
+            </div>
+            
+            
+        </div>
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026, HUATUO Open Source Community.</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+<script src="/js/front.js?1791628155"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

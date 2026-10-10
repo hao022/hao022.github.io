@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Go on Linux Kernel, Cloud-native and AI Infra Observability.</title>
+    <link>https://huatuo.tech/tags/go/</link>
+    <description>Recent content in Go on Linux Kernel, Cloud-native and AI Infra Observability.</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Sat, 10 Oct 2026 10:29:04 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/tags/go/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Profiling Go Heap Memory from Outside the Process</title>
+      <link>https://huatuo.tech/blog/2026-10-09-profiling-go-heap-memory-from-outside-the-process/</link>
+      <pubDate>Fri, 09 Oct 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/blog/2026-10-09-profiling-go-heap-memory-from-outside-the-process/</guid>
+      <description>Read Go runtime heap samples from outside the process to attribute memory use to allocation stacks.</description>
+    </item>
+    <item>
+      <title>Reviving Go-pcap: Pure Go Packet Filtering for AI Infrastructure</title>
+      <link>https://huatuo.tech/blog/2026-08-04-why-we-revived-go-pcap-for-ai-infrastructure/</link>
+      <pubDate>Tue, 04 Aug 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/blog/2026-08-04-why-we-revived-go-pcap-for-ai-infrastructure/</guid>
+      <description>go-pcap compiles tcpdump-style filters in pure Go for real-time packet filtering across skb, mbuf, and RDMA paths.</description>
+    </item>
+  </channel>
+</rss>

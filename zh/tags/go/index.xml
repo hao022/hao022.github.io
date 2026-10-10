@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Go on HUATUO 开源社区</title>
+    <link>https://huatuo.tech/zh/tags/go/</link>
+    <description>Recent content in Go on HUATUO 开源社区</description>
+    <generator>Hugo</generator>
+    <language>zh</language>
+    <lastBuildDate>Sat, 10 Oct 2026 10:29:04 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/zh/tags/go/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>基于 Go 运行时采样统计的进程外堆内存快照方法</title>
+      <link>https://huatuo.tech/zh/blog/2026-10-09-profiling-go-heap-memory-from-outside-the-process/</link>
+      <pubDate>Fri, 09 Oct 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-10-09-profiling-go-heap-memory-from-outside-the-process/</guid>
+      <description>进程外读取 Go 堆采样统计，经概率校正，按分配调用栈估算在用内存与对象数量。</description>
+    </item>
+    <item>
+      <title>为什么复活 Go-pcap：面向 AI 基础设施的纯 Go 报文过滤</title>
+      <link>https://huatuo.tech/zh/blog/2026-08-04-why-we-revived-go-pcap-for-ai-infrastructure/</link>
+      <pubDate>Tue, 04 Aug 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-08-04-why-we-revived-go-pcap-for-ai-infrastructure/</guid>
+      <description>Go-pcap 基于 Go 将过滤表达式生成 eBPF 用于 skb、mbuf、RDMA 实时报文过滤。</description>
+    </item>
+  </channel>
+</rss>
