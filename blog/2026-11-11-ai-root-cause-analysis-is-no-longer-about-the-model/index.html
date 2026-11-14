@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<script>
+  (function (root) {
+    var theme
+    try { theme = localStorage.getItem('huatuo-theme') } catch {}
+    root.dataset.theme = theme === 'light' || theme === 'dark'
+      ? theme
+      : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+  }(document.documentElement))
+</script>
+
+<title>The hard part of AI root cause analysis is no longer the model</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, AI, Root Cause Analysis, Observability">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' rel='stylesheet'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1794656276" rel="stylesheet">
+<link href="/css/theme.css?1794656276" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+<link rel="android-chrome-icon" href="/img/android-chrome-512x512.png" />
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="Linux Kernel, Cloud-native and AI Infra Observability.">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en">
+<meta property="og:site_name" content="Linux Kernel, Cloud-native and AI Infra Observability.">
+<meta property="og:title" content="The hard part of AI root cause analysis is no longer the model">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/blog/2026-11-11-ai-root-cause-analysis-is-no-longer-about-the-model/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2026-11-11-ai-root-cause-analysis-cover.png">
+<meta property="og:image:type" content="image/png">
+
+
+
+  <meta property="og:image:width" content="1600">
+  <meta property="og:image:height" content="900">
+
+
+<meta property="og:updated_time" content="2026-11-14T11:37:47Z">
+
+  
+  
+  
+  <meta property="article:tag" content="AI">
+  <meta property="article:tag" content="Root Cause Analysis">
+  <meta property="article:tag" content="Observability">
+  
+  
+  <meta property="article:published_time" content="2026-11-11T12:00:00&#43;0800">
+  <meta property="article:modified_time" content="2026-11-14T11:37:47Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="The hard part of AI root cause analysis is no longer the model">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2026-11-11-ai-root-cause-analysis-cover.png">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+  </head>
+
+  <body><div id="all" class="has-page-hero">
+
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+              🚀  Listed in the CNCF Landscape and eBPF Foundation Emerging Project. If you like this project, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>!  ❤️
+          </p>
+        
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/huatuo-logo-v4.png" alt="The hard part of AI root cause analysis is no longer the model logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/huatuo-logo-v4.png" alt="The hard part of AI root cause analysis is no longer the model logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">The hard part of AI root cause analysis is no longer the model - go to homepage</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">Toggle Navigation</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-cubes theme-icon nav-icon nav-menu-icon'></i>Projects <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                            <li><a href="/projects/huatuo/">HUATUO（华佗）</a></li>
+                            
+                            
+                            
+                            <li><a href="/projects/go-pcap/">Go-pcap</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-book theme-icon nav-icon nav-menu-icon'></i>Docs <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/en/latest/" data-theme-link>Latest</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/en/v2.3.0/" data-theme-link>V2.3.0</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/en/v2.2.0/" data-theme-link>V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    <a href="/blog/"><i class='fas fa-pen-nib theme-icon nav-icon nav-menu-icon'></i>Blog</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/milestone/"><i class='fas fa-rss theme-icon nav-icon nav-menu-icon'></i>News</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/about/"><i class='fas fa-info-circle theme-icon nav-icon nav-menu-icon'></i>About</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <button type="button"
+                            class="dropdown-toggle nav-control"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                      <i class="fas fa-globe theme-icon nav-icon"></i>
+                      English
+                      <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                      
+                      
+                      
+                        
+                        
+                        
+                          
+                            
+                          
+                        
+                          
+                        
+                        
+                        
+                        <li class="active">
+                          <a href="/blog/2026-11-11-ai-root-cause-analysis-is-no-longer-about-the-model/" class="language-option" aria-current="page">
+                            <i class="language-check fas fa-check" aria-hidden="true"></i>
+                            English
+                          </a>
+                        </li>
+                      
+                        
+                        
+                        
+                          
+                        
+                          
+                            
+                          
+                        
+                        
+                        
+                        <li>
+                          <a href="/zh/blog/2026-11-11-ai-root-cause-analysis-is-no-longer-about-the-model/" class="language-option">
+                            <i class="language-check" aria-hidden="true"></i>
+                            中文
+                          </a>
+                        </li>
+                      
+                    </ul>
+                  </li>
+                  
+                  
+
+                  
+                  
+                  
+                  <li class="theme-toggle-item">
+                    <button type="button"
+                            class="nav-control theme-toggle"
+                            data-theme-toggle
+                            data-light-label="Switch to light theme"
+                            data-dark-label="Switch to dark theme"
+                            aria-label="Switch to dark theme"
+                            aria-pressed="false">
+                      <span class="theme-toggle-track" aria-hidden="true">
+                        <span class="theme-toggle-thumb">
+                          <i class="theme-toggle-icon fas fa-sun"></i>
+                        </span>
+                      </span>
+                      <span class="sr-only theme-toggle-text">Switch to dark theme</span>
+                    </button>
+                  </li>
+                  
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars"
+                         onerror="this.style.display='none'">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        
+        
+        
+        <div class="page-hero">
+    <div class="page-hero-grid"></div>
+    <div class="page-hero-glow"></div>
+    <div class="page-hero-inner">
+        <div class="page-hero-title-row">
+            <div class="page-hero-icon"><i class="fas fa-pen-nib theme-icon"></i></div>
+            <h1 class="page-hero-title">Blog</h1>
+        </div>
+    </div>
+</div>
+
+        
+
+        <div id="content">
+            <div class="container">
+                <div class="row">
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                        <h1 class="post-title">The hard part of AI root cause analysis is no longer the model</h1>
+                        <div class="post-meta">
+                            <span class="post-meta-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                2026-11-11
+                            </span>
+                            
+                            <span class="post-meta-authors">
+                                <i class="fas fa-user"></i>
+                                <a href="/authors/nikolay-sivko">Nikolay Sivko</a>
+                            </span>
+                            
+                            
+                            <span class="post-meta-tags">
+                                <a href="/tags/ai" class="post-meta-tag">AI</a><a href="/tags/root-cause-analysis" class="post-meta-tag">Root Cause Analysis</a><a href="/tags/observability" class="post-meta-tag">Observability</a>
+                            </span>
+                            
+                        </div>
+                        
+
+                        <div id="post-content">
+                          <p>Every few weeks someone tells me root cause analysis is a solved problem now: pipe your telemetry into an LLM, let it tell you what broke. I wish it were that easy. After years on this, I think &ldquo;can AI do RCA?&rdquo; is the wrong question, because doing RCA with an LLM is really two separate jobs, and the answer is different for each. They break in completely different ways, so it&rsquo;s worth pulling them apart.</p>
+<p>One is reasoning: can the model take the data in front of it and connect the dots? A service slows down. Three facts are on the table at once: it&rsquo;s starved of CPU, the node&rsquo;s CPU is maxed, and a neighbor on that node is eating all of it. A model that reasons ties them into one story, a noisy neighbor. A weaker one reports three unrelated &ldquo;issues&rdquo;, or grabs the loudest symptom and calls it the cause.</p>
+<p>The other is the harness: everything around the model. What data you put in front of it, in what shape. Usually it means tool-calling, letting the model decide what to fetch and when to stop. Plenty goes wrong here, and none of it is about whether the model <em>could</em> reason. It just never got the right data.</p>
+<p>People mix these two up all the time. A model gives a bad answer, and everyone says LLMs can&rsquo;t do RCA. But usually the model just never got the data it needed. It&rsquo;s not that it couldn&rsquo;t reason, it never had a fair shot. And until you separate the two, you can&rsquo;t tell which one is the real problem.</p>
+<h3 id="take-the-harness-out-of-the-picture">Take the harness out of the picture</h3>
+<p>So we did, on purpose. With <a href="https://coroot.com/blog/anatomy-of-ai-powered-root-cause-analysis/">Coroot&rsquo;s AI RCA</a>, we don&rsquo;t hand the model tools and send it off to investigate. Instead, a deterministic pipeline does the heavy lifting: it correlates the signals and turns them into findings. The model gets those findings in one focused context, not the raw telemetry. No tools, no agent loop. Everything it needs to find the answer is already there.</p>
+<p>That boils the whole thing down to reasoning. If the model has the full context and still misses the root cause, there&rsquo;s no one else to blame. Not the harness, not missing data. Just the model. And that&rsquo;s finally something you can measure cleanly.</p>
+<p>So here&rsquo;s the experiment. Take a real failure where the context already holds the answer, hand that same dump to a bunch of models, and see which ones can distill it into the actual root cause. No fetching, no deciding what to look at. Just reasoning. And it&rsquo;s harder than it sounds: even with the answer sitting in the data, there are traps in there that can walk a model straight into the wrong conclusion.</p>
+<h3 id="the-test">The test</h3>
+<p>I picked one scenario: a network delay between the <code>catalog</code> service and its Postgres database, <code>db-main</code>. The queries slow down, timeouts spread, and <code>front-end</code> starts serving 502s. But nothing is actually wrong with the database or the service. The culprit is a Chaos Mesh <code>NetworkChaos</code> experiment running in the cluster, injecting delay on the <code>catalog</code>↔<code>db-main</code> path, and it shows up right in the Kubernetes events. So the fix is to delete the experiment, and just as importantly, the schedule that would spin it right back up.</p>
+<p><img src="/img/blog/2026-11-11-ai-root-cause-analysis-issue-propagation.png" alt="How the failure propagates from front-end through catalog down to db-main" loading="lazy" />
+</p>
+<p>You can see the problem fan out: <code>front-end</code> shows errors and latency, but tracing the dependency chain leads through <code>catalog</code>, where the real signal lives, the TCP network and connection latency to <code>db-main</code>.</p>
+<p>Notice the map also flags things that aren&rsquo;t the root cause: latency on <code>kafka</code>, CPU on <code>catalog</code> and <code>db-main</code>, storage on the database. In a distributed system one problem bleeds into metrics everywhere, and some of them point the wrong way. Take the database. When the round-trip time between <code>catalog</code> and <code>db-main</code> went up, the client started getting its query responses slower. But Postgres times a query from the first byte it receives to the last byte it sends back to the client, so that network delay gets counted as part of the query time. Read <code>pg_stat_statements</code> and it looks like the database suddenly got slower at the exact same queries.</p>
+<p><img src="/img/blog/2026-11-11-ai-root-cause-analysis-network-rtt-vs-postgres-query-time.png" alt="Network RTT between catalog and db-main rising in lock-step with Postgres query total time" loading="lazy" />
+</p>
+<p>It didn&rsquo;t. The extra time was on the wire, not inside Postgres. A naive read blames the database and moves on, which is exactly the trap. And it isn&rsquo;t a bug that the pre-processing surfaces a signal like this. Telling a real cause from its downstream effects is the model&rsquo;s job in the next step, and it takes real reasoning. More data here isn&rsquo;t a problem, as long as the model can reason well enough not to be fooled by it.</p>
+<p>Alongside those traps, the real evidence is all there. Coroot traced the propagation path, found the network RTT to <code>db-main</code> tracking the slowdown, and flagged the Kubernetes event showing the chaos experiment started right when things broke. The answer is right there in the prompt, nothing hidden, nothing behind a tool call.</p>
+<p>I then reused that exact same prompt against every model, asking each the same three things: what&rsquo;s the root cause, what&rsquo;s the cause-and-effect chain, and what&rsquo;s the immediate fix.</p>
+<p>No score, just pass or fail. I couldn&rsquo;t turn this into an honest number (how many points is a half-right explanation worth?), so the bar is simple: did it pin the chaos experiment, explain the ripple out to <code>front-end</code>, and point at deleting both the experiment <em>and</em> its schedule?</p>
+<h3 id="what-right-looks-like">What &ldquo;right&rdquo; looks like</h3>
+<p>Here&rsquo;s the bar. Claude Opus 4.8 nails it.</p>
+<p>The summary runs the chain in the right order: <code>front-end</code> errors, back through <code>catalog</code>&rsquo;s slow Postgres queries, back to the <code>NetworkChaos</code> injecting delay, with the correlated RTT and TCP spikes cited as proof.</p>
+<p><img src="/img/blog/2026-11-11-ai-root-cause-analysis-opus-4-8-summary.png" alt="Claude Opus 4.8 root cause summary and immediate fixes" loading="lazy" />
+</p>
+<p>The evidence holds up: RTT and connection time climbing with the slow queries, the slow <code>gorm.Query</code> spans, the Kubernetes events marking when the experiment started and recovered, plus a note that <code>db-main</code>&rsquo;s CPU profile is clean, so this isn&rsquo;t a database problem.</p>
+<p><img src="/img/blog/2026-11-11-ai-root-cause-analysis-opus-4-8-evidence.png" alt="Claude Opus 4.8 detailed evidence: network latency and the chaos experiment trigger" loading="lazy" />
+</p>
+<p>And the fix is actually useful: delete the experiment now to get connectivity back, then delete its schedule so it can&rsquo;t fire again. That second step is the easy one to miss, and exactly what you&rsquo;d want to know at 3am.</p>
+<p>Now let&rsquo;s see who else clears it.</p>
+<h3 id="results">Results</h3>
+<p>Eleven models, same context, one shot each. Input is ~9,800 tokens, output ~1,000, so the cost column is the real per-incident price.</p>
+<p>Result key: ✅ correct root cause and a correct, complete fix. 🟡 found the root cause, but the fix was incomplete or it ignored the formatting instructions. ❌ missed the root cause, or the fix wouldn&rsquo;t actually work.</p>
+<table>
+  <thead>
+      <tr>
+          <th>Model</th>
+          <th>Result</th>
+          <th>Cost</th>
+          <th>Screenshots</th>
+          <th>Notes</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>Claude Opus 4.8</td>
+          <td>✅</td>
+          <td>$0.0743</td>
+          <td><a href="/img/blog/2026-11-11-ai-root-cause-analysis-opus-4-8-summary.png">summary</a>, <a href="/img/blog/2026-11-11-ai-root-cause-analysis-opus-4-8-evidence.png">evidence</a></td>
+          <td>Correct summary, right evidence, and a useful fix (delete the chaos experiment and its schedule).</td>
+      </tr>
+      <tr>
+          <td>GPT-5.5</td>
+          <td>✅</td>
+          <td>$0.0492</td>
+          <td><a href="/img/blog/2026-11-11-ai-root-cause-analysis-gpt-5-5-summary.png">summary</a>, <a href="/img/blog/2026-11-11-ai-root-cause-analysis-gpt-5-5-evidence.png">evidence</a></td>
+          <td>Correct chain to the <code>front-end</code> 502s, and caught both fix steps.</td>
+      </tr>
+      <tr>
+          <td>Gemini 3.1 Pro Preview</td>
+          <td>✅</td>
+          <td>$0.0397</td>
+          <td><a href="/img/blog/2026-11-11-ai-root-cause-analysis-gemini-3-1-pro-summary.png">summary</a>, <a href="/img/blog/2026-11-11-ai-root-cause-analysis-gemini-3-1-pro-evidence.png">evidence</a></td>
+          <td>Named the experiment, traced the <code>db-main</code> RTT spike to the 502s, both fix steps.</td>
+      </tr>
+      <tr>
+          <td>DeepSeek-V4-Pro</td>
+          <td>✅</td>
+          <td>$0.0166</td>
+          <td><a href="/img/blog/2026-11-11-ai-root-cause-analysis-deepseek-v4-pro-summary.png">summary</a>, <a href="/img/blog/2026-11-11-ai-root-cause-analysis-deepseek-v4-pro-evidence.png">evidence</a></td>
+          <td>The most thorough fix: delete the chaos object, then pause or delete the schedule, right names throughout.</td>
+      </tr>
+      <tr>
+          <td>GLM-5.2</td>
+          <td>✅</td>
+          <td>$0.0132</td>
+          <td><a href="/img/blog/2026-11-11-ai-root-cause-analysis-glm-5-2-summary.png">summary</a>, <a href="/img/blog/2026-11-11-ai-root-cause-analysis-glm-5-2-evidence.png">evidence</a></td>
+          <td>Traced the <code>Schedule</code> spawning the <code>NetworkChaos</code>, and prioritized deleting the schedule to stop recurrence.</td>
+      </tr>
+      <tr>
+          <td>Nemotron 3 Ultra (550B)</td>
+          <td>🟡</td>
+          <td>$0.00699</td>
+          <td><a href="/img/blog/2026-11-11-ai-root-cause-analysis-nemotron-3-ultra-summary.png">summary</a>, <a href="/img/blog/2026-11-11-ai-root-cause-analysis-nemotron-3-ultra-evidence.png">evidence</a></td>
+          <td>Right cause, but leaked raw widget IDs and a stray <code>bash</code>, and the fix skips the schedule.</td>
+      </tr>
+      <tr>
+          <td>MiniMax-M3</td>
+          <td>🟡</td>
+          <td>$0.00324</td>
+          <td><a href="/img/blog/2026-11-11-ai-root-cause-analysis-minimax-m3-summary.png">summary</a>, <a href="/img/blog/2026-11-11-ai-root-cause-analysis-minimax-m3-evidence.png">evidence</a></td>
+          <td>Right cause and a complete fix, but the evidence leaked raw widget IDs.</td>
+      </tr>
+      <tr>
+          <td>Gemma 4 31B</td>
+          <td>🟡</td>
+          <td>$0.0012</td>
+          <td><a href="/img/blog/2026-11-11-ai-root-cause-analysis-gemma-4-31b-summary.png">summary</a></td>
+          <td>Nailed the cause for a fraction of a cent, but the fix skips the schedule, so it respawns.</td>
+      </tr>
+      <tr>
+          <td>DeepSeek-V4-Flash</td>
+          <td>🟡</td>
+          <td>$0.000965</td>
+          <td><a href="/img/blog/2026-11-11-ai-root-cause-analysis-deepseek-v4-flash-summary.png">summary</a>, <a href="/img/blog/2026-11-11-ai-root-cause-analysis-deepseek-v4-flash-evidence.png">evidence</a></td>
+          <td>Right cause and a complete fix for a tenth of a cent, but ignored the formatting (raw widget IDs).</td>
+      </tr>
+      <tr>
+          <td>Qwen3.6 35B-A3B</td>
+          <td>❌</td>
+          <td>$0.00607</td>
+          <td><a href="/img/blog/2026-11-11-ai-root-cause-analysis-qwen3-6-35b-summary.png">summary</a></td>
+          <td>Found the experiment, but the fix names the wrong resource, so the command wouldn&rsquo;t run.</td>
+      </tr>
+      <tr>
+          <td>Qwen3 Coder Next (80B)</td>
+          <td>❌</td>
+          <td>$0.00365</td>
+          <td><a href="/img/blog/2026-11-11-ai-root-cause-analysis-qwen3-coder-next-summary.png">summary</a></td>
+          <td>Blamed the database and suggested scaling Postgres. Missed the chaos experiment entirely.</td>
+      </tr>
+  </tbody>
+</table>
+<h3 id="what-this-tells-us">What this tells us</h3>
+<p>It helps to split the field three ways:</p>
+<ul>
+<li>
+<p><strong>Closed frontier models</strong>: Opus 4.8, GPT-5.5, Gemini 3.1 Pro. We don&rsquo;t know their size, but almost certainly huge.</p>
+</li>
+<li>
+<p><strong>Big open-weight models</strong>, the kind you&rsquo;d still run in the cloud: DeepSeek V4, GLM-5.2, MiniMax M3, Nemotron 3 Ultra.</p>
+</li>
+<li>
+<p><strong>Small open-weight models</strong> you could actually self-host: Gemma 4 31B and the Qwens.</p>
+</li>
+</ul>
+<p>No surprises at the top: all three frontier models passed cleanly, and the big open models mostly kept up.</p>
+<p>The surprise was at the small end. Among the models you could realistically run on your own hardware, size barely mattered, and the standout was the smallest of the bunch: Gemma 4 31B was the only self-hostable model to find the root cause at all. The bigger Qwen3.6 35B and Qwen3 Coder Next both missed it. And going huge was no guarantee either: Nemotron 3 Ultra, at 550 billion parameters, only made the middle tier. If you want something you can run yourself, Gemma was the one to beat.</p>
+<p>Look closer at who passed and who didn&rsquo;t, though, and the split comes down to two kinds of failure, only one of which is really about the model.</p>
+<p>The ❌ cases are real reasoning failures. Qwen3 Coder Next saw slow queries and blamed the database, the obvious wrong answer, while the chaos event sat right there in the context. Qwen3.6 found the experiment but then deleted the wrong resource, handing back a command that wouldn&rsquo;t run. Both had everything they needed and still missed, and no harness can fix that.</p>
+<p>The 🟡 cases are more hopeful. They all got the reasoning right and only stumbled on packaging: raw widget IDs leaking into the evidence, a stray <code>bash</code> in a code block, deleting the chaos object but not the schedule that recreates it. Those are formatting and instruction-following slips, the kind you fix on the harness side, not the model. For these models, the reasoning was fine.</p>
+<p>A word on cost, since the table shows a big spread. At first glance the gap between models looks huge. But the LLM isn&rsquo;t analyzing raw telemetry here, that work is already done before it&rsquo;s called. It just reads a small, ready-made context and reasons over it, one short call of around 10k tokens. At that size even the most expensive frontier model runs a few cents per incident, which makes reaching for a top model look perfectly reasonable.</p>
+<p>One incident isn&rsquo;t a benchmark, but it lines up with what we keep seeing. The reasoning part of AI RCA is basically solved: frontier models nail it, and even small models you can self-host do a decent job, though they&rsquo;re still not as predictable. Finding the root cause, once the context is there, isn&rsquo;t really the open problem anymore.</p>
+<p>The hard part is the harness. Telemetry keeps growing fast, and if you hand all that raw data to an LLM to sort through, it gets slow and expensive in a hurry. So the real work isn&rsquo;t finding a smarter model. It&rsquo;s preparing the right, compact context for the model before you call it.</p>
+<p>Originally published on June 30, 2026: <a href="https://coroot.com/blog/hard-part-of-ai-root-cause-analysis-is-no-longer-the-model/">Coroot Blog · The hard part of AI root cause analysis is no longer the model</a>.</p>
+
+                        </div>
+
+                        
+                        <div id="comments">
+                            
+                            <script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="en"
+        crossorigin="anonymous"
+        async>
+</script>
+
+                        </div>
+                        
+
+                    </div>
+
+                    <div class="col-md-3">
+                        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">Tags</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/tags/ai"><i class="fas fa-tags"></i> AI</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ascend"><i class="fas fa-tags"></i> Ascend</a>
+            </li>
+            
+            <li >
+                <a href="/tags/blkio"><i class="fas fa-tags"></i> BLKIO</a>
+            </li>
+            
+            <li >
+                <a href="/tags/bpf"><i class="fas fa-tags"></i> BPF</a>
+            </li>
+            
+            <li >
+                <a href="/tags/bpf-foundation"><i class="fas fa-tags"></i> BPF Foundation</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ccf"><i class="fas fa-tags"></i> CCF</a>
+            </li>
+            
+            <li >
+                <a href="/tags/collaboration"><i class="fas fa-tags"></i> Collaboration</a>
+            </li>
+            
+            <li >
+                <a href="/tags/community"><i class="fas fa-tags"></i> Community</a>
+            </li>
+            
+            <li >
+                <a href="/tags/containers"><i class="fas fa-tags"></i> CONTAINERS</a>
+            </li>
+            
+            <li >
+                <a href="/tags/cpuidle"><i class="fas fa-tags"></i> CPUIDLE</a>
+            </li>
+            
+            <li >
+                <a href="/tags/faults"><i class="fas fa-tags"></i> Faults</a>
+            </li>
+            
+            <li >
+                <a href="/tags/flame-graphs"><i class="fas fa-tags"></i> Flame Graphs</a>
+            </li>
+            
+            <li >
+                <a href="/tags/go"><i class="fas fa-tags"></i> Go</a>
+            </li>
+            
+            <li >
+                <a href="/tags/gpu"><i class="fas fa-tags"></i> GPU</a>
+            </li>
+            
+            <li >
+                <a href="/tags/hao022"><i class="fas fa-tags"></i> HAO022</a>
+            </li>
+            
+            <li >
+                <a href="/tags/infrastructure"><i class="fas fa-tags"></i> Infrastructure</a>
+            </li>
+            
+            <li >
+                <a href="/tags/irq"><i class="fas fa-tags"></i> IRQ</a>
+            </li>
+            
+            <li >
+                <a href="/tags/k8s"><i class="fas fa-tags"></i> K8S</a>
+            </li>
+            
+            <li >
+                <a href="/tags/linux-kernel"><i class="fas fa-tags"></i> Linux Kernel</a>
+            </li>
+            
+            <li >
+                <a href="/tags/loadavg"><i class="fas fa-tags"></i> LOADAVG</a>
+            </li>
+            
+            <li >
+                <a href="/tags/memory"><i class="fas fa-tags"></i> Memory</a>
+            </li>
+            
+            <li >
+                <a href="/tags/moore-threads"><i class="fas fa-tags"></i> Moore Threads</a>
+            </li>
+            
+            <li >
+                <a href="/tags/network-optimization"><i class="fas fa-tags"></i> Network Optimization</a>
+            </li>
+            
+            <li >
+                <a href="/tags/networking"><i class="fas fa-tags"></i> Networking</a>
+            </li>
+            
+            <li >
+                <a href="/tags/news"><i class="fas fa-tags"></i> News</a>
+            </li>
+            
+            <li >
+                <a href="/tags/nightingale"><i class="fas fa-tags"></i> Nightingale</a>
+            </li>
+            
+            <li >
+                <a href="/tags/npu"><i class="fas fa-tags"></i> NPU</a>
+            </li>
+            
+            <li >
+                <a href="/tags/observability"><i class="fas fa-tags"></i> Observability</a>
+            </li>
+            
+            <li >
+                <a href="/tags/open-source"><i class="fas fa-tags"></i> Open Source</a>
+            </li>
+            
+            <li >
+                <a href="/tags/rdma"><i class="fas fa-tags"></i> RDMA</a>
+            </li>
+            
+            <li >
+                <a href="/tags/recognition"><i class="fas fa-tags"></i> Recognition</a>
+            </li>
+            
+            <li >
+                <a href="/tags/root-cause-analysis"><i class="fas fa-tags"></i> Root Cause Analysis</a>
+            </li>
+            
+            <li >
+                <a href="/tags/sandbox"><i class="fas fa-tags"></i> Sandbox</a>
+            </li>
+            
+            <li >
+                <a href="/tags/tcp"><i class="fas fa-tags"></i> TCP</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <footer id="footer">
+    <div class="container">
+        
+        
+        
+        
+        <div class="row">
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>Official Certifications</h4>
+                <div class="footer-certifications">
+                    
+                    <a href="https://landscape.cncf.io/?item=observability-and-analysis--observability--huatuo" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="CNCF Landscape">
+                        <img src="/img/certifications/cncf.png" alt="CNCF Landscape" />
+                    </a>
+                    
+                    <a href="https://ebpf.foundation/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="eBPF Foundation">
+                        <img src="/img/certifications/ebpf-foundation.png" alt="eBPF Foundation" />
+                    </a>
+                    
+                    <a href="https://prometheus.io/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="prometheus">
+                        <img src="/img/certifications/prometheus-logo.png" alt="prometheus" />
+                    </a>
+                    
+                    <a href="https://www.ccf.org.cn/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="ccf">
+                        <img src="/img/certifications/ccf.png" alt="ccf" />
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>About us</h4>
+                Linux kernel developers, and observability developers.
+            </div>
+            
+            
+        </div>
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026, HUATUO Open Source Community.</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+<script src="/js/front.js?1794656276"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

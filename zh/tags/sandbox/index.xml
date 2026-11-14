@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Sandbox on HUATUO 开源社区</title>
+    <link>https://huatuo.tech/zh/tags/sandbox/</link>
+    <description>Recent content in Sandbox on HUATUO 开源社区</description>
+    <generator>Hugo</generator>
+    <language>zh</language>
+    <lastBuildDate>Sat, 14 Nov 2026 11:37:47 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/zh/tags/sandbox/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>AI 沙箱已死</title>
+      <link>https://huatuo.tech/zh/blog/2026-10-16-e2b-sandboxes-are-dead/</link>
+      <pubDate>Fri, 16 Oct 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-10-16-e2b-sandboxes-are-dead/</guid>
+      <description>E2B 团队探讨 Agent 基础设施如何从代码执行沙箱演进为围绕任务构建的私有云。</description>
+    </item>
+  </channel>
+</rss>

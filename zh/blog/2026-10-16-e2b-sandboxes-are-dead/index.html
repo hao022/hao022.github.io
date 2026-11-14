@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<script>
+  (function (root) {
+    var theme
+    try { theme = localStorage.getItem('huatuo-theme') } catch {}
+    root.dataset.theme = theme === 'light' || theme === 'dark'
+      ? theme
+      : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+  }(document.documentElement))
+</script>
+
+<title>AI 沙箱已死</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, AI, Sandbox, Infrastructure">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' rel='stylesheet'>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1794656276" rel="stylesheet">
+<link href="/css/theme.css?1794656276" rel="stylesheet">
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+<link rel="android-chrome-icon" href="/img/android-chrome-512x512.png" />
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="HUATUO 开源社区">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="zh">
+<meta property="og:site_name" content="HUATUO 开源社区">
+<meta property="og:title" content="AI 沙箱已死">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/zh/blog/2026-10-16-e2b-sandboxes-are-dead/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2026-10-16-e2b-sandboxes-are-dead-cover.png">
+<meta property="og:image:type" content="image/png">
+
+
+
+  <meta property="og:image:width" content="1800">
+  <meta property="og:image:height" content="1200">
+
+
+<meta property="og:updated_time" content="2026-11-14T11:37:47Z">
+
+  
+  
+  
+  <meta property="article:tag" content="AI">
+  <meta property="article:tag" content="Sandbox">
+  <meta property="article:tag" content="Infrastructure">
+  
+  
+  <meta property="article:published_time" content="2026-10-16T12:00:00&#43;0800">
+  <meta property="article:modified_time" content="2026-11-14T11:37:47Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="AI 沙箱已死">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2026-10-16-e2b-sandboxes-are-dead-cover.png">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+  </head>
+
+  <body><div id="all" class="has-page-hero">
+
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+              🚀  2025 年中国信息通信研究院《OSCAR 尖峰开源项目及开源社区》、腾讯科技《杰出贡献奖》、CNCF Landscape。欢迎 <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>  ❤️
+          </p>
+        
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/zh/">
+                    
+                      <img src="/img/huatuo-logo-v4.png" alt="AI 沙箱已死 logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/huatuo-logo-v4.png" alt="AI 沙箱已死 logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">AI 沙箱已死 - 跳到主页</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">切换导航</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-cubes theme-icon nav-icon nav-menu-icon'></i>项目 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                            <li><a href="/zh/projects/huatuo/">HUATUO（华佗）</a></li>
+                            
+                            
+                            
+                            <li><a href="/zh/projects/go-pcap/">Go-pcap</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-book theme-icon nav-icon nav-menu-icon'></i>文档 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/latest/" data-theme-link>Latest</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/v2.3.0/" data-theme-link>V2.3.0</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/v2.2.0/" data-theme-link>V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    <a href="/zh/blog/"><i class='fas fa-pen-nib theme-icon nav-icon nav-menu-icon'></i>博客</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/milestone/"><i class='fas fa-rss theme-icon nav-icon nav-menu-icon'></i>动态</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/about/"><i class='fas fa-info-circle theme-icon nav-icon nav-menu-icon'></i>关于</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <button type="button"
+                            class="dropdown-toggle nav-control"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                      <i class="fas fa-globe theme-icon nav-icon"></i>
+                      中文
+                      <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                      
+                      
+                      
+                        
+                        
+                        
+                          
+                            
+                          
+                        
+                          
+                        
+                        
+                        
+                        <li>
+                          <a href="/blog/2026-10-16-e2b-sandboxes-are-dead/" class="language-option">
+                            <i class="language-check" aria-hidden="true"></i>
+                            English
+                          </a>
+                        </li>
+                      
+                        
+                        
+                        
+                          
+                        
+                          
+                            
+                          
+                        
+                        
+                        
+                        <li class="active">
+                          <a href="/zh/blog/2026-10-16-e2b-sandboxes-are-dead/" class="language-option" aria-current="page">
+                            <i class="language-check fas fa-check" aria-hidden="true"></i>
+                            中文
+                          </a>
+                        </li>
+                      
+                    </ul>
+                  </li>
+                  
+                  
+
+                  
+                  
+                  
+                  <li class="theme-toggle-item">
+                    <button type="button"
+                            class="nav-control theme-toggle"
+                            data-theme-toggle
+                            data-light-label="切换至浅色主题"
+                            data-dark-label="切换至深色主题"
+                            aria-label="切换至深色主题"
+                            aria-pressed="false">
+                      <span class="theme-toggle-track" aria-hidden="true">
+                        <span class="theme-toggle-thumb">
+                          <i class="theme-toggle-icon fas fa-sun"></i>
+                        </span>
+                      </span>
+                      <span class="sr-only theme-toggle-text">切换至深色主题</span>
+                    </button>
+                  </li>
+                  
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars"
+                         onerror="this.style.display='none'">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        
+        
+        
+        <div class="page-hero">
+    <div class="page-hero-grid"></div>
+    <div class="page-hero-glow"></div>
+    <div class="page-hero-inner">
+        <div class="page-hero-title-row">
+            <div class="page-hero-icon"><i class="fas fa-pen-nib theme-icon"></i></div>
+            <h1 class="page-hero-title">博客</h1>
+        </div>
+    </div>
+</div>
+
+        
+
+        <div id="content">
+            <div class="container">
+                <div class="row">
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                        <h1 class="post-title">AI 沙箱已死</h1>
+                        <div class="post-meta">
+                            <span class="post-meta-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                2026-10-16
+                            </span>
+                            
+                            <span class="post-meta-authors">
+                                <i class="fas fa-user"></i>
+                                <a href="/zh/authors/vasek-mlejnsky">Vasek Mlejnsky</a>
+                            </span>
+                            
+                            
+                            <span class="post-meta-tags">
+                                <a href="/zh/tags/ai" class="post-meta-tag">AI</a><a href="/zh/tags/sandbox" class="post-meta-tag">Sandbox</a><a href="/zh/tags/infrastructure" class="post-meta-tag">Infrastructure</a>
+                            </span>
+                            
+                        </div>
+                        
+
+                        <div id="post-content">
+                          <p><img src="/img/blog/2026-10-16-e2b-sandboxes-are-dead-cover.png" alt="原文题图：沙箱已死，橙色与灰色波纹中浮现骷髅轮廓" loading="lazy" />
+</p>
+<p>Agent 越来越强，围绕它们构建的技术栈也在不断变化。我们需要提前准备好基础设施，迎接它们接下来能够完成的工作。</p>
+<h3 id="一切从运行代码开始">一切从运行代码开始</h3>
+<p>2023 年，我们创立了 E2B。那时 GPT-3.5 刚问世不久，大家还在争论什么才算 Agent。Agent 也刚开始尝试使用工具：十次尝试可能只有三次成功，即使成功，也往往只能往下执行几步。</p>
+<p>但这几次成功已经让我们看清了一件事：Agent 需要一个安全、灵活的运行环境。资源要能按需调整，也要跟得上它们不断增强的能力。E2B Sandbox 就这样诞生了。</p>
+<p>从一开始，我们考虑的就不只是 Agent 当时能做什么，还有它们接下来会具备哪些能力。</p>
+<img src="/img/blog/2026-10-16-e2b-sandboxes-are-dead-timeline.png" alt="2024 至 2026 年 Agent 从辅助写代码、构建应用到操作计算机的能力演进时间轴" width="1520" height="400" style="width: 760px; max-width: 100%; height: auto;" loading="lazy" />
+<h3 id="从代码片段到完整应用">从代码片段到完整应用</h3>
+<p><img src="/img/blog/2026-10-16-e2b-sandboxes-are-dead-copilots.png" alt="Agent 能力演进时间轴：2024 年，编程助手与人一起写代码。" loading="lazy" />
+</p>
+<p>最先出现的是编程助手（copilots），帮助开发者补全代码。我们随后推出 E2B Code Interpreter，让 AI 生成的数据分析代码在隔离沙箱中的交互式笔记本里运行。E2B 也由此成了 AI 数据分析助手的默认工具。</p>
+<p><img src="/img/blog/2026-10-16-e2b-sandboxes-are-dead-apps.png" alt="Agent 能力演进时间轴：2025 年，Agent 开始构建 Web 应用。" loading="lazy" />
+</p>
+<p>接着，Agent 开始用 React 等技术开发完整的 Web 应用。它们像开发者一样编写和运行程序，需要的工作环境也不再局限于数据分析笔记本。</p>
+<p>在我们的沙箱里，Agent 有了自己的计算机：这些虚拟机彼此隔离，可以按需启动、持续使用，并运行 Linux 软件。Agent 在其中运行的内容，也从 Web 应用扩展到 Docker 容器，甚至完整的 Kubernetes 集群。</p>
+<h3 id="有了计算机还需要工作环境">有了计算机，还需要工作环境</h3>
+<p><img src="/img/blog/2026-10-16-e2b-sandboxes-are-dead-computers.png" alt="Agent 能力演进时间轴：2026 年，Agent 开始操作整台计算机。" loading="lazy" />
+</p>
+<p>我们正在经历第三波变化：Agent 开始操作整台计算机，在复杂的工作场景中持续运行，从头到尾完成一整项任务。我们支持的 Agent 也不再局限于编程，而是用于个人助理、业务分析、视频剪辑、生物技术、安全和幻灯片制作等领域。</p>
+<p>Agent 承担的工作越多，对运行环境的要求也越高：专用存储、防火墙、沙箱之间的网络连接、可观测性、能按需扩缩的 CPU 和内存，还有浏览器与安全的密钥存储。要提供这些能力，运行环境就已经接近一套完整的平台。</p>
+<p>因此，我们认为，竞争如果仍停留在虚拟机冷启动快几毫秒、每 vCPU 小时的费用低多少，就已经跟不上第三波变化了。基础设施要承载的工作，从代码片段扩展到应用、集群，再到生产任务。如果设计时只考虑眼前的需求，等建好时，可能就已经落后。</p>
+<p>我们设想，未来由 Agent 根据具体任务决定需要哪些工具和资源。我们把这样的基础设施称为“Agent 驱动的私有云”。</p>
+<h3 id="运行经验能带来什么">运行经验能带来什么</h3>
+<p>这些年，我们运行了数十亿次 Agent，积累了数百亿条执行轨迹。这些经验让我们越来越清楚，不同任务究竟需要怎样的基础设施。</p>
+<p>在任务开始前，我们往往就能预估 Agent 会用到哪些工具，以及它的平均和峰值运行时间。我们也能预估它会消耗多少 CPU 和内存、依赖哪些服务、发出哪些网络请求。我们设想，云可以先观察 Agent，再预测需求、搭建环境，并在运行中持续优化。</p>
+<p><img src="/img/blog/2026-10-16-e2b-sandboxes-are-dead-learning.png" alt="Agent 驱动的云通过观察、预测、组装和优化，利用运行经验持续调整环境。" loading="lazy" />
+</p>
+<p>我们能否利用这些数据和规模经济，为 Agent 推荐更合适的工具、服务和数据库，帮助它更有效地完成工作？如果运行环境也能从经验中学习，又能给 Agent 带来多大的提升？</p>
+<h3 id="下一步让环境跟着任务走">下一步，让环境跟着任务走</h3>
+<p><img src="/img/blog/2026-10-16-e2b-sandboxes-are-dead-cloud.png" alt="Agent 能力演进：从辅助编程、构建应用、操作计算机，到未来驱动自己的任务专属云" loading="lazy" />
+</p>
+<p>我们期待的未来，是每个 Agent 都有一套围绕当前任务优化的私有云，并能随着需求变化，调整所用的资源和工具。</p>
+<p>这就是我们说“沙箱已死”的含义：基础设施要从运行代码的地方，发展为支撑 Agent 完成整项工作的平台。Agent 已经在使用过程中告诉了我们它们需要什么。我们要做的，就是像对待其他客户一样，持续响应这些需求的变化。</p>
+<p>原文：<a href="https://e2b.dev/resources/sandboxes-are-dead">E2B · Sandboxes are dead</a></p>
+
+                        </div>
+
+                        
+                        <div id="comments">
+                            
+                            <script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+                        </div>
+                        
+
+                    </div>
+
+                    <div class="col-md-3">
+                        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">标签</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/zh/tags/ai"><i class="fas fa-tags"></i> AI</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/ascend"><i class="fas fa-tags"></i> Ascend</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/blkio"><i class="fas fa-tags"></i> BLKIO</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/bpf"><i class="fas fa-tags"></i> BPF</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/ccf"><i class="fas fa-tags"></i> CCF</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/collaboration"><i class="fas fa-tags"></i> Collaboration</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/community"><i class="fas fa-tags"></i> Community</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/faults"><i class="fas fa-tags"></i> Faults</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/go"><i class="fas fa-tags"></i> Go</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/gpu"><i class="fas fa-tags"></i> GPU</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/hao022"><i class="fas fa-tags"></i> HAO022</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/infrastructure"><i class="fas fa-tags"></i> Infrastructure</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/irq"><i class="fas fa-tags"></i> IRQ</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/k8s"><i class="fas fa-tags"></i> K8S</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/linux-kernel"><i class="fas fa-tags"></i> Linux Kernel</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/memory"><i class="fas fa-tags"></i> Memory</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/moore-threads"><i class="fas fa-tags"></i> Moore Threads</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/networking"><i class="fas fa-tags"></i> Networking</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/news"><i class="fas fa-tags"></i> News</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/npu"><i class="fas fa-tags"></i> NPU</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/observability"><i class="fas fa-tags"></i> Observability</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/open-source"><i class="fas fa-tags"></i> Open Source</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/rdma"><i class="fas fa-tags"></i> RDMA</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/recognition"><i class="fas fa-tags"></i> Recognition</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/root-cause-analysis"><i class="fas fa-tags"></i> Root Cause Analysis</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/sandbox"><i class="fas fa-tags"></i> Sandbox</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/tcp"><i class="fas fa-tags"></i> TCP</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <footer id="footer">
+    <div class="container">
+        
+        
+        
+        
+        <div class="row">
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>官方认证</h4>
+                <div class="footer-certifications">
+                    
+                    <a href="https://landscape.cncf.io/?item=observability-and-analysis--observability--huatuo" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="CNCF Landscape">
+                        <img src="/img/certifications/cncf.png" alt="CNCF Landscape" />
+                    </a>
+                    
+                    <a href="https://ebpf.foundation/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="eBPF Foundation">
+                        <img src="/img/certifications/ebpf-foundation.png" alt="eBPF Foundation" />
+                    </a>
+                    
+                    <a href="https://prometheus.io/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="prometheus">
+                        <img src="/img/certifications/prometheus-logo.png" alt="prometheus" />
+                    </a>
+                    
+                    <a href="https://www.ccf.org.cn/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="ccf">
+                        <img src="/img/certifications/ccf.png" alt="ccf" />
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>关于我们</h4>
+                基础软件技术研究者，Linux 内核开发者。
+            </div>
+            
+            
+        </div>
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026 HUATUO 开源社区。</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+<script src="/js/front.js?1794656276"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>
