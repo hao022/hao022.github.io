@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="820" viewBox="0 0 1400 820" role="img" aria-labelledby="title desc">
+  <title id="title">HUATUO 昇腾 NPU 故障观测技术架构</title>
+  <desc id="desc">HUATUO 在节点侧发现 NPU 拓扑，并行采集 DCMI、PCIe 和 HCCN 指标，统一输出至 Prometheus 与 Grafana。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f7f9fc"/>
+      <stop offset="1" stop-color="#eef4fb"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="8" flood-color="#091e42" flood-opacity=".13"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#52677d"/>
+    </marker>
+  </defs>
+  <rect width="1400" height="820" rx="28" fill="url(#bg)"/>
+  <text x="60" y="62" font-family="Arial, PingFang SC, Microsoft YaHei, sans-serif" font-size="31" font-weight="700" fill="#172b4d">HUATUO × Ascend：三条采集链路，一套故障视图</text>
+  <text x="60" y="99" font-family="Arial, PingFang SC, Microsoft YaHei, sans-serif" font-size="17" fill="#52677d">节点内尽力采集、分组隔离；节点外沿用 HUATUO 既有 Prometheus / Grafana 体系</text>
+
+  <g font-family="Arial, PingFang SC, Microsoft YaHei, sans-serif" filter="url(#shadow)">
+    <rect x="55" y="152" width="240" height="510" rx="20" fill="#172b4d"/>
+    <text x="92" y="198" font-size="23" font-weight="700" fill="#ffffff">昇腾计算节点</text>
+
+    <rect x="85" y="238" width="180" height="84" rx="13" fill="#deebff"/>
+    <text x="113" y="272" font-size="19" font-weight="700" fill="#0747a6">NPU 设备</text>
+    <text x="113" y="299" font-size="14" fill="#3567a7">Card / Device</text>
+
+    <rect x="85" y="344" width="180" height="84" rx="13" fill="#fff3e6"/>
+    <text x="113" y="378" font-size="19" font-weight="700" fill="#974f0c">PCIe 链路</text>
+    <text x="113" y="405" font-size="14" fill="#8a5b2d">BDF · speed · width</text>
+
+    <rect x="85" y="450" width="180" height="84" rx="13" fill="#e3fcef"/>
+    <text x="113" y="484" font-size="19" font-weight="700" fill="#006644">HCCN / RoCE</text>
+    <text x="113" y="511" font-size="14" fill="#357a68">端口 · 报文 · 光模块</text>
+
+    <rect x="85" y="556" width="180" height="72" rx="13" fill="#ffffff"/>
+    <text x="113" y="588" font-size="18" font-weight="700" fill="#253858">驱动运行环境</text>
+    <text x="113" y="612" font-size="13" fill="#6b778c">libdcmi · hccn_tool</text>
+  </g>
+
+  <g font-family="Arial, PingFang SC, Microsoft YaHei, sans-serif">
+    <rect x="355" y="134" width="620" height="580" rx="24" fill="#ffffff" stroke="#c9d4e2" stroke-width="2"/>
+    <text x="395" y="181" font-size="24" font-weight="700" fill="#172b4d">huatuo-bamai / ascend_npu collector</text>
+
+    <rect x="395" y="212" width="540" height="78" rx="14" fill="#f4f5f7"/>
+    <text x="426" y="244" font-size="19" font-weight="700" fill="#253858">① 初始化与拓扑缓存</text>
+    <text x="426" y="270" font-size="14" fill="#6b778c">动态加载 libdcmi → 枚举 Card / Device → 缓存静态拓扑</text>
+
+    <rect x="395" y="323" width="160" height="230" rx="16" fill="#e3fcef"/>
+    <text x="423" y="360" font-size="21" font-weight="700" fill="#006644">DCMI</text>
+    <text x="423" y="391" font-size="14" fill="#357a68">设备健康</text>
+    <text x="423" y="416" font-size="14" fill="#357a68">功耗 / 温度</text>
+    <text x="423" y="441" font-size="14" fill="#357a68">利用率 / 频率</text>
+    <text x="423" y="466" font-size="14" fill="#357a68">HBM / ECC</text>
+    <text x="423" y="491" font-size="14" fill="#357a68">网络健康</text>
+    <text x="423" y="526" font-size="13" font-weight="700" fill="#006644">默认开启</text>
+
+    <rect x="585" y="323" width="160" height="230" rx="16" fill="#fff3e6"/>
+    <text x="613" y="360" font-size="21" font-weight="700" fill="#974f0c">PCIe</text>
+    <text x="613" y="391" font-size="14" fill="#8a5b2d">DCMI 获取 BDF</text>
+    <text x="613" y="416" font-size="14" fill="#8a5b2d">读取 Linux sysfs</text>
+    <text x="613" y="441" font-size="14" fill="#8a5b2d">最大链路能力</text>
+    <text x="613" y="466" font-size="14" fill="#8a5b2d">当前链路状态</text>
+    <text x="613" y="526" font-size="13" font-weight="700" fill="#974f0c">按需开启</text>
+
+    <rect x="775" y="323" width="160" height="230" rx="16" fill="#e8f1ff"/>
+    <text x="803" y="360" font-size="21" font-weight="700" fill="#0747a6">HCCN</text>
+    <text x="803" y="391" font-size="14" fill="#3567a7">Link 状态</text>
+    <text x="803" y="416" font-size="14" fill="#3567a7">RoCE 吞吐</text>
+    <text x="803" y="441" font-size="14" fill="#3567a7">收发 / 异常计数</text>
+    <text x="803" y="466" font-size="14" fill="#3567a7">光模块遥测</text>
+    <text x="803" y="526" font-size="13" font-weight="700" fill="#0747a6">按需开启</text>
+
+    <rect x="395" y="585" width="540" height="87" rx="14" fill="#172b4d"/>
+    <text x="426" y="620" font-size="19" font-weight="700" fill="#ffffff">② 并行采集、故障隔离、统一数据模型</text>
+    <text x="426" y="648" font-size="14" fill="#c5d4e8">单组失败不阻塞其他组 · DCMI 异常时重初始化并重试</text>
+  </g>
+
+  <g font-family="Arial, PingFang SC, Microsoft YaHei, sans-serif" filter="url(#shadow)">
+    <rect x="1040" y="186" width="300" height="118" rx="18" fill="#36b37e"/>
+    <text x="1080" y="231" font-size="22" font-weight="700" fill="#ffffff">Prometheus 指标</text>
+    <text x="1080" y="262" font-size="15" fill="#e3fcef">72 个 npu_* 指标名 / 映射</text>
+    <text x="1080" y="285" font-size="15" fill="#e3fcef">card、device、BDF 标签</text>
+
+    <rect x="1040" y="348" width="300" height="118" rx="18" fill="#00b8d9"/>
+    <text x="1080" y="393" font-size="22" font-weight="700" fill="#172b4d">告警与可视化</text>
+    <text x="1080" y="424" font-size="15" fill="#163f49">Grafana · Alertmanager</text>
+    <text x="1080" y="447" font-size="15" fill="#163f49">趋势、基线、故障关联</text>
+
+    <rect x="1040" y="510" width="300" height="118" rx="18" fill="#6554c0"/>
+    <text x="1080" y="555" font-size="22" font-weight="700" fill="#ffffff">运维闭环</text>
+    <text x="1080" y="586" font-size="15" fill="#eae6ff">发现退化 → 定位故障域</text>
+    <text x="1080" y="609" font-size="15" fill="#eae6ff">隔离 / 维修 → 验证恢复</text>
+  </g>
+
+  <path d="M295 402 L345 402" fill="none" stroke="#52677d" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M975 244 L1030 244" fill="none" stroke="#52677d" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M1190 304 L1190 338" fill="none" stroke="#52677d" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M1190 466 L1190 500" fill="none" stroke="#52677d" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <g font-family="Arial, PingFang SC, Microsoft YaHei, sans-serif">
+    <rect x="355" y="750" width="985" height="42" rx="10" fill="#deebff"/>
+    <text x="385" y="777" font-size="15" fill="#0747a6">设计关键词：动态加载 · 静态拓扑缓存 · 多级并发 · 尽力采集 · 可选能力开关 · 统一 Prometheus 输出</text>
+  </g>
+</svg>
