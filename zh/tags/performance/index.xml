@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Performance on HUATUO 开源社区</title>
+    <link>https://huatuo.tech/zh/tags/performance/</link>
+    <description>Recent content in Performance on HUATUO 开源社区</description>
+    <generator>Hugo</generator>
+    <language>zh</language>
+    <lastBuildDate>Fri, 27 Nov 2026 14:39:16 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/zh/tags/performance/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>CPU、内存、I/O、IRQ：性能、延迟究竟来自哪行代码？</title>
+      <link>https://huatuo.tech/zh/blog/2026-11-26-huatuo-continuous-profiling/</link>
+      <pubDate>Thu, 26 Nov 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/zh/blog/2026-11-26-huatuo-continuous-profiling/</guid>
+      <description>通过 CPU、等待时间与内存火焰图，将性能开销关联到调用栈，并结合实际负载继续排查。</description>
+    </item>
+  </channel>
+</rss>

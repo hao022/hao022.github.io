@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<script>
+  (function (root) {
+    var theme
+    try { theme = localStorage.getItem('huatuo-theme') } catch {}
+    if (!['light', 'dark', 'auto'].includes(theme)) theme = 'dark'
+    root.dataset.theme = theme === 'auto'
+      ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : theme
+  }(document.documentElement))
+</script>
+
+<title>链路故障之下</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, Network, Faults, Observability">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link rel="preload" href="/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1795790367" rel="stylesheet">
+<link href="/css/theme.css?1795790367" rel="stylesheet">
+<link href="/css/code.css?1795790367" rel="stylesheet">
+
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+<link rel="android-chrome-icon" href="/img/android-chrome-512x512.png" />
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="HUATUO 开源社区">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="zh">
+<meta property="og:site_name" content="HUATUO 开源社区">
+<meta property="og:title" content="链路故障之下">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/zh/blog/2026-11-27-behind-ethernet-link-failures/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2026-11-27-behind-ethernet-link-failures-cover.jpg">
+<meta property="og:image:type" content="image/jpg">
+
+
+
+  <meta property="og:image:width" content="500">
+  <meta property="og:image:height" content="403">
+
+
+<meta property="og:updated_time" content="2026-11-27T14:39:16Z">
+
+  
+  
+  
+  <meta property="article:tag" content="Network">
+  <meta property="article:tag" content="Faults">
+  <meta property="article:tag" content="Observability">
+  
+  
+  <meta property="article:published_time" content="2026-11-27T12:00:00&#43;0800">
+  <meta property="article:modified_time" content="2026-11-27T14:39:16Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="链路故障之下">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2026-11-27-behind-ethernet-link-failures-cover.jpg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+  </head>
+
+  <body><div id="all" class="has-page-hero">
+
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+              🚀  2025 年中国信息通信研究院《OSCAR 尖峰开源项目及开源社区》、腾讯科技《杰出贡献奖》、CNCF Landscape。欢迎 <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>  ❤️
+          </p>
+        
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/zh/">
+                    
+                      <img src="/img/huatuo-logo-v4.png" alt="链路故障之下 logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/huatuo-logo-v4.png" alt="链路故障之下 logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">链路故障之下 - 跳到主页</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">切换导航</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-cubes theme-icon nav-icon nav-menu-icon'></i>项目 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                            <li><a href="/zh/projects/huatuo/">HUATUO（华佗）</a></li>
+                            
+                            
+                            
+                            <li><a href="/zh/projects/go-pcap/">Go-pcap</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-book theme-icon nav-icon nav-menu-icon'></i>文档 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/latest/" data-theme-link>Latest</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/v2.3.0/" data-theme-link>V2.3.0</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/v2.2.0/" data-theme-link>V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    <a href="/zh/blog/"><i class='fas fa-pen-nib theme-icon nav-icon nav-menu-icon'></i>博客</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/milestone/"><i class='fas fa-rss theme-icon nav-icon nav-menu-icon'></i>动态</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/about/"><i class='fas fa-info-circle theme-icon nav-icon nav-menu-icon'></i>关于</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <button type="button"
+                            class="dropdown-toggle nav-control"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                      <i class="fas fa-globe theme-icon nav-icon"></i>
+                      中文
+                      <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                      
+                      
+                      
+                        
+                        
+                        
+                          
+                            
+                          
+                        
+                          
+                        
+                        
+                        
+                        <li>
+                          <a href="/blog/2026-11-27-behind-ethernet-link-failures/" class="language-option">
+                            <i class="language-check" aria-hidden="true"></i>
+                            English
+                          </a>
+                        </li>
+                      
+                        
+                        
+                        
+                          
+                        
+                          
+                            
+                          
+                        
+                        
+                        
+                        <li class="active">
+                          <a href="/zh/blog/2026-11-27-behind-ethernet-link-failures/" class="language-option" aria-current="page">
+                            <i class="language-check fas fa-check" aria-hidden="true"></i>
+                            中文
+                          </a>
+                        </li>
+                      
+                    </ul>
+                  </li>
+                  
+                  
+
+                  
+                  <li class="dropdown theme-toggle-item">
+                    
+<svg xmlns="http://www.w3.org/2000/svg" class="hidden" aria-hidden="true" focusable="false">
+  <symbol id="main-theme-check2" viewBox="0 0 16 16">
+    <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+  </symbol>
+  <symbol id="main-theme-circle-half" viewBox="0 0 16 16">
+    <path d="M8 15A7 7 0 1 0 8 1v14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z"/>
+  </symbol>
+  <symbol id="main-theme-moon-stars-fill" viewBox="0 0 16 16">
+    <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+    <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/>
+  </symbol>
+  <symbol id="main-theme-sun-fill" viewBox="0 0 16 16">
+    <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
+  </symbol>
+</svg>
+
+                    <button type="button"
+                            id="main-theme-toggle"
+                            class="dropdown-toggle nav-control theme-toggle"
+                            data-theme-toggle
+                            data-toggle="dropdown"
+                            data-label="选择主题"
+                            aria-label="选择主题"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                      <svg class="theme-toggle-icon" aria-hidden="true" focusable="false"><use href="#main-theme-circle-half"></use></svg>
+                      <span class="caret" aria-hidden="true"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right theme-menu" aria-labelledby="main-theme-toggle">
+                      
+                      <li>
+                        <button type="button" class="theme-option" data-theme-value="light" aria-pressed="false">
+                          <svg class="theme-option-icon" aria-hidden="true" focusable="false"><use href="#main-theme-sun-fill"></use></svg>
+                          <span class="theme-option-label">浅色</span>
+                          <svg class="theme-option-check" aria-hidden="true" focusable="false"><use href="#main-theme-check2"></use></svg>
+                        </button>
+                      </li>
+                      
+                      <li>
+                        <button type="button" class="theme-option" data-theme-value="dark" aria-pressed="false">
+                          <svg class="theme-option-icon" aria-hidden="true" focusable="false"><use href="#main-theme-moon-stars-fill"></use></svg>
+                          <span class="theme-option-label">深色</span>
+                          <svg class="theme-option-check" aria-hidden="true" focusable="false"><use href="#main-theme-check2"></use></svg>
+                        </button>
+                      </li>
+                      
+                      <li>
+                        <button type="button" class="theme-option" data-theme-value="auto" aria-pressed="false">
+                          <svg class="theme-option-icon" aria-hidden="true" focusable="false"><use href="#main-theme-circle-half"></use></svg>
+                          <span class="theme-option-label">跟随系统</span>
+                          <svg class="theme-option-check" aria-hidden="true" focusable="false"><use href="#main-theme-check2"></use></svg>
+                        </button>
+                      </li>
+                      
+                    </ul>
+                  </li>
+                  
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars"
+                         onerror="this.style.display='none'">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        
+        
+        
+        <div class="page-hero">
+    <div class="page-hero-grid"></div>
+    <div class="page-hero-glow"></div>
+    <div class="page-hero-inner">
+        <div class="page-hero-title-row">
+            <div class="page-hero-icon"><i class="fas fa-pen-nib theme-icon"></i></div>
+            <h1 class="page-hero-title">博客</h1>
+        </div>
+    </div>
+</div>
+
+        
+
+        <div id="content">
+            <div class="container">
+                <div class="row">
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                        <h1 class="post-title">链路故障之下</h1>
+                        <div class="post-meta">
+                            <span class="post-meta-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                2026-11-27
+                            </span>
+                            
+                            <span class="post-meta-authors">
+                                <i class="fas fa-user"></i>
+                                <a href="/zh/authors/hao022">HAO022</a>
+                            </span>
+                            
+                            
+                            <span class="post-meta-tags">
+                                <a href="/zh/tags/network" class="post-meta-tag">Network</a><a href="/zh/tags/faults" class="post-meta-tag">Faults</a><a href="/zh/tags/observability" class="post-meta-tag">Observability</a>
+                            </span>
+                            
+                        </div>
+                        
+
+                        <div id="post-content">
+                          <p>网卡链路保持 Up，为何仍会丢包？从链路中断、CRC 错误到接收资源不足，华佗能捕捉哪些异常，留下哪些证据？</p>
+<h3 id="一链路中断影响业务">一、链路中断影响业务</h3>
+<p>断纤、掉电或信号异常，都可能使链路进入 CarrierDown 状态，链路上的数据无法送达，进而导致业务请求超时或中断。</p>
+<table>
+  <thead>
+      <tr>
+          <th>故障表现</th>
+          <th>业务影响</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>持续 Down</td>
+          <td>通信中断，请求失败或超时。</td>
+      </tr>
+      <tr>
+          <td>反复 Up／Down</td>
+          <td>传输反复中断，延迟和吞吐量出现波动。</td>
+      </tr>
+      <tr>
+          <td>冗余链路中的一个成员失效</td>
+          <td>可能触发路径切换，或使可用容量下降。</td>
+      </tr>
+  </tbody>
+</table>
+<h4 id="链路中断发生在哪里">链路中断发生在哪里</h4>
+<p>从服务器的接收方向看，报文先在光模块由光信号转换为电信号，经过 PHY 恢复比特和编码数据，再由 MAC 检查帧。最后，通过过滤进入接收缓存和队列，DMA 按描述符地址，经 PCIe 写入物理机主机内存。</p>
+<blockquote>
+<p>光纤 → 光模块／PMD → PMA／SerDes／CDR → PCS → RS／MAC → 过滤／缓存／接收队列 → DMA → PCIe → 主机内存。</p></blockquote>
+<p>这是一条完整的接收交付路径，并非所有环节都参与链路状态判定。光信号与物理层同步异常可能导致 CarrierDown。</p>
+<p><img src="/img/blog/2026-11-27-behind-ethernet-link-failures-intel-phy-mac-connectivity.png" alt="图 1 控制器与 PHY 或光模块之间的三类连接" loading="lazy" />
+</p>
+<p><em>图 1　控制器与 PHY／光模块之间的三类连接。</em></p>
+<p><img src="/img/blog/2026-11-27-behind-ethernet-link-failures-intel-kr-sublayers.png" alt="图 2 以太网 PHY 的功能分层" loading="lazy" />
+</p>
+<p><em>图 2　PHY 功能分层。</em></p>
+<p>MAC 属于数据链路层，缓存、队列、DMA 和 PCIe 则承担后续交付。从 MAC 到主机交付阶段，还可能出现以下错误：</p>
+<ul>
+<li><strong>MAC</strong>：CRC、长度或非法字节错误，导致坏帧被丢弃，端口仍可能保持 Up。</li>
+<li><strong>接收缓存／队列</strong>：缓存不足、队列被禁用，或在特定丢弃配置下没有空闲描述符，导致报文丢失。</li>
+<li><strong>DMA／描述符</strong>：缺少可用描述符，或数据搬运、完成状态回写受阻，使报文无法交付主机。</li>
+</ul>
+<h3 id="二链路之下的异常">二、链路之下的异常</h3>
+<p><img src="/img/blog/2026-11-27-behind-ethernet-link-failures-receive-path.png" alt="图 3 从光信号到主机内存的接收路径" loading="lazy" />
+</p>
+<p><em>图 3　从光信号到主机内存。</em></p>
+<blockquote>
+<p>carrier 反映链路状态，CRC 错误计数反映坏帧，missed 和队列丢弃计数反映交付损失。</p></blockquote>
+<h4 id="光信号过弱过强或波动都影响接收">光信号过弱、过强或波动，都影响接收</h4>
+<p>接收光功率过低，或超过接收器的适用上限，都使接收质量下降、CRC 错误增加。链路尚能维持时，业务可能先出现间歇性丢包；异常严重，才会进入掉线。判断光功率状态，要依据具体模块的规格和诊断阈值。</p>
+<p><img src="/img/blog/2026-11-27-behind-ethernet-link-failures-intel-transceiver-blocks.png" alt="图 4 光收发电路的功能分工" loading="lazy" />
+</p>
+<p><em>图 4　收发电路的功能分工。</em></p>
+<h4 id="帧校验出错">帧校验出错</h4>
+<p>CRC 错误计数增长，说明接收端发现了帧校验错误。在常规配置下，坏帧通常由网卡丢弃，CRC 只负责检错，不负责修复报文。</p>
+<p><img src="/img/blog/2026-11-27-behind-ethernet-link-failures-block-lock-and-fcs.png" alt="图 5 块同步与帧校验的区别" loading="lazy" />
+</p>
+<p><em>图 5　块同步与帧校验的区别。</em></p>
+<h4 id="报文交付丢失">报文交付丢失</h4>
+<p>另一类丢包发生在交付阶段：帧本身正确，却因接收缓存或描述符不足，未能成功交付到主机。这类问题通常表现为 <code>rx_missed_errors</code>（下文简称 missed）。</p>
+<p><img src="/img/blog/2026-11-27-behind-ethernet-link-failures-intel-rx-data-flow.png" alt="图 6 Intel 82599 的完整接收流程" loading="lazy" />
+</p>
+<p><em>图 6　Rx Data Flow。Intel 第 42 页。</em></p>
+<p>步骤 1–3：主机准备接收环、空缓冲区和尾指针。步骤 6–12：MAC 接收报文，经过滤后进入缓存，再由 DMA 写入主机内存并回写描述符。步骤 13–14：通知主机，继续交给协议栈处理。</p>
+<blockquote>
+<p>空缓冲区和描述符需要提前准备。报文到达后才等待资源，可能已经来不及。</p></blockquote>
+<h5 id="1-队列无可用资源报文无法继续">1. 队列无可用资源，报文无法继续</h5>
+<p><img src="/img/blog/2026-11-27-behind-ethernet-link-failures-intel-rx-queue-flow.png" alt="图 7 接收队列的选择流程" loading="lazy" />
+</p>
+<p><em>图 7　接收队列的选择流程。</em></p>
+<p>过滤规则决定是否接收报文，以及将其送入哪个队列；RSS 可以按报文头部的散列结果分流。选定队列，不代表 DMA 已经完成，也不代表应用已经收到报文。</p>
+<blockquote>
+<p>队列被禁用，或在特定 Drop En 配置下没有空闲描述符，都可能使 <code>QPRDC</code> 增长。ixgbe 将其汇总为 <code>rx_no_dma_resources</code>。</p></blockquote>
+<h5 id="2-主机缓冲区不足">2. 主机缓冲区不足</h5>
+<p><img src="/img/blog/2026-11-27-behind-ethernet-link-failures-dma-descriptor.png" alt="图 8 网卡缓存、主机描述符与 DMA 的关系" loading="lazy" />
+</p>
+<p><em>图 8　网卡缓存与主机内存的分工。</em></p>
+<p>缓存暂存报文，描述符提供主机缓冲区地址和状态，DMA 负责搬运。网卡片上缓存与主机描述符环位于不同位置，不能混为一谈。</p>
+<p><img src="/img/blog/2026-11-27-behind-ethernet-link-failures-intel-receive-ring.png" alt="图 9 接收描述符环的结构" loading="lazy" />
+</p>
+<p><em>图 9　接收描述符环。</em></p>
+<p>在本例中，missed 提示接收缓存或交付资源造成的损失；驱动的 <code>alloc_rx_page_failed</code> 则提示主机补充内存资源失败。两者不是同一个计数。</p>
+<h5 id="3-驱动耗尽资源">3. 驱动耗尽资源</h5>
+<p><img src="/img/blog/2026-11-27-behind-ethernet-link-failures-intel-descriptors-memory.png" alt="图 10 描述符与内存环的循环推进" loading="lazy" />
+</p>
+<p><em>图 10　描述符与内存环的推进过程。</em></p>
+<p>软件补充可用描述符，硬件据此写入报文；驱动处理完成状态后，再继续补充。处理或补充速度跟不上到包速度，就可能耗尽接收资源。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">DMA 完成 → 中断／NAPI → 驱动处理 → GRO／协议栈 → socket／应用
+</span></span></code></pre></div><p>NAPI 批量处理接收完成项，一个中断不等于一个报文。主机接收压力升高时，可以结合 CPU、<code>NET_RX</code> 和 <code>softnet_stat</code> 检查，再通过 <code>dropwatch</code> 继续定位可观测的内核丢弃。</p>
+<blockquote>
+<p>判断时需要同时看三件事：链路是否中断，帧是否正确，正确的帧是否成功交付主机。</p></blockquote>
+<h3 id="三华佗我的证据链">三、华佗：我的证据链</h3>
+<p>华佗会记录网卡链路状态变化和内核异常。如果将这些数据与业务异常时间对齐，就能回溯故障现场。</p>
+<p><img src="/img/blog/2026-11-27-behind-ethernet-link-failures-huatuo-evidence.png" alt="图 11 华佗的主机侧证据与补充遥测" loading="lazy" />
+</p>
+<p><em>图 11　华佗的主机侧证据与补充遥测。</em></p>
+<table>
+  <thead>
+      <tr>
+          <th>要回答的问题</th>
+          <th>华佗提供的证据</th>
+          <th>能力边界</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>是否发生过掉线或管理停用？</td>
+          <td><code>netdev_events</code>：carrier、管理状态变化，以及接口和驱动信息。</td>
+          <td>记录主机观察到的变化，不能直接确定损坏部件。</td>
+      </tr>
+      <tr>
+          <td>保持 Up 时，接收错误是否增长？</td>
+          <td><code>netdev</code>：CRC、missed 等标准接口统计的变化趋势。</td>
+          <td>细分项依赖 Netlink 采集来源，以及驱动实际提供的数据。</td>
+      </tr>
+      <tr>
+          <td>是否发生了硬件接收交付损失？</td>
+          <td><code>netdev_hw</code>：为受支持的驱动提供接收硬件丢包指标。</td>
+          <td>示例配置默认禁用；该指标不代表全部硬件丢包。</td>
+      </tr>
+      <tr>
+          <td>报文在 Linux 内部哪里被丢弃？</td>
+          <td><code>dropwatch</code>：受支持的丢弃原因、调用栈和网络上下文。</td>
+          <td>已在网卡内被丢弃的坏帧，通常没有对应的内核事件。</td>
+      </tr>
+      <tr>
+          <td>报文进入主机后为何处理变慢？</td>
+          <td><code>net_rx_latency</code>：TCP 报文从驱动接收点到后续处理点的延迟。</td>
+          <td>不包含 PHY 处理或 DMA 完成前的时间；默认排除宿主机网络命名空间。</td>
+      </tr>
+  </tbody>
+</table>
+<h3 id="参考接收路径各层功能与错误">参考：接收路径各层功能与错误</h3>
+<p>沿接收路径，各部分的作用、可能出现的异常和查看入口如下。错误被记录在哪一层，不等于这一层的器件一定损坏。</p>
+<table>
+  <thead>
+      <tr>
+          <th>位置</th>
+          <th>核心功能</th>
+          <th>可能的异常及影响</th>
+          <th>统计或查看入口</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>光模块／PMD</td>
+          <td>将接收到的光信号转换为电信号；发送方向完成电光转换。</td>
+          <td>断纤、光功率过低或过高、模块收发异常；可能先误码，严重时失去信号。</td>
+          <td><code>ethtool -m</code> 查看可用的功率、温度和告警；LOS、Tx Fault 等状态按设备支持情况读取。</td>
+      </tr>
+      <tr>
+          <td>PMA／SerDes／CDR</td>
+          <td>恢复采样时钟，将高速串行比特流转换为内部数据。</td>
+          <td>时钟恢复不稳、失锁或信号质量劣化，可能无法建链或产生误码。</td>
+          <td>厂商的信号与锁定诊断；普通 Linux 统计不一定导出这些细项。</td>
+      </tr>
+      <tr>
+          <td>PCS</td>
+          <td>识别编码块边界，完成解扰、解码并恢复数据和控制信息。</td>
+          <td>解码错误、高误码或失去块同步；可能触发故障状态，严重时链路失效。</td>
+          <td>对应工作模式的块锁定、高误码状态及解码错误统计。</td>
+      </tr>
+      <tr>
+          <td>RS</td>
+          <td>在 PHY 与 MAC 之间适配数据、控制和故障指示。</td>
+          <td>Local／Remote Fault 等指示说明相应方向报告异常，不能直接定位损坏部件。</td>
+          <td>设备支持的 Fault 状态、事件和链路日志。</td>
+      </tr>
+      <tr>
+          <td>MAC</td>
+          <td>检查以太网帧的 FCS、长度等，并处理启用的链路控制。</td>
+          <td>CRC、长度、非法字节等错误；坏帧可能被丢弃，端口仍可保持 Up。</td>
+          <td><code>CRCERRS</code>、<code>RLEC</code>、<code>ILLERRC</code> 等硬件计数；ixgbe 导出的 <code>rx_crc_errors</code>、<code>rx_length_errors</code> 等可用项。</td>
+      </tr>
+      <tr>
+          <td>接收缓存／队列</td>
+          <td>按过滤规则和 RSS 等选择队列，暂存等待交付的报文。</td>
+          <td>缓存不足、队列禁用，或特定丢弃配置下没有空闲描述符，导致报文丢失。</td>
+          <td><code>rx_missed_errors</code>、<code>QPRDC</code>；本例 QPRDC 汇总为 <code>rx_no_dma_resources</code>。</td>
+      </tr>
+      <tr>
+          <td>DMA／描述符</td>
+          <td>读取描述符，将报文搬到指定的主机缓冲区，并回写完成状态。</td>
+          <td>缺少可用描述符，或数据搬运、完成状态回写受阻，无法完成交付。</td>
+          <td>描述符完成状态、队列丢弃和驱动诊断；没有跨网卡通用的 DMA 错误总数。</td>
+      </tr>
+      <tr>
+          <td>PCIe</td>
+          <td>连接网卡与物理机，承载 DMA 所需的内存事务。</td>
+          <td>速率或宽度低于预期、事务错误或链路中断，可能限制或阻断主机侧搬运。</td>
+          <td><code>lspci -vv</code> 的 <code>LnkCap</code>／<code>LnkSta</code>、可用的 AER 统计，以及内核和驱动日志。</td>
+      </tr>
+      <tr>
+          <td>主机内存／驱动</td>
+          <td>准备接收缓冲区、处理完成项，并持续补充描述符。</td>
+          <td>内存分配失败、处理或补充不及时，可能反过来耗尽网卡接收资源。</td>
+          <td><code>alloc_rx_page_failed</code>、<code>alloc_rx_buff_failed</code>，结合队列、CPU 与 NAPI 处理情况检查。</td>
+      </tr>
+  </tbody>
+</table>
+<hr>
+<p>HUATUO（华佗）是由滴滴开源、依托中国计算机学会（CCF）孵化的操作系统内核与 Agent 沙箱全景观测项目，应用于 AI 沙箱、AI 计算、通用计算、云原生及智驾系统等基础设施场景。</p>
+<p>项目地址：https://github.com/ccfos/huatuo</p>
+
+                        </div>
+
+                        
+                        <div id="comments">
+                            
+                            <script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+                        </div>
+                        
+
+                    </div>
+
+                    <div class="col-md-3">
+                        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu sidebar-tags">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">标签</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/zh/tags/ai"><i class="fas fa-tags"></i> AI</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/ascend"><i class="fas fa-tags"></i> Ascend</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/blkio"><i class="fas fa-tags"></i> BLKIO</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/bpf"><i class="fas fa-tags"></i> BPF</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/ccf"><i class="fas fa-tags"></i> CCF</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/collaboration"><i class="fas fa-tags"></i> Collaboration</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/community"><i class="fas fa-tags"></i> Community</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/faults"><i class="fas fa-tags"></i> Faults</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/go"><i class="fas fa-tags"></i> Go</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/gpu"><i class="fas fa-tags"></i> GPU</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/hao022"><i class="fas fa-tags"></i> HAO022</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/infrastructure"><i class="fas fa-tags"></i> Infrastructure</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/irq"><i class="fas fa-tags"></i> IRQ</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/k8s"><i class="fas fa-tags"></i> K8S</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/linux-kernel"><i class="fas fa-tags"></i> Linux Kernel</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/memory"><i class="fas fa-tags"></i> Memory</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/moore-threads"><i class="fas fa-tags"></i> Moore Threads</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/network"><i class="fas fa-tags"></i> Network</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/networking"><i class="fas fa-tags"></i> Networking</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/news"><i class="fas fa-tags"></i> News</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/npu"><i class="fas fa-tags"></i> NPU</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/observability"><i class="fas fa-tags"></i> Observability</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/open-source"><i class="fas fa-tags"></i> Open Source</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/performance"><i class="fas fa-tags"></i> Performance</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/profiling"><i class="fas fa-tags"></i> Profiling</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/rca"><i class="fas fa-tags"></i> RCA</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/rdma"><i class="fas fa-tags"></i> RDMA</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/recognition"><i class="fas fa-tags"></i> Recognition</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/sandbox"><i class="fas fa-tags"></i> Sandbox</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/tcp"><i class="fas fa-tags"></i> TCP</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <footer id="footer">
+    <div class="container">
+        
+        
+        
+        
+        <div class="row">
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>官方认证</h4>
+                <div class="footer-certifications">
+                    
+                    <a href="https://landscape.cncf.io/?item=observability-and-analysis--observability--huatuo" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="CNCF Landscape">
+                        <img src="/img/certifications/cncf.png" alt="CNCF Landscape" />
+                    </a>
+                    
+                    <a href="https://ebpf.foundation/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="eBPF Foundation">
+                        <img src="/img/certifications/ebpf-foundation.png" alt="eBPF Foundation" />
+                    </a>
+                    
+                    <a href="https://prometheus.io/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="prometheus">
+                        <img src="/img/certifications/prometheus-logo.png" alt="prometheus" />
+                    </a>
+                    
+                    <a href="https://www.ccf.org.cn/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="ccf">
+                        <img src="/img/certifications/ccf.png" alt="ccf" />
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>关于我们</h4>
+                基础软件技术研究者，Linux 内核开发者。
+            </div>
+            
+            
+        </div>
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026 HUATUO 开源社区。</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+<script src="/js/front.js?1795790367"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

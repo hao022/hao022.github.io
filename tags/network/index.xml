@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Network on Linux Kernel, Cloud-native and AI Infra Observability.</title>
+    <link>https://huatuo.tech/tags/network/</link>
+    <description>Recent content in Network on Linux Kernel, Cloud-native and AI Infra Observability.</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Fri, 27 Nov 2026 14:39:16 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/tags/network/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Behind Ethernet Link Failures</title>
+      <link>https://huatuo.tech/blog/2026-11-27-behind-ethernet-link-failures/</link>
+      <pubDate>Fri, 27 Nov 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/blog/2026-11-27-behind-ethernet-link-failures/</guid>
+      <description>Diagnose link outages, frame errors, and receive-side packet loss with host-side evidence from HUATUO.</description>
+    </item>
+  </channel>
+</rss>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Performance on Linux Kernel, Cloud-native and AI Infra Observability.</title>
+    <link>https://huatuo.tech/tags/performance/</link>
+    <description>Recent content in Performance on Linux Kernel, Cloud-native and AI Infra Observability.</description>
+    <generator>Hugo</generator>
+    <language>en</language>
+    <lastBuildDate>Fri, 27 Nov 2026 14:39:16 +0000</lastBuildDate>
+    <atom:link href="https://huatuo.tech/tags/performance/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>CPU, Memory, I/O, IRQs: Which Code?</title>
+      <link>https://huatuo.tech/blog/2026-11-26-huatuo-continuous-profiling/</link>
+      <pubDate>Thu, 26 Nov 2026 12:00:00 +0800</pubDate>
+      <guid>https://huatuo.tech/blog/2026-11-26-huatuo-continuous-profiling/</guid>
+      <description>Trace CPU time, waits, and memory use to code with flame graphs.</description>
+    </item>
+  </channel>
+</rss>

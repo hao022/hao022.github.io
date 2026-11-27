@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<script>
+  (function (root) {
+    var theme
+    try { theme = localStorage.getItem('huatuo-theme') } catch {}
+    if (!['light', 'dark', 'auto'].includes(theme)) theme = 'dark'
+    root.dataset.theme = theme === 'auto'
+      ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : theme
+  }(document.documentElement))
+</script>
+
+<title>CPU、内存、I/O、IRQ：性能、延迟究竟来自哪行代码？</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, Profiling, Performance, Observability">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link rel="preload" href="/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1795790367" rel="stylesheet">
+<link href="/css/theme.css?1795790367" rel="stylesheet">
+<link href="/css/code.css?1795790367" rel="stylesheet">
+
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+<link rel="android-chrome-icon" href="/img/android-chrome-512x512.png" />
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="HUATUO 开源社区">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="zh">
+<meta property="og:site_name" content="HUATUO 开源社区">
+<meta property="og:title" content="CPU、内存、I/O、IRQ：性能、延迟究竟来自哪行代码？">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/zh/blog/2026-11-26-huatuo-continuous-profiling/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2026-11-26-huatuo-continuous-profiling-postgres-on-cpu.png">
+<meta property="og:image:type" content="image/png">
+
+
+
+  <meta property="og:image:width" content="2239">
+  <meta property="og:image:height" content="1202">
+
+
+<meta property="og:updated_time" content="2026-11-27T14:39:16Z">
+
+  
+  
+  
+  <meta property="article:tag" content="Profiling">
+  <meta property="article:tag" content="Performance">
+  <meta property="article:tag" content="Observability">
+  
+  
+  <meta property="article:published_time" content="2026-11-26T12:00:00&#43;0800">
+  <meta property="article:modified_time" content="2026-11-27T14:39:16Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="CPU、内存、I/O、IRQ：性能、延迟究竟来自哪行代码？">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2026-11-26-huatuo-continuous-profiling-postgres-on-cpu.png">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+  </head>
+
+  <body><div id="all" class="has-page-hero">
+
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+              🚀  2025 年中国信息通信研究院《OSCAR 尖峰开源项目及开源社区》、腾讯科技《杰出贡献奖》、CNCF Landscape。欢迎 <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>  ❤️
+          </p>
+        
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/zh/">
+                    
+                      <img src="/img/huatuo-logo-v4.png" alt="CPU、内存、I/O、IRQ：性能、延迟究竟来自哪行代码？ logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/huatuo-logo-v4.png" alt="CPU、内存、I/O、IRQ：性能、延迟究竟来自哪行代码？ logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">CPU、内存、I/O、IRQ：性能、延迟究竟来自哪行代码？ - 跳到主页</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">切换导航</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-cubes theme-icon nav-icon nav-menu-icon'></i>项目 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                            <li><a href="/zh/projects/huatuo/">HUATUO（华佗）</a></li>
+                            
+                            
+                            
+                            <li><a href="/zh/projects/go-pcap/">Go-pcap</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-book theme-icon nav-icon nav-menu-icon'></i>文档 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/latest/" data-theme-link>Latest</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/v2.3.0/" data-theme-link>V2.3.0</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/v2.2.0/" data-theme-link>V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    <a href="/zh/blog/"><i class='fas fa-pen-nib theme-icon nav-icon nav-menu-icon'></i>博客</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/milestone/"><i class='fas fa-rss theme-icon nav-icon nav-menu-icon'></i>动态</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/about/"><i class='fas fa-info-circle theme-icon nav-icon nav-menu-icon'></i>关于</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <button type="button"
+                            class="dropdown-toggle nav-control"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                      <i class="fas fa-globe theme-icon nav-icon"></i>
+                      中文
+                      <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                      
+                      
+                      
+                        
+                        
+                        
+                          
+                            
+                          
+                        
+                          
+                        
+                        
+                        
+                        <li>
+                          <a href="/blog/2026-11-26-huatuo-continuous-profiling/" class="language-option">
+                            <i class="language-check" aria-hidden="true"></i>
+                            English
+                          </a>
+                        </li>
+                      
+                        
+                        
+                        
+                          
+                        
+                          
+                            
+                          
+                        
+                        
+                        
+                        <li class="active">
+                          <a href="/zh/blog/2026-11-26-huatuo-continuous-profiling/" class="language-option" aria-current="page">
+                            <i class="language-check fas fa-check" aria-hidden="true"></i>
+                            中文
+                          </a>
+                        </li>
+                      
+                    </ul>
+                  </li>
+                  
+                  
+
+                  
+                  <li class="dropdown theme-toggle-item">
+                    
+<svg xmlns="http://www.w3.org/2000/svg" class="hidden" aria-hidden="true" focusable="false">
+  <symbol id="main-theme-check2" viewBox="0 0 16 16">
+    <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+  </symbol>
+  <symbol id="main-theme-circle-half" viewBox="0 0 16 16">
+    <path d="M8 15A7 7 0 1 0 8 1v14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z"/>
+  </symbol>
+  <symbol id="main-theme-moon-stars-fill" viewBox="0 0 16 16">
+    <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+    <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/>
+  </symbol>
+  <symbol id="main-theme-sun-fill" viewBox="0 0 16 16">
+    <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
+  </symbol>
+</svg>
+
+                    <button type="button"
+                            id="main-theme-toggle"
+                            class="dropdown-toggle nav-control theme-toggle"
+                            data-theme-toggle
+                            data-toggle="dropdown"
+                            data-label="选择主题"
+                            aria-label="选择主题"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                      <svg class="theme-toggle-icon" aria-hidden="true" focusable="false"><use href="#main-theme-circle-half"></use></svg>
+                      <span class="caret" aria-hidden="true"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right theme-menu" aria-labelledby="main-theme-toggle">
+                      
+                      <li>
+                        <button type="button" class="theme-option" data-theme-value="light" aria-pressed="false">
+                          <svg class="theme-option-icon" aria-hidden="true" focusable="false"><use href="#main-theme-sun-fill"></use></svg>
+                          <span class="theme-option-label">浅色</span>
+                          <svg class="theme-option-check" aria-hidden="true" focusable="false"><use href="#main-theme-check2"></use></svg>
+                        </button>
+                      </li>
+                      
+                      <li>
+                        <button type="button" class="theme-option" data-theme-value="dark" aria-pressed="false">
+                          <svg class="theme-option-icon" aria-hidden="true" focusable="false"><use href="#main-theme-moon-stars-fill"></use></svg>
+                          <span class="theme-option-label">深色</span>
+                          <svg class="theme-option-check" aria-hidden="true" focusable="false"><use href="#main-theme-check2"></use></svg>
+                        </button>
+                      </li>
+                      
+                      <li>
+                        <button type="button" class="theme-option" data-theme-value="auto" aria-pressed="false">
+                          <svg class="theme-option-icon" aria-hidden="true" focusable="false"><use href="#main-theme-circle-half"></use></svg>
+                          <span class="theme-option-label">跟随系统</span>
+                          <svg class="theme-option-check" aria-hidden="true" focusable="false"><use href="#main-theme-check2"></use></svg>
+                        </button>
+                      </li>
+                      
+                    </ul>
+                  </li>
+                  
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars"
+                         onerror="this.style.display='none'">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        
+        
+        
+        <div class="page-hero">
+    <div class="page-hero-grid"></div>
+    <div class="page-hero-glow"></div>
+    <div class="page-hero-inner">
+        <div class="page-hero-title-row">
+            <div class="page-hero-icon"><i class="fas fa-pen-nib theme-icon"></i></div>
+            <h1 class="page-hero-title">博客</h1>
+        </div>
+    </div>
+</div>
+
+        
+
+        <div id="content">
+            <div class="container">
+                <div class="row">
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                        <h1 class="post-title">CPU、内存、I/O、IRQ：性能、延迟究竟来自哪行代码？</h1>
+                        <div class="post-meta">
+                            <span class="post-meta-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                2026-11-26
+                            </span>
+                            
+                            <span class="post-meta-authors">
+                                <i class="fas fa-user"></i>
+                                <a href="/zh/authors/hao022">HAO022</a>
+                            </span>
+                            
+                            
+                            <span class="post-meta-tags">
+                                <a href="/zh/tags/profiling" class="post-meta-tag">Profiling</a><a href="/zh/tags/performance" class="post-meta-tag">Performance</a><a href="/zh/tags/observability" class="post-meta-tag">Observability</a>
+                            </span>
+                            
+                        </div>
+                        
+
+                        <div id="post-content">
+                          <p>HUATUO（华佗）项目支持很多特性，其中之一就是今天分享的持续性能剖析，和其他项目不同，HUATUO 支持 CPU，内存，中断，IO，以及语言层面的全面剖析。</p>
+<p>CPU 使用率升高、请求响应变慢、内存占用增长。监控能帮助我们找到异常节点或容器，但排查还要继续：<strong>这些开销来自哪里，对应哪段代码？</strong> 下面结合八张火焰图，看看这些数据能提供什么线索，以及如何据此继续排查。</p>
+<h4 id="cpu-时间花在哪里先从较宽的调用路径看起">CPU 时间花在哪里，先从较宽的调用路径看起</h4>
+<p><img src="/img/blog/2026-11-26-huatuo-continuous-profiling-postgres-on-cpu.png" alt="PostgreSQL on-CPU 火焰图" loading="lazy" />
+</p>
+<p>这张 PostgreSQL on-CPU 火焰图中，既能看到查询执行、索引扫描，也能看到 <code>tcp_sendmsg</code> 及其后续的内核网络处理路径。有了这些调用栈，下一步排查就有了方向：如果查询执行占比较高，可以结合执行计划进一步检查；如果网络处理占比较高，则需要结合请求量、结果集大小和网络指标分析。火焰图中，栈帧的宽度表示所选统计维度的累计值，横向位置并不代表执行顺序。<strong>热点值得关注，但占比高也可能只是因为它承担了必要的工作。</strong></p>
+<h4 id="cpu-使用率不高线程却可能等了很久">CPU 使用率不高，线程却可能等了很久</h4>
+<p><img src="/img/blog/2026-11-26-huatuo-continuous-profiling-postgres-off-cpu.png" alt="PostgreSQL off-CPU 火焰图" loading="lazy" />
+</p>
+<p>图中较宽的路径经过：</p>
+<p><code>PostgresMain → pq_getbyte → secure_read → epoll_wait</code></p>
+<p>这说明，本次采集中有较多等待发生在这条读取路径上。此时需要结合请求到达情况和业务延迟，判断服务是在正常等待新请求，还是请求处理过程发生了阻塞。除了阻塞时间，off-CPU 还可以观察线程在运行队列中等待 CPU 的时间（例如，runqueue_preempted，runqueue_yielded，runqueue_missed_wakeup等细节）。图中的累计等待可能来自多个线程或进程，不能直接等同于单个请求的响应时间。</p>
+<h4 id="分析-java-应用还需要看到运行时内部的活动">分析 Java 应用，还需要看到运行时内部的活动</h4>
+<p><img src="/img/blog/2026-11-26-huatuo-continuous-profiling-java-on-cpu.png" alt="Java on-CPU 火焰图" loading="lazy" />
+</p>
+<p>这张图展示了 Elasticsearch、Lucene 的搜索路径，以及线程池和 JIT 编译相关的调用栈。有了这些信息，就能进一步区分 CPU 时间主要花在搜索执行、运行时编译，还是其他处理环节。</p>
+<p>华佗项目支持系统层面以及语言（C、C++、Go、Java 和 Python）层面的剖析。</p>
+<h4 id="排查内存问题先分清三种统计口径">排查内存问题，先分清三种统计口径</h4>
+<p><img src="/img/blog/2026-11-26-huatuo-continuous-profiling-virtual-allocation.png" alt="虚拟地址空间分配" loading="lazy" />
+</p>
+<p><code>virtual_alloc</code> 记录虚拟地址空间的分配量。沿着图中的查询执行和元组处理路径，可以一直看到 <code>mmap</code> 相关调用，从而检查地址空间由哪些调用路径申请。</p>
+<p><img src="/img/blog/2026-11-26-huatuo-continuous-profiling-physical-allocation.png" alt="物理内存分配" loading="lazy" />
+</p>
+<p><code>physical_alloc</code> 记录采集窗口内的物理页分配量。通过图中的缺页处理路径，可以进一步检查哪些内存访问触发了物理页分配。</p>
+<p><img src="/img/blog/2026-11-26-huatuo-continuous-profiling-physical-usage.png" alt="采样跟踪的物理页存活量" loading="lazy" />
+</p>
+<p><code>physical_usage</code> 展示本次采样跟踪的物理页中仍然存活的字节数，以及这些页对应的分配路径。<strong>分配量较大或仍有物理页存活，都只能作为排查线索；单张图不足以证明内存泄漏。</strong> <a href="https://docs.huatuo.tech/zh/latest/key-feature/continuous-profiling/">内存模式与边界</a></p>
+<h4 id="java-内存要分别看对象分配与对象存活">Java 内存，要分别看对象分配与对象存活</h4>
+<p><img src="/img/blog/2026-11-26-huatuo-continuous-profiling-java-object-allocation.png" alt="Java 对象分配火焰图" loading="lazy" />
+</p>
+<p><code>object_alloc</code> 展示采集期间的累计对象分配量，帮助查找分配热点和 GC 压力来源。图中主要涉及 Netty 缓冲区和 Lucene 搜索路径；累计分配量不等于当前堆占用。</p>
+<p><img src="/img/blog/2026-11-26-huatuo-continuous-profiling-java-object-usage.png" alt="Java 存活对象火焰图" loading="lazy" />
+</p>
+<p><code>object_usage</code> 展示采样覆盖的存活对象及其分配路径。图中主要是 Netty 接收缓冲区的 <code>byte[]</code>，可进一步检查其复用与释放逻辑。两图不能直接相减；判断泄漏仍需结合增长趋势与引用关系。</p>
+<h4 id="自己跑一次把火焰图与实际负载对应起来">自己跑一次，把火焰图与实际负载对应起来</h4>
+<p>在华佗仓库根目录启动开发栈：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">make compose-dev-up
+</span></span></code></pre></div><p>另开一个终端，启动 PostgreSQL 压测，分别进行 on-CPU 和 off-CPU 采集：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">./build/docker/run_test_postgres_profiling.sh --oncpu --offcpu
+</span></span></code></pre></div><p>要查看三种内存维度的结果，可以执行：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">./build/docker/run_test_postgres_profiling.sh <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  --virtual-alloc --physical-alloc --physical-usage
+</span></span></code></pre></div><p>要查看 Elasticsearch 的 Java on-CPU、对象分配与对象存活火焰图，可以执行：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">./build/docker/run_test_elasticsearch_profiling.sh <span class="se">\
+</span></span></span><span class="line"><span class="cl"><span class="se"></span>  --oncpu --object-alloc --object-usage
+</span></span></code></pre></div><p>该脚本使用 Rally 产生搜索与聚合负载，分别采集 Java on-CPU、对象分配与对象存活数据。</p>
+<p>脚本会部署临时服务、产生测试负载，通过 API 创建采集任务，并输出 Grafana 地址和结果目录。运行脚本需要本机具备 Kubernetes、containerd 及相关工具；开发栈中的固定凭据仅用于开发体验。</p>
+<p>打开结果后，先确认<strong>采集目标、Task ID、时间范围和 Profile type</strong>，再分析调用栈。比较优化前后的结果时，应保持负载和采集条件一致。</p>
+<p>持续性能剖析最有价值的地方，是将“服务为什么慢”这个宽泛的问题，拆解为几个可以验证的具体问题：哪条路径消耗了 CPU 时间，线程在哪里等待，哪些调用产生了内存分配。找到这些路径，再结合业务指标和系统事件逐步验证，才能明确应该优化什么，以及改动是否有效。</p>
+<hr>
+<p>HUATUO（华佗）是由滴滴开源、依托中国计算机学会（CCF）孵化的操作系统内核与 Agent 沙箱全景观测项目，应用于 AI 沙箱、AI 计算、通用计算、云原生及智驾系统等基础设施场景。</p>
+<p>项目地址：https://github.com/ccfos/huatuo</p>
+
+                        </div>
+
+                        
+                        <div id="comments">
+                            
+                            <script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="zh-CN"
+        crossorigin="anonymous"
+        async>
+</script>
+
+                        </div>
+                        
+
+                    </div>
+
+                    <div class="col-md-3">
+                        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu sidebar-tags">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">标签</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/zh/tags/ai"><i class="fas fa-tags"></i> AI</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/ascend"><i class="fas fa-tags"></i> Ascend</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/blkio"><i class="fas fa-tags"></i> BLKIO</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/bpf"><i class="fas fa-tags"></i> BPF</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/ccf"><i class="fas fa-tags"></i> CCF</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/collaboration"><i class="fas fa-tags"></i> Collaboration</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/community"><i class="fas fa-tags"></i> Community</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/faults"><i class="fas fa-tags"></i> Faults</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/go"><i class="fas fa-tags"></i> Go</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/gpu"><i class="fas fa-tags"></i> GPU</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/hao022"><i class="fas fa-tags"></i> HAO022</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/infrastructure"><i class="fas fa-tags"></i> Infrastructure</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/irq"><i class="fas fa-tags"></i> IRQ</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/k8s"><i class="fas fa-tags"></i> K8S</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/linux-kernel"><i class="fas fa-tags"></i> Linux Kernel</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/memory"><i class="fas fa-tags"></i> Memory</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/moore-threads"><i class="fas fa-tags"></i> Moore Threads</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/network"><i class="fas fa-tags"></i> Network</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/networking"><i class="fas fa-tags"></i> Networking</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/news"><i class="fas fa-tags"></i> News</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/npu"><i class="fas fa-tags"></i> NPU</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/observability"><i class="fas fa-tags"></i> Observability</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/open-source"><i class="fas fa-tags"></i> Open Source</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/performance"><i class="fas fa-tags"></i> Performance</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/profiling"><i class="fas fa-tags"></i> Profiling</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/rca"><i class="fas fa-tags"></i> RCA</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/rdma"><i class="fas fa-tags"></i> RDMA</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/recognition"><i class="fas fa-tags"></i> Recognition</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/sandbox"><i class="fas fa-tags"></i> Sandbox</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/tcp"><i class="fas fa-tags"></i> TCP</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <footer id="footer">
+    <div class="container">
+        
+        
+        
+        
+        <div class="row">
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>官方认证</h4>
+                <div class="footer-certifications">
+                    
+                    <a href="https://landscape.cncf.io/?item=observability-and-analysis--observability--huatuo" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="CNCF Landscape">
+                        <img src="/img/certifications/cncf.png" alt="CNCF Landscape" />
+                    </a>
+                    
+                    <a href="https://ebpf.foundation/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="eBPF Foundation">
+                        <img src="/img/certifications/ebpf-foundation.png" alt="eBPF Foundation" />
+                    </a>
+                    
+                    <a href="https://prometheus.io/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="prometheus">
+                        <img src="/img/certifications/prometheus-logo.png" alt="prometheus" />
+                    </a>
+                    
+                    <a href="https://www.ccf.org.cn/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="ccf">
+                        <img src="/img/certifications/ccf.png" alt="ccf" />
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>关于我们</h4>
+                基础软件技术研究者，Linux 内核开发者。
+            </div>
+            
+            
+        </div>
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026 HUATUO 开源社区。</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+<script src="/js/front.js?1795790367"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

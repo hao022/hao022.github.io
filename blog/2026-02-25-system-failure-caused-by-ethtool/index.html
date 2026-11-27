@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<script>
+  (function (root) {
+    var theme
+    try { theme = localStorage.getItem('huatuo-theme') } catch {}
+    if (!['light', 'dark', 'auto'].includes(theme)) theme = 'dark'
+    root.dataset.theme = theme === 'auto'
+      ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : theme
+  }(document.documentElement))
+</script>
+
+<title>避坑！使用 ethtool 导致的线上故障</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障, Faults">
+
+
+<meta name="description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link rel="preload" href="/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1795790367" rel="stylesheet">
+<link href="/css/theme.css?1795790367" rel="stylesheet">
+<link href="/css/code.css?1795790367" rel="stylesheet">
+
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+<link rel="android-chrome-icon" href="/img/android-chrome-512x512.png" />
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="Linux Kernel, Cloud-native and AI Infra Observability.">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="en">
+<meta property="og:site_name" content="Linux Kernel, Cloud-native and AI Infra Observability.">
+<meta property="og:title" content="避坑！使用 ethtool 导致的线上故障">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://huatuo.tech/blog/2026-02-25-system-failure-caused-by-ethtool/" />
+<meta property="og:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+<meta property="og:image" content="https://huatuo.tech/img/blog/2026-02-25-huatuo-cover.jpg">
+<meta property="og:image:type" content="image/jpg">
+
+
+
+  <meta property="og:image:width" content="1311">
+  <meta property="og:image:height" content="874">
+
+
+<meta property="og:updated_time" content="2026-11-27T14:39:16Z">
+
+  
+  
+  
+  <meta property="article:tag" content="BPF">
+  <meta property="article:tag" content="Faults">
+  
+  
+  <meta property="article:published_time" content="2026-02-25T09:01:50-0500">
+  <meta property="article:modified_time" content="2026-11-27T14:39:16Z">
+
+
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="避坑！使用 ethtool 导致的线上故障">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/blog/2026-02-25-huatuo-cover.jpg">
+
+<meta name="twitter:description" content="HUATUO（华佗）是由滴滴开源并依托 CCF 孵化的云原生操作系统可观测性项目，专注于为复杂云原生环境提供操作系统内核级深度观测能力。">
+
+
+  </head>
+
+  <body><div id="all" class="has-page-hero">
+
+        
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+              🚀  Listed in the CNCF Landscape and eBPF Foundation Emerging Project. If you like this project, give it a star on <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>!  ❤️
+          </p>
+        
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+
+        <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/">
+                    
+                      <img src="/img/huatuo-logo-v4.png" alt="避坑！使用 ethtool 导致的线上故障 logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/huatuo-logo-v4.png" alt="避坑！使用 ethtool 导致的线上故障 logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">避坑！使用 ethtool 导致的线上故障 - go to homepage</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">Toggle Navigation</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-cubes theme-icon nav-icon nav-menu-icon'></i>Projects <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                            <li><a href="/projects/huatuo/">HUATUO（华佗）</a></li>
+                            
+                            
+                            
+                            <li><a href="/projects/go-pcap/">Go-pcap</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-book theme-icon nav-icon nav-menu-icon'></i>Docs <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/en/latest/" data-theme-link>Latest</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/en/v2.3.0/" data-theme-link>V2.3.0</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/en/v2.2.0/" data-theme-link>V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    <a href="/blog/"><i class='fas fa-pen-nib theme-icon nav-icon nav-menu-icon'></i>Blog</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/milestone/"><i class='fas fa-rss theme-icon nav-icon nav-menu-icon'></i>News</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/about/"><i class='fas fa-info-circle theme-icon nav-icon nav-menu-icon'></i>About</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <button type="button"
+                            class="dropdown-toggle nav-control"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                      <i class="fas fa-globe theme-icon nav-icon"></i>
+                      English
+                      <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                      
+                      
+                      
+                        
+                        
+                        
+                          
+                            
+                          
+                        
+                        
+                        
+                        <li class="active">
+                          <a href="/blog/2026-02-25-system-failure-caused-by-ethtool/" class="language-option" aria-current="page">
+                            <i class="language-check fas fa-check" aria-hidden="true"></i>
+                            English
+                          </a>
+                        </li>
+                      
+                        
+                        
+                        
+                          
+                        
+                        
+                          
+                            
+                          
+                            
+                              
+                            
+                          
+                        
+                        
+                        <li>
+                          <a href="/zh/" class="language-option">
+                            <i class="language-check" aria-hidden="true"></i>
+                            中文
+                          </a>
+                        </li>
+                      
+                    </ul>
+                  </li>
+                  
+                  
+
+                  
+                  <li class="dropdown theme-toggle-item">
+                    
+<svg xmlns="http://www.w3.org/2000/svg" class="hidden" aria-hidden="true" focusable="false">
+  <symbol id="main-theme-check2" viewBox="0 0 16 16">
+    <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+  </symbol>
+  <symbol id="main-theme-circle-half" viewBox="0 0 16 16">
+    <path d="M8 15A7 7 0 1 0 8 1v14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z"/>
+  </symbol>
+  <symbol id="main-theme-moon-stars-fill" viewBox="0 0 16 16">
+    <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+    <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/>
+  </symbol>
+  <symbol id="main-theme-sun-fill" viewBox="0 0 16 16">
+    <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
+  </symbol>
+</svg>
+
+                    <button type="button"
+                            id="main-theme-toggle"
+                            class="dropdown-toggle nav-control theme-toggle"
+                            data-theme-toggle
+                            data-toggle="dropdown"
+                            data-label="Choose theme"
+                            aria-label="Choose theme"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                      <svg class="theme-toggle-icon" aria-hidden="true" focusable="false"><use href="#main-theme-circle-half"></use></svg>
+                      <span class="caret" aria-hidden="true"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right theme-menu" aria-labelledby="main-theme-toggle">
+                      
+                      <li>
+                        <button type="button" class="theme-option" data-theme-value="light" aria-pressed="false">
+                          <svg class="theme-option-icon" aria-hidden="true" focusable="false"><use href="#main-theme-sun-fill"></use></svg>
+                          <span class="theme-option-label">Light</span>
+                          <svg class="theme-option-check" aria-hidden="true" focusable="false"><use href="#main-theme-check2"></use></svg>
+                        </button>
+                      </li>
+                      
+                      <li>
+                        <button type="button" class="theme-option" data-theme-value="dark" aria-pressed="false">
+                          <svg class="theme-option-icon" aria-hidden="true" focusable="false"><use href="#main-theme-moon-stars-fill"></use></svg>
+                          <span class="theme-option-label">Dark</span>
+                          <svg class="theme-option-check" aria-hidden="true" focusable="false"><use href="#main-theme-check2"></use></svg>
+                        </button>
+                      </li>
+                      
+                      <li>
+                        <button type="button" class="theme-option" data-theme-value="auto" aria-pressed="false">
+                          <svg class="theme-option-icon" aria-hidden="true" focusable="false"><use href="#main-theme-circle-half"></use></svg>
+                          <span class="theme-option-label">Auto</span>
+                          <svg class="theme-option-check" aria-hidden="true" focusable="false"><use href="#main-theme-check2"></use></svg>
+                        </button>
+                      </li>
+                      
+                    </ul>
+                  </li>
+                  
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars"
+                         onerror="this.style.display='none'">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+
+        
+        
+        
+        <div class="page-hero">
+    <div class="page-hero-grid"></div>
+    <div class="page-hero-glow"></div>
+    <div class="page-hero-inner">
+        <div class="page-hero-title-row">
+            <div class="page-hero-icon"><i class="fas fa-pen-nib theme-icon"></i></div>
+            <h1 class="page-hero-title">Blog</h1>
+        </div>
+    </div>
+</div>
+
+        
+
+        <div id="content">
+            <div class="container">
+                <div class="row">
+
+                    <div class="col-md-9" id="blog-post">
+
+                        
+                        <h1 class="post-title">避坑！使用 ethtool 导致的线上故障</h1>
+                        <div class="post-meta">
+                            <span class="post-meta-date">
+                                <i class="fas fa-calendar-alt"></i>
+                                2026-02-25
+                            </span>
+                            
+                            <span class="post-meta-authors">
+                                <i class="fas fa-user"></i>
+                                <a href="/authors/hao022">HAO022</a>
+                            </span>
+                            
+                            
+                            <span class="post-meta-tags">
+                                <a href="/tags/bpf" class="post-meta-tag">BPF</a><a href="/tags/faults" class="post-meta-tag">Faults</a>
+                            </span>
+                            
+                        </div>
+                        
+
+                        <div id="post-content">
+                          <p>最近向 Linux 内核社区提交了一个小补丁，目的是希望通过更加通用的方式，定位因网卡驱动，硬件导致的问题（这类问题 dropwatch 不起作用）。内核社区的朋友问到，为什么不采用 ethtool -S。因此才有本篇，分享下因使用 ethtool 导致的线上故障。</p>
+<h3 id="问题描述">问题描述</h3>
+<p>大概在 2024.07.11 11:10，线上某两个服务集群，近乎一半的容器出现 rpc 延迟过高，甚至达到 80ms 延迟。</p>
+<p>集群 A：11:10 出现大量延迟
+<img src="/img/blog/2026-02-25-cluster-a.png" alt="" loading="lazy" />
+</p>
+<p>集群 B：延迟如下
+<img src="/img/blog/2026-02-25-cluster-b.png" alt="" loading="lazy" />
+</p>
+<p>将有问题的容器漂移到没有问题容器所在宿主机，问题解决，业务指标恢复正常，坐实宿主机问题。
+<img src="/img/blog/2026-02-25-cluster-metrics01.png" alt="" loading="lazy" />
+</p>
+<p>同时，这个问题和特定的事件强相关。通过上线公告发现，11:00 上线一监控组件，因此通过关闭该组件的指标采集，受影响的业务得到了灰度。
+<img src="/img/blog/2026-02-25-cluster-metrics03.png" alt="" loading="lazy" />
+
+<img src="/img/blog/2026-02-25-cluster-metrics04.png" alt="" loading="lazy" />
+</p>
+<h3 id="问题分析">问题分析</h3>
+<h4 id="初因分析">初因分析</h4>
+<p>和业务沟通后发现，新的组件通过 ethtool 获取网卡的监控指标。但并非开启该组件采集的宿主机都有问题，统计后发现：有问题宿主机的网卡驱动为：mlx5_core、ixgbe，无问题的宿主机的网卡驱动为：bnxt_en。
+<img src="/img/blog/2026-02-25-cluster-metrics05.png" alt="" loading="lazy" />
+</p>
+<h4 id="线下复现">线下复现</h4>
+<p>围绕 ethtool 内核模块中可能的耗时来源进行耗时统计，以 mlx5e_stats_update() 函数为例，组件通过频繁的查询硬件信息时，会出现接近 100ms 的耗时。而直接通过 ethtool 工具(例如: ethtool -S eth0) 的方式直接查询硬件信息，则不会出现这种情况，耗时稳定在 2ms。将组件中的所有功能都关闭只保留 ethtool 指标后，耗时也稳定在了 2ms 左右。
+<img src="/img/blog/2026-02-25-cluster-reproduction01.jpeg" alt="" loading="lazy" />
+</p>
+<p>这说明该问题和组件负载也有关联。因此最终通过限制 cgroup 资源，且只有 ethtool 指标的情况下，复现了该问题。如果进程一直被 throttle，内核的某个函数执行耗时增高，那么该函数极大可能执行了 cond_resched 放弃了 CPU。
+<img src="/img/blog/2026-02-25-cluster-reproduction02.png" alt="" loading="lazy" />
+</p>
+<p>内核 throttle 只可能发生在 cond_resched()，抓取的部分可能 throttle 的栈信息。
+栈1
+<img src="/img/blog/2026-02-25-cluster-stack01.jpeg" alt="" loading="lazy" />
+</p>
+<p>栈2
+<img src="/img/blog/2026-02-25-cluster-stack02.jpeg" alt="" loading="lazy" />
+</p>
+<p>栈3
+<img src="/img/blog/2026-02-25-cluster-stack03.jpeg" alt="" loading="lazy" />
+</p>
+<p>栈4
+<img src="/img/blog/2026-02-25-cluster-stack04.jpeg" alt="" loading="lazy" />
+</p>
+<p>mellanox 驱动执行 cmd_exec()，正常情况下的耗时为 100us，但在高负载情况下执行时长达到 80~100ms（cmd_exec 被 mellanox 驱动用于和硬件交互，获取，配置网卡信息）。
+cmd_exec 通过 cond_resched 让出了 CPU，但此时它还持有 rtnl_lock 锁。
+很多应用程序会高频的通过netlink获取路由等信息，这和 rtnl_lock 锁存在竞争关系。</p>
+<h4 id="线上验证">线上验证</h4>
+<p>验证分为几个阶段，时间线分别在图中标识。
+<img src="/img/blog/2026-02-25-online.png" alt="" loading="lazy" />
+</p>
+<ul>
+<li>阶段1：频繁调用 ethtool 接口，构造出的业务毛刺</li>
+<li>阶段2：在阶段1的基础上，减小 cgroup cpu 资源，业务毛刺明显增加。</li>
+<li>阶段3：在阶段1的基础上，增大 cgroup cpu 资源，不产生任何 throttle，业务毛刺消失。</li>
+<li>阶段4：在阶段1的基础上，降低采集压力，减少 throttle，业务毛刺存在，但不明显。</li>
+</ul>
+<h3 id="问题总结">问题总结</h3>
+<p>夜深了，为什么还没有睡，如果本篇文章对你有价值，那么不妨在 github 帮我点点 ⭐️</p>
+<p>此外，<a href="https://mp.weixin.qq.com/s/Q8m0ATmqGZ1MyLpVs_I_ZQ">如何使用 HUATUO 解决网卡硬件丢包问题</a></p>
+
+                        </div>
+
+                        
+                        <div id="comments">
+                            
+                            <script src="https://giscus.app/client.js"
+        data-repo="hao022/huatuo-website-comments"
+        data-repo-id="R_kgDOPfpsuA"
+        data-category="Announcements"
+        data-category-id="DIC_kwDOPfpsuM4CuSXS"
+        data-mapping="pathname"
+        data-strict="0"
+        data-reactions-enabled="1"
+        data-emit-metadata="0"
+        data-input-position="bottom"
+        data-theme="preferred_color_scheme"
+        data-lang="en"
+        crossorigin="anonymous"
+        async>
+</script>
+
+                        </div>
+                        
+
+                    </div>
+
+                    <div class="col-md-3">
+                        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu sidebar-tags">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">Tags</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/tags/ai"><i class="fas fa-tags"></i> AI</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ascend"><i class="fas fa-tags"></i> Ascend</a>
+            </li>
+            
+            <li >
+                <a href="/tags/blkio"><i class="fas fa-tags"></i> BLKIO</a>
+            </li>
+            
+            <li >
+                <a href="/tags/bpf"><i class="fas fa-tags"></i> BPF</a>
+            </li>
+            
+            <li >
+                <a href="/tags/bpf-foundation"><i class="fas fa-tags"></i> BPF Foundation</a>
+            </li>
+            
+            <li >
+                <a href="/tags/ccf"><i class="fas fa-tags"></i> CCF</a>
+            </li>
+            
+            <li >
+                <a href="/tags/collaboration"><i class="fas fa-tags"></i> Collaboration</a>
+            </li>
+            
+            <li >
+                <a href="/tags/community"><i class="fas fa-tags"></i> Community</a>
+            </li>
+            
+            <li >
+                <a href="/tags/containers"><i class="fas fa-tags"></i> CONTAINERS</a>
+            </li>
+            
+            <li >
+                <a href="/tags/cpuidle"><i class="fas fa-tags"></i> CPUIDLE</a>
+            </li>
+            
+            <li >
+                <a href="/tags/faults"><i class="fas fa-tags"></i> Faults</a>
+            </li>
+            
+            <li >
+                <a href="/tags/flame-graphs"><i class="fas fa-tags"></i> Flame Graphs</a>
+            </li>
+            
+            <li >
+                <a href="/tags/go"><i class="fas fa-tags"></i> Go</a>
+            </li>
+            
+            <li >
+                <a href="/tags/gpu"><i class="fas fa-tags"></i> GPU</a>
+            </li>
+            
+            <li >
+                <a href="/tags/hao022"><i class="fas fa-tags"></i> HAO022</a>
+            </li>
+            
+            <li >
+                <a href="/tags/infrastructure"><i class="fas fa-tags"></i> Infrastructure</a>
+            </li>
+            
+            <li >
+                <a href="/tags/irq"><i class="fas fa-tags"></i> IRQ</a>
+            </li>
+            
+            <li >
+                <a href="/tags/k8s"><i class="fas fa-tags"></i> K8S</a>
+            </li>
+            
+            <li >
+                <a href="/tags/linux-kernel"><i class="fas fa-tags"></i> Linux Kernel</a>
+            </li>
+            
+            <li >
+                <a href="/tags/loadavg"><i class="fas fa-tags"></i> LOADAVG</a>
+            </li>
+            
+            <li >
+                <a href="/tags/memory"><i class="fas fa-tags"></i> Memory</a>
+            </li>
+            
+            <li >
+                <a href="/tags/moore-threads"><i class="fas fa-tags"></i> Moore Threads</a>
+            </li>
+            
+            <li >
+                <a href="/tags/network"><i class="fas fa-tags"></i> Network</a>
+            </li>
+            
+            <li >
+                <a href="/tags/network-optimization"><i class="fas fa-tags"></i> Network Optimization</a>
+            </li>
+            
+            <li >
+                <a href="/tags/networking"><i class="fas fa-tags"></i> Networking</a>
+            </li>
+            
+            <li >
+                <a href="/tags/news"><i class="fas fa-tags"></i> News</a>
+            </li>
+            
+            <li >
+                <a href="/tags/nightingale"><i class="fas fa-tags"></i> Nightingale</a>
+            </li>
+            
+            <li >
+                <a href="/tags/npu"><i class="fas fa-tags"></i> NPU</a>
+            </li>
+            
+            <li >
+                <a href="/tags/observability"><i class="fas fa-tags"></i> Observability</a>
+            </li>
+            
+            <li >
+                <a href="/tags/open-source"><i class="fas fa-tags"></i> Open Source</a>
+            </li>
+            
+            <li >
+                <a href="/tags/performance"><i class="fas fa-tags"></i> Performance</a>
+            </li>
+            
+            <li >
+                <a href="/tags/profiling"><i class="fas fa-tags"></i> Profiling</a>
+            </li>
+            
+            <li >
+                <a href="/tags/rca"><i class="fas fa-tags"></i> RCA</a>
+            </li>
+            
+            <li >
+                <a href="/tags/rdma"><i class="fas fa-tags"></i> RDMA</a>
+            </li>
+            
+            <li >
+                <a href="/tags/recognition"><i class="fas fa-tags"></i> Recognition</a>
+            </li>
+            
+            <li >
+                <a href="/tags/sandbox"><i class="fas fa-tags"></i> Sandbox</a>
+            </li>
+            
+            <li >
+                <a href="/tags/tcp"><i class="fas fa-tags"></i> TCP</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <footer id="footer">
+    <div class="container">
+        
+        
+        
+        
+        <div class="row">
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>Official Certifications</h4>
+                <div class="footer-certifications">
+                    
+                    <a href="https://landscape.cncf.io/?item=observability-and-analysis--observability--huatuo" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="CNCF Landscape">
+                        <img src="/img/certifications/cncf.png" alt="CNCF Landscape" />
+                    </a>
+                    
+                    <a href="https://ebpf.foundation/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="eBPF Foundation">
+                        <img src="/img/certifications/ebpf-foundation.png" alt="eBPF Foundation" />
+                    </a>
+                    
+                    <a href="https://prometheus.io/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="prometheus">
+                        <img src="/img/certifications/prometheus-logo.png" alt="prometheus" />
+                    </a>
+                    
+                    <a href="https://www.ccf.org.cn/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="ccf">
+                        <img src="/img/certifications/ccf.png" alt="ccf" />
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>About us</h4>
+                Linux kernel developers, and observability developers.
+            </div>
+            
+            
+        </div>
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026, HUATUO Open Source Community.</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+
+    </div>
+
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+<script src="/js/front.js?1795790367"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+
+  </body>
+</html>

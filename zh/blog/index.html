@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="zh">
+  <head>
+    <meta charset="utf-8">
+<meta name="robots" content="all,follow">
+<meta name="googlebot" content="index,follow,snippet,archive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<script>
+  (function (root) {
+    var theme
+    try { theme = localStorage.getItem('huatuo-theme') } catch {}
+    if (!['light', 'dark', 'auto'].includes(theme)) theme = 'dark'
+    root.dataset.theme = theme === 'auto'
+      ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+      : theme
+  }(document.documentElement))
+</script>
+
+<title>博客</title>
+<meta name="author" content="HAO022" />
+
+
+
+
+<meta name="keywords" content="HUATUO, BPF, 可观测性, Linux 内核, 操作系统, 根因定位, 系统故障">
+
+
+<meta name="description" content="最新文章与动态">
+
+<meta name="generator" content="Hugo 0.146.4">
+
+
+<link rel="preload" href="/fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+
+
+<link rel="stylesheet" href="//use.fontawesome.com/releases/v6.7.2/css/all.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+
+<link href="/css/animate.css" rel="stylesheet">
+
+
+
+  <link href="/css/style.default.css" rel="stylesheet" id="theme-stylesheet">
+
+
+
+<link href="/css/custom.css?1795790367" rel="stylesheet">
+<link href="/css/theme.css?1795790367" rel="stylesheet">
+<link href="/css/code.css?1795790367" rel="stylesheet">
+
+<link href="/css/blog-list.css?1795790367" rel="stylesheet">
+
+
+
+
+  <!--[if lt IE 9]>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/respond.js/1.4.2/respond.min.js"></script>
+  <![endif]-->
+
+
+
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png" />
+<link rel="android-chrome-icon" href="/img/android-chrome-512x512.png" />
+<link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+
+
+<link href="/css/owl.carousel.css" rel="stylesheet">
+<link href="/css/owl.theme.css" rel="stylesheet">
+
+
+<link rel="alternate" href="https://huatuo.tech/index.xml" type="application/rss+xml" title="HUATUO 开源社区">
+
+
+
+
+
+
+
+
+<meta property="og:locale" content="zh">
+<meta property="og:site_name" content="HUATUO 开源社区">
+<meta property="og:title" content="博客">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://huatuo.tech/zh/blog/" />
+<meta property="og:description" content="最新文章与动态">
+<meta property="og:image" content="https://huatuo.tech/img/sharing-default.png">
+<meta property="og:image:type" content="image/png">
+
+
+
+  <meta property="og:image:width" content="428">
+  <meta property="og:image:height" content="149">
+
+
+<meta property="og:updated_time" content="2026-11-27T14:39:16Z">
+
+
+
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@GoHugoIO">
+<meta name="twitter:title" content="博客">
+
+<meta name="twitter:image" content="https://huatuo.tech/img/sharing-default.png">
+
+<meta name="twitter:description" content="最新文章与动态">
+
+
+  </head>
+  <body>
+    <div id="all" class="blog-index has-page-hero">
+      
+<header>
+  <div id="top">
+    <div class="container">
+      <div class="row">
+        <div class="text-center">
+          <p style="text-align: center; font-style: italic; font-size: clamp(12px, 1vw, 14px);">
+              🚀  2025 年中国信息通信研究院《OSCAR 尖峰开源项目及开源社区》、腾讯科技《杰出贡献奖》、CNCF Landscape。欢迎 <a target="_blank" rel="noopener noreferrer" href="https://github.com/ccfos/huatuo">GitHub</a>  ❤️
+          </p>
+        
+        </div>
+
+        
+
+      </div>
+    </div>
+  </div>
+</header>
+
+
+      <header class="navbar-affixed-top" data-spy="affix" data-offset-top="62">
+    <div class="navbar navbar-default yamm" role="navigation" id="navbar">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand home" href="/zh/">
+                    
+                      <img src="/img/huatuo-logo-v4.png" alt="博客 logo" class="hidden-xs hidden-sm" />
+                      <img src="/img/huatuo-logo-v4.png" alt="博客 logo" class="visible-xs visible-sm" />
+                    
+                    <span class="sr-only">博客 - 跳到主页</span>
+                </a>
+                <div class="navbar-buttons">
+                    <button type="button" class="navbar-toggle btn-template-main" data-toggle="collapse" data-target="#navigation">
+                      <span class="sr-only">切换导航</span>
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                </div>
+            </div>
+            
+
+            <div class="navbar-collapse collapse" id="navigation">
+                <ul class="nav navbar-nav navbar-right">
+                  
+
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-cubes theme-icon nav-icon nav-menu-icon'></i>项目 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                            <li><a href="/zh/projects/huatuo/">HUATUO（华佗）</a></li>
+                            
+                            
+                            
+                            <li><a href="/zh/projects/go-pcap/">Go-pcap</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                    
+                    
+                    <li class="dropdown ">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class='fas fa-book theme-icon nav-icon nav-menu-icon'></i>文档 <span class="caret"></span></a>
+                        
+                        <ul class="dropdown-menu">
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/latest/" data-theme-link>Latest</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/v2.3.0/" data-theme-link>V2.3.0</a></li>
+                            
+                            
+                            
+                              
+                            
+                            <li><a href="https://docs.huatuo.tech/zh/v2.2.0/" data-theme-link>V2.2.0</a></li>
+                            
+                        </ul>
+                        
+                    </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+                    
+                  
+
+                  
+
+                  
+                  <li class="dropdown active">
+                    <a href="/zh/blog/"><i class='fas fa-pen-nib theme-icon nav-icon nav-menu-icon'></i>博客</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/milestone/"><i class='fas fa-rss theme-icon nav-icon nav-menu-icon'></i>动态</a>
+                  </li>
+                  
+                  
+                  
+                  
+
+                  
+
+                  
+
+                  
+
+                  
+                  <li class="dropdown ">
+                    <a href="/zh/about/"><i class='fas fa-info-circle theme-icon nav-icon nav-menu-icon'></i>关于</a>
+                  </li>
+                  
+                  
+
+
+                  
+                  <li class="divider-vertical"></li>
+
+                  
+                  
+                  <li class="dropdown">
+                    <button type="button"
+                            class="dropdown-toggle nav-control"
+                            data-toggle="dropdown"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                      <i class="fas fa-globe theme-icon nav-icon"></i>
+                      中文
+                      <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right">
+                      
+                      
+                      
+                        
+                        
+                        
+                          
+                            
+                          
+                        
+                          
+                        
+                        
+                        
+                        <li>
+                          <a href="/blog/" class="language-option">
+                            <i class="language-check" aria-hidden="true"></i>
+                            English
+                          </a>
+                        </li>
+                      
+                        
+                        
+                        
+                          
+                        
+                          
+                            
+                          
+                        
+                        
+                        
+                        <li class="active">
+                          <a href="/zh/blog/" class="language-option" aria-current="page">
+                            <i class="language-check fas fa-check" aria-hidden="true"></i>
+                            中文
+                          </a>
+                        </li>
+                      
+                    </ul>
+                  </li>
+                  
+                  
+
+                  
+                  <li class="dropdown theme-toggle-item">
+                    
+<svg xmlns="http://www.w3.org/2000/svg" class="hidden" aria-hidden="true" focusable="false">
+  <symbol id="main-theme-check2" viewBox="0 0 16 16">
+    <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
+  </symbol>
+  <symbol id="main-theme-circle-half" viewBox="0 0 16 16">
+    <path d="M8 15A7 7 0 1 0 8 1v14zm0 1A8 8 0 1 1 8 0a8 8 0 0 1 0 16z"/>
+  </symbol>
+  <symbol id="main-theme-moon-stars-fill" viewBox="0 0 16 16">
+    <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+    <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/>
+  </symbol>
+  <symbol id="main-theme-sun-fill" viewBox="0 0 16 16">
+    <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
+  </symbol>
+</svg>
+
+                    <button type="button"
+                            id="main-theme-toggle"
+                            class="dropdown-toggle nav-control theme-toggle"
+                            data-theme-toggle
+                            data-toggle="dropdown"
+                            data-label="选择主题"
+                            aria-label="选择主题"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                      <svg class="theme-toggle-icon" aria-hidden="true" focusable="false"><use href="#main-theme-circle-half"></use></svg>
+                      <span class="caret" aria-hidden="true"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right theme-menu" aria-labelledby="main-theme-toggle">
+                      
+                      <li>
+                        <button type="button" class="theme-option" data-theme-value="light" aria-pressed="false">
+                          <svg class="theme-option-icon" aria-hidden="true" focusable="false"><use href="#main-theme-sun-fill"></use></svg>
+                          <span class="theme-option-label">浅色</span>
+                          <svg class="theme-option-check" aria-hidden="true" focusable="false"><use href="#main-theme-check2"></use></svg>
+                        </button>
+                      </li>
+                      
+                      <li>
+                        <button type="button" class="theme-option" data-theme-value="dark" aria-pressed="false">
+                          <svg class="theme-option-icon" aria-hidden="true" focusable="false"><use href="#main-theme-moon-stars-fill"></use></svg>
+                          <span class="theme-option-label">深色</span>
+                          <svg class="theme-option-check" aria-hidden="true" focusable="false"><use href="#main-theme-check2"></use></svg>
+                        </button>
+                      </li>
+                      
+                      <li>
+                        <button type="button" class="theme-option" data-theme-value="auto" aria-pressed="false">
+                          <svg class="theme-option-icon" aria-hidden="true" focusable="false"><use href="#main-theme-circle-half"></use></svg>
+                          <span class="theme-option-label">跟随系统</span>
+                          <svg class="theme-option-check" aria-hidden="true" focusable="false"><use href="#main-theme-check2"></use></svg>
+                        </button>
+                      </li>
+                      
+                    </ul>
+                  </li>
+                  
+
+                
+                <li>
+                  <a href="https://github.com/ccfos/huatuo" target="_blank" rel="noopener noreferrer">
+                    <img src="https://img.shields.io/github/stars/ccfos/huatuo"
+                         height="100%"
+                         style="vertical-align: middle;"
+                         alt="GitHub stars"
+                         onerror="this.style.display='none'">
+                  </a>
+                </li>
+                
+                </ul>
+            </div>
+            
+
+            <div class="collapse clearfix" id="search">
+                <form class="navbar-form" role="search">
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Search">
+                        <span class="input-group-btn">
+                    <button type="submit" class="btn btn-template-main"><i class="fas fa-search"></i></button>
+                </span>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</header>
+
+
+
+      <div class="page-hero">
+    <div class="page-hero-grid"></div>
+    <div class="page-hero-glow"></div>
+    <div class="page-hero-inner">
+        <div class="page-hero-title-row">
+            <div class="page-hero-icon"><i class="fas fa-pen-nib theme-icon"></i></div>
+            <h1 class="page-hero-title">博客</h1>
+        </div>
+    </div>
+</div>
+
+
+      <main id="content">
+        <div class="container">
+          <div class="row">
+            <section class="col-md-9" id="blog-listing-medium" aria-label="最新博客">
+              
+              
+              <article class="technical-entry">
+                <ul class="technical-topics">
+                  
+                  
+                  <li class="technical-topic"><a href="/zh/tags/network/"><i class="fas fa-tag" aria-hidden="true"></i>Network</a></li>
+                  
+                  <li class="technical-topic"><a href="/zh/tags/faults/"><i class="fas fa-tag" aria-hidden="true"></i>Faults</a></li>
+                  
+                  <li class="technical-topic"><a href="/zh/tags/observability/"><i class="fas fa-tag" aria-hidden="true"></i>Observability</a></li>
+                  
+                    
+                    <li class="technical-meta-item technical-entry-authors"><i class="far fa-user" aria-hidden="true"></i><a href="/zh/authors/hao022">HAO022</a></li>
+                    
+                    
+                    <li class="technical-meta-item"><time datetime="2026-11-27"><i class="far fa-calendar" aria-hidden="true"></i>2026.11.27</time></li>
+                    
+                    <li class="technical-meta-item"><i class="far fa-clock" aria-hidden="true"></i>2 分钟阅读</li>
+                </ul>
+
+                <h2 class="technical-entry-title"><a href="/zh/blog/2026-11-27-behind-ethernet-link-failures/">链路故障之下</a></h2>
+                
+                <p class="technical-entry-summary">从链路中断、帧校验错误到接收交付损失，结合华佗的主机侧证据排查网络异常。</p>
+                
+
+                <div class="technical-entry-footer">
+                  <a class="technical-entry-read" href="/zh/blog/2026-11-27-behind-ethernet-link-failures/" aria-label="阅读全文: 链路故障之下">阅读全文 <span aria-hidden="true">→</span></a>
+                </div>
+              </article>
+              
+              <article class="technical-entry">
+                <ul class="technical-topics">
+                  
+                  
+                  <li class="technical-topic"><a href="/zh/tags/profiling/"><i class="fas fa-tag" aria-hidden="true"></i>Profiling</a></li>
+                  
+                  <li class="technical-topic"><a href="/zh/tags/performance/"><i class="fas fa-tag" aria-hidden="true"></i>Performance</a></li>
+                  
+                  <li class="technical-topic"><a href="/zh/tags/observability/"><i class="fas fa-tag" aria-hidden="true"></i>Observability</a></li>
+                  
+                    
+                    <li class="technical-meta-item technical-entry-authors"><i class="far fa-user" aria-hidden="true"></i><a href="/zh/authors/hao022">HAO022</a></li>
+                    
+                    
+                    <li class="technical-meta-item"><time datetime="2026-11-26"><i class="far fa-calendar" aria-hidden="true"></i>2026.11.26</time></li>
+                    
+                    <li class="technical-meta-item"><i class="far fa-clock" aria-hidden="true"></i>1 分钟阅读</li>
+                </ul>
+
+                <h2 class="technical-entry-title"><a href="/zh/blog/2026-11-26-huatuo-continuous-profiling/">CPU、内存、I/O、IRQ：性能、延迟究竟来自哪行代码？</a></h2>
+                
+                <p class="technical-entry-summary">通过 CPU、等待时间与内存火焰图，将性能开销关联到调用栈，并结合实际负载继续排查。</p>
+                
+
+                <div class="technical-entry-footer">
+                  <a class="technical-entry-read" href="/zh/blog/2026-11-26-huatuo-continuous-profiling/" aria-label="阅读全文: CPU、内存、I/O、IRQ：性能、延迟究竟来自哪行代码？">阅读全文 <span aria-hidden="true">→</span></a>
+                </div>
+              </article>
+              
+              <article class="technical-entry">
+                <ul class="technical-topics">
+                  
+                  
+                  <li class="technical-topic"><a href="/zh/tags/ai/"><i class="fas fa-tag" aria-hidden="true"></i>AI</a></li>
+                  
+                  <li class="technical-topic"><a href="/zh/tags/rca/"><i class="fas fa-tag" aria-hidden="true"></i>RCA</a></li>
+                  
+                  <li class="technical-topic"><a href="/zh/tags/observability/"><i class="fas fa-tag" aria-hidden="true"></i>Observability</a></li>
+                  
+                    
+                    <li class="technical-meta-item technical-entry-authors"><i class="far fa-user" aria-hidden="true"></i><a href="/zh/authors/nikolay-sivko">Nikolay Sivko</a></li>
+                    
+                    
+                    <li class="technical-meta-item"><time datetime="2026-11-11"><i class="far fa-calendar" aria-hidden="true"></i>2026.11.11</time></li>
+                    
+                    <li class="technical-meta-item"><i class="far fa-clock" aria-hidden="true"></i>1 分钟阅读</li>
+                </ul>
+
+                <h2 class="technical-entry-title"><a href="/zh/blog/2026-11-11-ai-root-cause-analysis-is-no-longer-about-the-model/">AI 根因分析的难点，已不再是模型</a></h2>
+                
+                <p class="technical-entry-summary">Coroot 用同一份故障材料测试 11 个模型，探讨关键证据的收集与整理为何成为 AI 根因分析的重点。</p>
+                
+
+                <div class="technical-entry-footer">
+                  <a class="technical-entry-read" href="/zh/blog/2026-11-11-ai-root-cause-analysis-is-no-longer-about-the-model/" aria-label="阅读全文: AI 根因分析的难点，已不再是模型">阅读全文 <span aria-hidden="true">→</span></a>
+                </div>
+              </article>
+              
+              <article class="technical-entry">
+                <ul class="technical-topics">
+                  
+                  
+                  <li class="technical-topic"><a href="/zh/tags/ai/"><i class="fas fa-tag" aria-hidden="true"></i>AI</a></li>
+                  
+                  <li class="technical-topic"><a href="/zh/tags/sandbox/"><i class="fas fa-tag" aria-hidden="true"></i>Sandbox</a></li>
+                  
+                  <li class="technical-topic"><a href="/zh/tags/infrastructure/"><i class="fas fa-tag" aria-hidden="true"></i>Infrastructure</a></li>
+                  
+                    
+                    <li class="technical-meta-item technical-entry-authors"><i class="far fa-user" aria-hidden="true"></i><a href="/zh/authors/vasek-mlejnsky">Vasek Mlejnsky</a></li>
+                    
+                    
+                    <li class="technical-meta-item"><time datetime="2026-10-16"><i class="far fa-calendar" aria-hidden="true"></i>2026.10.16</time></li>
+                    
+                    <li class="technical-meta-item"><i class="far fa-clock" aria-hidden="true"></i>1 分钟阅读</li>
+                </ul>
+
+                <h2 class="technical-entry-title"><a href="/zh/blog/2026-10-16-e2b-sandboxes-are-dead/">AI 沙箱已死</a></h2>
+                
+                <p class="technical-entry-summary">E2B 团队探讨 Agent 基础设施如何从代码执行沙箱演进为围绕任务构建的私有云。</p>
+                
+
+                <div class="technical-entry-footer">
+                  <a class="technical-entry-read" href="/zh/blog/2026-10-16-e2b-sandboxes-are-dead/" aria-label="阅读全文: AI 沙箱已死">阅读全文 <span aria-hidden="true">→</span></a>
+                </div>
+              </article>
+              
+              <article class="technical-entry">
+                <ul class="technical-topics">
+                  
+                  
+                  <li class="technical-topic"><a href="/zh/tags/bpf/"><i class="fas fa-tag" aria-hidden="true"></i>BPF</a></li>
+                  
+                  <li class="technical-topic"><a href="/zh/tags/irq/"><i class="fas fa-tag" aria-hidden="true"></i>IRQ</a></li>
+                  
+                  <li class="technical-topic"><a href="/zh/tags/observability/"><i class="fas fa-tag" aria-hidden="true"></i>Observability</a></li>
+                  
+                    
+                    <li class="technical-meta-item technical-entry-authors"><i class="far fa-user" aria-hidden="true"></i><a href="/zh/authors/%E7%8E%8B%E6%B4%AA%E7%A3%8A">王洪磊</a>, <a href="/zh/authors/hao022">HAO022</a></li>
+                    
+                    
+                    <li class="technical-meta-item"><time datetime="2026-10-10"><i class="far fa-calendar" aria-hidden="true"></i>2026.10.10</time></li>
+                    
+                    <li class="technical-meta-item"><i class="far fa-clock" aria-hidden="true"></i>2 分钟阅读</li>
+                </ul>
+
+                <h2 class="technical-entry-title"><a href="/zh/blog/2026-10-10-tracing-interrupt-spikes-with-irqtracing/">irqtracing，一次定位中断突刺问题的探索</a></h2>
+                
+                <p class="technical-entry-summary">检测 CPU 中断突增，采集软中断来源与执行现场，以双视角火焰图辅助定位问题。</p>
+                
+
+                <div class="technical-entry-footer">
+                  <a class="technical-entry-read" href="/zh/blog/2026-10-10-tracing-interrupt-spikes-with-irqtracing/" aria-label="阅读全文: irqtracing，一次定位中断突刺问题的探索">阅读全文 <span aria-hidden="true">→</span></a>
+                </div>
+              </article>
+              
+              <article class="technical-entry">
+                <ul class="technical-topics">
+                  
+                  
+                  <li class="technical-topic"><a href="/zh/tags/go/"><i class="fas fa-tag" aria-hidden="true"></i>Go</a></li>
+                  
+                  <li class="technical-topic"><a href="/zh/tags/memory/"><i class="fas fa-tag" aria-hidden="true"></i>Memory</a></li>
+                  
+                  <li class="technical-topic"><a href="/zh/tags/observability/"><i class="fas fa-tag" aria-hidden="true"></i>Observability</a></li>
+                  
+                    
+                    <li class="technical-meta-item technical-entry-authors"><i class="far fa-user" aria-hidden="true"></i><a href="/zh/authors/hao022">HAO022</a></li>
+                    
+                    
+                    <li class="technical-meta-item"><time datetime="2026-10-09"><i class="far fa-calendar" aria-hidden="true"></i>2026.10.09</time></li>
+                    
+                    <li class="technical-meta-item"><i class="far fa-clock" aria-hidden="true"></i>8 分钟阅读</li>
+                </ul>
+
+                <h2 class="technical-entry-title"><a href="/zh/blog/2026-10-09-profiling-go-heap-memory-from-outside-the-process/">基于 Go 运行时采样统计的进程外堆内存快照方法</a></h2>
+                
+                <p class="technical-entry-summary">进程外读取 Go 堆采样统计，经概率校正，按分配调用栈估算在用内存与对象数量。</p>
+                
+
+                <div class="technical-entry-footer">
+                  <a class="technical-entry-read" href="/zh/blog/2026-10-09-profiling-go-heap-memory-from-outside-the-process/" aria-label="阅读全文: 基于 Go 运行时采样统计的进程外堆内存快照方法">阅读全文 <span aria-hidden="true">→</span></a>
+                </div>
+              </article>
+              
+              <article class="technical-entry">
+                <ul class="technical-topics">
+                  
+                  
+                  <li class="technical-topic"><a href="/zh/tags/bpf/"><i class="fas fa-tag" aria-hidden="true"></i>BPF</a></li>
+                  
+                  <li class="technical-topic"><a href="/zh/tags/memory/"><i class="fas fa-tag" aria-hidden="true"></i>Memory</a></li>
+                  
+                  <li class="technical-topic"><a href="/zh/tags/observability/"><i class="fas fa-tag" aria-hidden="true"></i>Observability</a></li>
+                  
+                    
+                    <li class="technical-meta-item technical-entry-authors"><i class="far fa-user" aria-hidden="true"></i><a href="/zh/authors/%E4%BB%89%E9%B9%8F">仉鹏</a></li>
+                    
+                    
+                    <li class="technical-meta-item"><time datetime="2026-09-24"><i class="far fa-calendar" aria-hidden="true"></i>2026.09.24</time></li>
+                    
+                    <li class="technical-meta-item"><i class="far fa-clock" aria-hidden="true"></i>2 分钟阅读</li>
+                </ul>
+
+                <h2 class="technical-entry-title"><a href="/zh/blog/2026-09-24-capturing-memory-evidence-before-oom/">OOM 之前，留下现场：HUATUO 的多语言内存快照方案</a></h2>
+                
+                <p class="technical-entry-summary">从进程外采集多语言内存快照，保留分配栈与对象类型线索，辅助排查内存增长。</p>
+                
+
+                <div class="technical-entry-footer">
+                  <a class="technical-entry-read" href="/zh/blog/2026-09-24-capturing-memory-evidence-before-oom/" aria-label="阅读全文: OOM 之前，留下现场：HUATUO 的多语言内存快照方案">阅读全文 <span aria-hidden="true">→</span></a>
+                </div>
+              </article>
+              
+              <article class="technical-entry">
+                <ul class="technical-topics">
+                  
+                  
+                  <li class="technical-topic"><a href="/zh/tags/bpf/"><i class="fas fa-tag" aria-hidden="true"></i>BPF</a></li>
+                  
+                  <li class="technical-topic"><a href="/zh/tags/tcp/"><i class="fas fa-tag" aria-hidden="true"></i>TCP</a></li>
+                  
+                  <li class="technical-topic"><a href="/zh/tags/observability/"><i class="fas fa-tag" aria-hidden="true"></i>Observability</a></li>
+                  
+                    
+                    <li class="technical-meta-item technical-entry-authors"><i class="far fa-user" aria-hidden="true"></i><a href="/zh/authors/hao022">HAO022</a>, <a href="/zh/authors/%E8%83%A1%E6%B4%AA">胡洪</a></li>
+                    
+                    
+                    <li class="technical-meta-item"><time datetime="2026-09-11"><i class="far fa-calendar" aria-hidden="true"></i>2026.09.11</time></li>
+                    
+                    <li class="technical-meta-item"><i class="far fa-clock" aria-hidden="true"></i>2 分钟阅读</li>
+                </ul>
+
+                <h2 class="technical-entry-title"><a href="/zh/blog/2026-09-11-investigating-tcp-retransmissions-with-tcpshark/">TCP 重传如何排查？用 HUATUO 追踪连接、关联内核丢包</a></h2>
+                
+                <p class="technical-entry-summary">基于 eBPF 追踪 TCP 重传，解析连接阶段与容器归属，关联内核丢包事件定位故障。</p>
+                
+
+                <div class="technical-entry-footer">
+                  <a class="technical-entry-read" href="/zh/blog/2026-09-11-investigating-tcp-retransmissions-with-tcpshark/" aria-label="阅读全文: TCP 重传如何排查？用 HUATUO 追踪连接、关联内核丢包">阅读全文 <span aria-hidden="true">→</span></a>
+                </div>
+              </article>
+              
+              <article class="technical-entry">
+                <ul class="technical-topics">
+                  
+                  
+                  <li class="technical-topic"><a href="/zh/tags/ai/"><i class="fas fa-tag" aria-hidden="true"></i>AI</a></li>
+                  
+                  <li class="technical-topic"><a href="/zh/tags/community/"><i class="fas fa-tag" aria-hidden="true"></i>Community</a></li>
+                  
+                    
+                    <li class="technical-meta-item technical-entry-authors"><i class="far fa-user" aria-hidden="true"></i><a href="/zh/authors/hao022">HAO022</a></li>
+                    
+                    
+                    <li class="technical-meta-item"><time datetime="2026-08-31"><i class="far fa-calendar" aria-hidden="true"></i>2026.08.31</time></li>
+                    
+                    <li class="technical-meta-item"><i class="far fa-clock" aria-hidden="true"></i>2 分钟阅读</li>
+                </ul>
+
+                <h2 class="technical-entry-title"><a href="/zh/blog/2026-08-31-agent-sandbox-kernel-observation/">面向 Agent 沙箱的内核全景观测｜滴滴开源 CCF 中国开源大会分享回顾</a></h2>
+                
+                <p class="technical-entry-summary">在 CCF 中国开源大会上，分享项目实践与社区进展。</p>
+                
+
+                <div class="technical-entry-footer">
+                  <a class="technical-entry-read" href="/zh/blog/2026-08-31-agent-sandbox-kernel-observation/" aria-label="阅读全文: 面向 Agent 沙箱的内核全景观测｜滴滴开源 CCF 中国开源大会分享回顾">阅读全文 <span aria-hidden="true">→</span></a>
+                </div>
+              </article>
+              
+              <article class="technical-entry">
+                <ul class="technical-topics">
+                  
+                  
+                  <li class="technical-topic"><a href="/zh/tags/go/"><i class="fas fa-tag" aria-hidden="true"></i>Go</a></li>
+                  
+                  <li class="technical-topic"><a href="/zh/tags/bpf/"><i class="fas fa-tag" aria-hidden="true"></i>BPF</a></li>
+                  
+                  <li class="technical-topic"><a href="/zh/tags/networking/"><i class="fas fa-tag" aria-hidden="true"></i>Networking</a></li>
+                  
+                    
+                    <li class="technical-meta-item technical-entry-authors"><i class="far fa-user" aria-hidden="true"></i><a href="/zh/authors/hao022">HAO022</a>, <a href="/zh/authors/%E8%83%A1%E6%B4%AA">胡洪</a></li>
+                    
+                    
+                    <li class="technical-meta-item"><time datetime="2026-08-04"><i class="far fa-calendar" aria-hidden="true"></i>2026.08.04</time></li>
+                    
+                    <li class="technical-meta-item"><i class="far fa-clock" aria-hidden="true"></i>2 分钟阅读</li>
+                </ul>
+
+                <h2 class="technical-entry-title"><a href="/zh/blog/2026-08-04-why-we-revived-go-pcap-for-ai-infrastructure/">为什么复活 Go-pcap：面向 AI 基础设施的纯 Go 报文过滤</a></h2>
+                
+                <p class="technical-entry-summary">Go-pcap 基于 Go 将过滤表达式生成 eBPF 用于 skb、mbuf、RDMA 实时报文过滤。</p>
+                
+
+                <div class="technical-entry-footer">
+                  <a class="technical-entry-read" href="/zh/blog/2026-08-04-why-we-revived-go-pcap-for-ai-infrastructure/" aria-label="阅读全文: 为什么复活 Go-pcap：面向 AI 基础设施的纯 Go 报文过滤">阅读全文 <span aria-hidden="true">→</span></a>
+                </div>
+              </article>
+              
+              <article class="technical-entry">
+                <ul class="technical-topics">
+                  
+                  
+                  <li class="technical-topic"><a href="/zh/tags/networking/"><i class="fas fa-tag" aria-hidden="true"></i>Networking</a></li>
+                  
+                    
+                    <li class="technical-meta-item technical-entry-authors"><i class="far fa-user" aria-hidden="true"></i><a href="/zh/authors/hao022">HAO022</a>, <a href="/zh/authors/%E8%83%A1%E6%B4%AA">胡洪</a></li>
+                    
+                    
+                    <li class="technical-meta-item"><time datetime="2026-07-01"><i class="far fa-calendar" aria-hidden="true"></i>2026.07.01</time></li>
+                    
+                    <li class="technical-meta-item"><i class="far fa-clock" aria-hidden="true"></i>3 分钟阅读</li>
+                </ul>
+
+                <h2 class="technical-entry-title"><a href="/zh/blog/2026-07-01-full-stack-packet-loss-detection-of-the-linux-kernel-based-on-ebpf/">新特性！基于 eBPF 的 Linux 内核全栈丢包检测</a></h2>
+                
+                <p class="technical-entry-summary">本文重点介绍， HUATUO 华佗如何基于 eBPF 实现对 Linux 内核的协议全栈丢包观测。</p>
+                
+
+                <div class="technical-entry-footer">
+                  <a class="technical-entry-read" href="/zh/blog/2026-07-01-full-stack-packet-loss-detection-of-the-linux-kernel-based-on-ebpf/" aria-label="阅读全文: 新特性！基于 eBPF 的 Linux 内核全栈丢包检测">阅读全文 <span aria-hidden="true">→</span></a>
+                </div>
+              </article>
+              
+              <article class="technical-entry">
+                <ul class="technical-topics">
+                  
+                  
+                  <li class="technical-topic"><a href="/zh/tags/blkio/"><i class="fas fa-tag" aria-hidden="true"></i>BLKIO</a></li>
+                  
+                    
+                    <li class="technical-meta-item technical-entry-authors"><i class="far fa-user" aria-hidden="true"></i><a href="/zh/authors/hao022">HAO022</a></li>
+                    
+                    
+                    <li class="technical-meta-item"><time datetime="2026-05-05"><i class="far fa-calendar" aria-hidden="true"></i>2026.05.05</time></li>
+                    
+                    <li class="technical-meta-item"><i class="far fa-clock" aria-hidden="true"></i>1 分钟阅读</li>
+                </ul>
+
+                <h2 class="technical-entry-title"><a href="/zh/blog/2026-05-06-container-level-block-device-io-delay-based-on-ebpf/">新特性！基于 eBPF 的容器级块设备 IO 延迟检测</a></h2>
+                
+                <p class="technical-entry-summary">本文重点介绍， HUATUO 华佗如何基于 eBPF 对容器级块 IO 实现延迟检测，定位存储瓶颈。</p>
+                
+
+                <div class="technical-entry-footer">
+                  <a class="technical-entry-read" href="/zh/blog/2026-05-06-container-level-block-device-io-delay-based-on-ebpf/" aria-label="阅读全文: 新特性！基于 eBPF 的容器级块设备 IO 延迟检测">阅读全文 <span aria-hidden="true">→</span></a>
+                </div>
+              </article>
+              
+              <article class="technical-entry">
+                <ul class="technical-topics">
+                  
+                  
+                  <li class="technical-topic"><a href="/zh/tags/rdma/"><i class="fas fa-tag" aria-hidden="true"></i>RDMA</a></li>
+                  
+                    
+                    <li class="technical-meta-item technical-entry-authors"><i class="far fa-user" aria-hidden="true"></i><a href="/zh/authors/hao022">HAO022</a></li>
+                    
+                    
+                    <li class="technical-meta-item"><time datetime="2026-04-14"><i class="far fa-calendar" aria-hidden="true"></i>2026.04.14</time></li>
+                    
+                    <li class="technical-meta-item"><i class="far fa-clock" aria-hidden="true"></i>4 分钟阅读</li>
+                </ul>
+
+                <h2 class="technical-entry-title"><a href="/zh/blog/2026-04-14-rdma-key-technology-research-doorbell-uar-user-access-region/">RDMA 关键技术研究：Doorbell, UAR</a></h2>
+                
+                <p class="technical-entry-summary">该文重点分析 UAR, User Access Region 的内存布局，分配时机，映射方式，用户态和内核态代码实现等。</p>
+                
+
+                <div class="technical-entry-footer">
+                  <a class="technical-entry-read" href="/zh/blog/2026-04-14-rdma-key-technology-research-doorbell-uar-user-access-region/" aria-label="阅读全文: RDMA 关键技术研究：Doorbell, UAR">阅读全文 <span aria-hidden="true">→</span></a>
+                </div>
+              </article>
+              
+              <article class="technical-entry">
+                <ul class="technical-topics">
+                  
+                  
+                  <li class="technical-topic"><a href="/zh/tags/rdma/"><i class="fas fa-tag" aria-hidden="true"></i>RDMA</a></li>
+                  
+                    
+                    <li class="technical-meta-item technical-entry-authors"><i class="far fa-user" aria-hidden="true"></i><a href="/zh/authors/hao022">HAO022</a></li>
+                    
+                    
+                    <li class="technical-meta-item"><time datetime="2026-04-09"><i class="far fa-calendar" aria-hidden="true"></i>2026.04.09</time></li>
+                    
+                    <li class="technical-meta-item"><i class="far fa-clock" aria-hidden="true"></i>2 分钟阅读</li>
+                </ul>
+
+                <h2 class="technical-entry-title"><a href="/zh/blog/2026-04-09-rdma-key-technology-research-memory-window/">RDMA 关键技术研究：Memory Window</a></h2>
+                
+                <p class="technical-entry-summary">该文主要分析 Memory window 作用，用户态和内核态代码实现方式，硬件原理，和一些思考。</p>
+                
+
+                <div class="technical-entry-footer">
+                  <a class="technical-entry-read" href="/zh/blog/2026-04-09-rdma-key-technology-research-memory-window/" aria-label="阅读全文: RDMA 关键技术研究：Memory Window">阅读全文 <span aria-hidden="true">→</span></a>
+                </div>
+              </article>
+              
+              <article class="technical-entry">
+                <ul class="technical-topics">
+                  
+                  
+                  <li class="technical-topic"><a href="/zh/tags/rdma/"><i class="fas fa-tag" aria-hidden="true"></i>RDMA</a></li>
+                  
+                    
+                    <li class="technical-meta-item technical-entry-authors"><i class="far fa-user" aria-hidden="true"></i><a href="/zh/authors/hao022">HAO022</a></li>
+                    
+                    
+                    <li class="technical-meta-item"><time datetime="2026-04-08"><i class="far fa-calendar" aria-hidden="true"></i>2026.04.08</time></li>
+                    
+                    <li class="technical-meta-item"><i class="far fa-clock" aria-hidden="true"></i>2 分钟阅读</li>
+                </ul>
+
+                <h2 class="technical-entry-title"><a href="/zh/blog/2026-04-08-rdma-key-technology-research-queue-pairs/">RDMA 关键技术研究：Queue Pairs</a></h2>
+                
+                <p class="technical-entry-summary">该文主要分析 QPs, SQ, RQ 作用，用户态接口，内核实现方式，硬件原理，一些思考。</p>
+                
+
+                <div class="technical-entry-footer">
+                  <a class="technical-entry-read" href="/zh/blog/2026-04-08-rdma-key-technology-research-queue-pairs/" aria-label="阅读全文: RDMA 关键技术研究：Queue Pairs">阅读全文 <span aria-hidden="true">→</span></a>
+                </div>
+              </article>
+              
+
+              
+<nav class="blog-pagination" aria-label="博客分页">
+  
+  <span class="page-btn disabled" aria-disabled="true">&larr; 更新</span>
+  
+
+  
+  
+  <span class="page-num active" aria-current="page">1</span>
+  
+  
+  
+  <a href="/zh/blog/page/2/" class="page-num">2</a>
+  
+  
+
+  
+  <a href="/zh/blog/page/2/" class="page-btn">更旧 &rarr;</a>
+  
+</nav>
+
+
+            </section>
+
+            <aside class="col-md-3" aria-label="主题索引">
+              
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="panel sidebar-menu sidebar-tags">
+
+    <div class="panel-heading">
+        <h3 class="panel-title">标签</h3>
+    </div>
+
+    <div class="panel-body">
+        <ul class="tag-cloud">
+            
+            
+            <li >
+                <a href="/zh/tags/ai"><i class="fas fa-tags"></i> AI</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/ascend"><i class="fas fa-tags"></i> Ascend</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/blkio"><i class="fas fa-tags"></i> BLKIO</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/bpf"><i class="fas fa-tags"></i> BPF</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/ccf"><i class="fas fa-tags"></i> CCF</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/collaboration"><i class="fas fa-tags"></i> Collaboration</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/community"><i class="fas fa-tags"></i> Community</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/faults"><i class="fas fa-tags"></i> Faults</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/go"><i class="fas fa-tags"></i> Go</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/gpu"><i class="fas fa-tags"></i> GPU</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/hao022"><i class="fas fa-tags"></i> HAO022</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/infrastructure"><i class="fas fa-tags"></i> Infrastructure</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/irq"><i class="fas fa-tags"></i> IRQ</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/k8s"><i class="fas fa-tags"></i> K8S</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/linux-kernel"><i class="fas fa-tags"></i> Linux Kernel</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/memory"><i class="fas fa-tags"></i> Memory</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/moore-threads"><i class="fas fa-tags"></i> Moore Threads</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/network"><i class="fas fa-tags"></i> Network</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/networking"><i class="fas fa-tags"></i> Networking</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/news"><i class="fas fa-tags"></i> News</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/npu"><i class="fas fa-tags"></i> NPU</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/observability"><i class="fas fa-tags"></i> Observability</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/open-source"><i class="fas fa-tags"></i> Open Source</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/performance"><i class="fas fa-tags"></i> Performance</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/profiling"><i class="fas fa-tags"></i> Profiling</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/rca"><i class="fas fa-tags"></i> RCA</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/rdma"><i class="fas fa-tags"></i> RDMA</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/recognition"><i class="fas fa-tags"></i> Recognition</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/sandbox"><i class="fas fa-tags"></i> Sandbox</a>
+            </li>
+            
+            <li >
+                <a href="/zh/tags/tcp"><i class="fas fa-tags"></i> TCP</a>
+            </li>
+            
+        </ul>
+    </div>
+
+</div>
+
+
+
+
+
+            </aside>
+          </div>
+        </div>
+      </main>
+
+      <footer id="footer">
+    <div class="container">
+        
+        
+        
+        
+        <div class="row">
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>官方认证</h4>
+                <div class="footer-certifications">
+                    
+                    <a href="https://landscape.cncf.io/?item=observability-and-analysis--observability--huatuo" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="CNCF Landscape">
+                        <img src="/img/certifications/cncf.png" alt="CNCF Landscape" />
+                    </a>
+                    
+                    <a href="https://ebpf.foundation/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="eBPF Foundation">
+                        <img src="/img/certifications/ebpf-foundation.png" alt="eBPF Foundation" />
+                    </a>
+                    
+                    <a href="https://prometheus.io/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="prometheus">
+                        <img src="/img/certifications/prometheus-logo.png" alt="prometheus" />
+                    </a>
+                    
+                    <a href="https://www.ccf.org.cn/" target="_blank" rel="noopener noreferrer" class="footer-certification-card" title="ccf">
+                        <img src="/img/certifications/ccf.png" alt="ccf" />
+                    </a>
+                    
+                </div>
+            </div>
+            
+            
+            <div class="col-md-4 col-sm-4 footer-col">
+                <h4>关于我们</h4>
+                基础软件技术研究者，Linux 内核开发者。
+            </div>
+            
+            
+        </div>
+
+    </div>
+    
+</footer>
+
+
+
+
+
+
+
+<div id="copyright">
+    <div class="container">
+        <div class="col-md-12">
+            
+            <p class="pull-left">(C) 2025-2026 HUATUO 开源社区。</p>
+            
+        </div>
+    </div>
+</div>
+
+
+
+
+    </div>
+    
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-TVWV1CTT56"></script>
+      <script>
+        var doNotTrack = false;
+        if ( false ) {
+          var dnt = (navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack);
+          var doNotTrack = (dnt == "1" || dnt == "yes");
+        }
+        if (!doNotTrack) {
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-TVWV1CTT56');
+        }
+      </script>
+<script src="//code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0/jquery.counterup.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-parallax/1.1.3/jquery-parallax.js"></script>
+
+<script src="/js/front.js?1795790367"></script>
+
+
+<script src="/js/owl.carousel.min.js"></script>
+
+  </body>
+</html>
